@@ -20,18 +20,6 @@ Main:
     ; Called from bootstrap only
     ; ======================================
 
-    lea    tst_pal, a0
-    moveq  #0x0, d0
-    bsr    VDP_LoadPalette
-
-    lea    tst_str, a0
-    moveq  #0x0004, d0
-    moveq  #0x0004, d1
-    bsr    DBG_DrawString
-    
-    @l:
-    bra @l
-
     lea    RAM_VRAM_Manager, a0
     bsr    VRAM_ManagerInit
 

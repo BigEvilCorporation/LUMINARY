@@ -10,6 +10,7 @@
     ASSET_INCLUDE_ASM default_vdp_regs, 'engine/assets/vdp/vdpregs.asm'
 
     ; Debug draw font
-    IF BLDCONF_DEBUG_DRAW
 	ASSET_INCLUDE_BIN debug_font, 'engine/assets/fonts/sans.bin'
-    ENDIF
+
+    ; Error draw palette
+    ASSET_INCLUDE_ASM error_palette, 'engine/assets/palettes/errorpal.asm'

@@ -1,14 +1,24 @@
 ; ============================================================================================
 ; LUMINARY - a game engine and framework for the SEGA Mega Drive
 ; ============================================================================================
-; Matt Phillips - Big Evil Corporation Ltd - 11th July 2019
+; Matt Phillips - Big Evil Corporation Ltd - 2nd August 2019
 ; ============================================================================================
-; BLDCONF.ASM - Engine build config - override with BLDCONF_DEFINED
+; ERRORPAL.ASM - Palette used for drawing error messages
 ; ============================================================================================
-
-    IFND BLDCONF_DEFINED
-
-; Error checks
-BLDCONF_ERROR_CHECKS                    equ 1
-
-    ENDIF
+    
+    dc.w   0x0008
+    dc.w   0x0EEE
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000
+    dc.w   0x0000

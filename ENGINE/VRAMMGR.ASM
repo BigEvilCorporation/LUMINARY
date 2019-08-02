@@ -171,19 +171,13 @@ VRAM_ManagerAlloc:
     rts
 
     @Err_OutOfMem:
-    ; Error, out of VRAM
-    ; TODO: Error
     move.w VRAMManager_TilesFree(a0), d6
-    nop
-    bra    @Err_OutOfMem
+    RAISE_ERROR "VRAM_MGR: Out of VRAM"
 
     IF BLDCONF_ERROR_CHECKS
 
     @Err_BadNewAddr:
-    ; Error, address of split block out of range
-    ; TODO: Error
-    nop
-    bra    @Err_BadNewAddr
+    RAISE_ERROR "VRAM_MGR: Block out of range"
 
     ENDIF
 
@@ -269,22 +263,13 @@ VRAM_ManagerFree:
     IF BLDCONF_ERROR_CHECKS
 
     @Err_NotAllocd:
-    ; Error, block not allocated
-    ; TODO: Error
-    nop
-    bra    @Err_NotAllocd
+    RAISE_ERROR "VRAM_MGR: Block not allocated"
 
     @Err_BadAddr:
-    ; Error, address mismatch
-    ; TODO: Error
-    nop
-    bra    @Err_BadAddr
+    RAISE_ERROR "VRAM_MGR: Address mismatch"
 
     @Err_ExceededPoolSize:
-    ; Error, free blocks size exceeds pool size
-    ; TODO: Error
-    nop
-    bra    @Err_ExceededPoolSize
+    RAISE_ERROR "VRAM_MGR: Exceeded pool size"
 
     ENDIF  ; BLDCONF_ERROR_CHECKS
 
@@ -314,10 +299,7 @@ VRAM_ManagerGetTableEntry:
     bne    @SearchLp
 
     @Err_OutOfHandles:
-    ; Error, no space left in table
-    ; TODO: Error
-    nop
-    bra    @Err_OutOfHandles
+    RAISE_ERROR "VRAM_MGR: Out of table space"
 
     @Found:
 
@@ -392,22 +374,13 @@ VRAM_ManagerMergeRightNeighbour:
     IF BLDCONF_ERROR_CHECKS
 
     @Err_Allocd:
-    ; Error, block must be free
-    ; TODO: error
-    nop
-    bra    @Err_Allocd
+    RAISE_ERROR "VRAM_MGR: Block not free"
 
     @Err_NoNeighbour:
-    ; Error, should have a right-hand neighbour
-    ; TODO: error
-    nop
-    bra    @Err_NoNeighbour
+    RAISE_ERROR "VRAM_MGR: No block neighbour"
 
     @Err_NeighbourAllocd:
-    ; Error, right-hand neighbour must be free
-    ; TODO: error
-    nop
-    bra    @Err_NeighbourAllocd
+    RAISE_ERROR "VRAM_MGR: Neighbour block not free"
 
     ENDIF  ; BLDCONF_ERROR_CHECKS
 

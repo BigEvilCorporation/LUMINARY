@@ -31,6 +31,8 @@
 
     ; Engine
     include 'engine/bootstrp.asm'
+    include 'engine/dbgdraw.asm'
+    include 'engine/error.asm'
     include 'engine/interpts.asm'
     include 'engine/palettes.asm'
     include 'engine/ram.asm'
@@ -39,11 +41,6 @@
     include 'engine/vdpregs.asm'
     include 'engine/vram.asm'
     include 'engine/vrammgr.asm'
-
-    ; Debug
-    IF BLDCONF_DEBUG_DRAW
-    include 'engine/dbgdraw.asm'
-    ENDIF
 
     ; Memory map
     include 'engine/memmap.asm'

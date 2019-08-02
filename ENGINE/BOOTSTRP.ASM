@@ -28,7 +28,6 @@ Bootstrap:
 
     ; TODO: Init VRAM manager
 
-    IF BLDCONF_DEBUG_DRAW
     ; Load debug font
     ; TODO: Use VRAM manager
     lea    debug_font, a0
@@ -36,7 +35,6 @@ Bootstrap:
     move.w #SIZEOF_debug_font/SIZE_TILE_B, d1
     bsr    VDP_LoadTiles
     move.w #0x0, RAM_DBG_FONT_VRAM
-    ENDIF
 
     ; Jump to program main
     jmp    Main
