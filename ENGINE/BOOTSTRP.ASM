@@ -36,8 +36,8 @@ Bootstrap:
     ; TODO: Take initial pools from table
     move.w #0x0000, d0
     move.w #0xB000/SIZE_TILE_B, d1
-    bsr    VRAM_AddPool
-
+    bsr    VRAM_ManagerAddPool
+    
     ; Load debug font
     lea    RAM_VRAM_Manager, a0
     move.w #SIZEOF_debug_font/SIZE_TILE_B, d0

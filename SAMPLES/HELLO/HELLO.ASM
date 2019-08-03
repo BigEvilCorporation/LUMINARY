@@ -16,8 +16,9 @@
 DRAW_VRAM: macro
     PUSH.L a0
     bsr    ERR_ResetForError
-    POP.L  a0
+    lea    RAM_VRAM_Manager, a0
     bsr    VRAM_ManagerDrawTable
+    POP.L  a0
     endm
 
 Main:

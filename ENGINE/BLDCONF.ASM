@@ -6,9 +6,9 @@
 ; BLDCONF.ASM - Engine build config - override with BLDCONF_DEFINED
 ; ============================================================================================
 
-    IFND BLDCONF_DEFINED
+    IFND BLDCONF_CUSTOM_DEFINED
 
-; Error checks
-BLDCONF_ERROR_CHECKS                    equ 1
+; Debugging and asserts
+BLDCONF_VRAM_MGR_DEBUG                  equ 1
 
     ENDIF

@@ -13,10 +13,13 @@ VRAM_MGR_BIT_ALLOCATED                  equ 15
 VRAM_MGR_SIZE_MASK                      equ 0x7FFF
 
     STRUCT_BEGIN VRAMBlock
-VRAMBlock_Addr                          rs.w 1
-VRAMBlock_SizeFlags                     rs.w 1
-VRAMBlock_Prev                          rs.w 1
-VRAMBlock_Next                          rs.w 1
+VRAMBlock_Addr                          rs.w 1  ; Address of block
+VRAMBlock_SizeFlags                     rs.w 1  ; Size and alloc flags
+VRAMBlock_Prev                          rs.w 1  ; Prev block in table
+VRAMBlock_Next                          rs.w 1  ; Next block in table
+    IF BLDCONF_VRAM_MGR_DEBUG
+VRAMBlock_DebugAllocAddr                rs.l 1  ; Address of callee to Alloc()
+    ENDIF
     STRUCT_END
 
     STRUCT_BEGIN VRAMManager
@@ -57,7 +60,7 @@ VRAM_ManagerInit:
     ; a0   VRAM Manager
     ; ======================================
 
-    lea    VRAMManager_BlockTable, a1
+    lea    VRAMManager_BlockTable(a0), a1
     move.w #(SIZEOF_VRAMBlock*VRAM_MGR_MAX_ALLOCATIONS), d0
     MEMZERO.B a1,d0
 
@@ -68,7 +71,7 @@ VRAM_ManagerInit:
 
     rts
 
-VRAM_AddPool:
+VRAM_ManagerAddPool:
     ; ======================================
     ; Adds a pool to a VRAM manager
     ; ======================================
@@ -104,6 +107,11 @@ VRAM_ManagerAlloc:
     ;       hi word - bookkeeping data
     ;       lo word - address (tiles)
     ; ======================================
+
+    IF BLDCONF_VRAM_MGR_DEBUG
+    ; Take address of callee for debugging
+    move.l (sp), a6
+    ENDIF
 
     ; Check if enough memory free
     cmp.w  VRAMManager_TilesFree(a0), d0
@@ -160,7 +168,7 @@ VRAM_ManagerAlloc:
     move.w VRAMBlock_Addr(a1), VRAMBlock_Addr(a2) ; Set address of next block
     add.w  d0, VRAMBlock_Addr(a2)
 
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
     move.w VRAMBlock_Addr(a2), d6
     move.w VRAMManager_PoolAddr(a0), d5
     cmp.w  d6, d5
@@ -181,13 +189,18 @@ VRAM_ManagerAlloc:
     ; Keep count
     sub.w  d0, VRAMManager_TilesFree(a0)
 
+    ; Store callee
+    IF BLDCONF_VRAM_MGR_DEBUG
+    move.l a6, VRAMBlock_DebugAllocAddr(a1)
+    ENDIF
+
     rts
 
     @Err_OutOfMem:
     move.w VRAMManager_TilesFree(a0), d6
     VRAM_ERROR "VRAM_MGR: Out of VRAM"
 
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
 
     @Err_BadNewAddr:
     VRAM_ERROR "VRAM_MGR: Block out of range"
@@ -214,13 +227,13 @@ VRAM_ManagerFree:
     VRAM_BLOCK_IDX_TO_ADDR a1
 
     ; Sanity check - must be allocated
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
     btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a1)
     beq    @Err_NotAllocd
     ENDIF
 
     ; Sanity check - handle address must match table entry
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
     move.w VRAMBlock_Addr(a1), d2
     cmp.w  d1, d2
     bne    @Err_BadAddr
@@ -235,7 +248,7 @@ VRAM_ManagerFree:
     add.w  d4, VRAMManager_TilesFree(a0)
 
     ; Sanity check - freed size must not exceed pool size
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
     move.w VRAMManager_PoolSize(a0), d4
     cmp.w  VRAMManager_TilesFree(a0), d4
     blt    @Err_ExceededPoolSize
@@ -275,7 +288,7 @@ VRAM_ManagerFree:
 
     rts
 
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
 
     @Err_NotAllocd:
     VRAM_ERROR "VRAM_MGR: Block not allocated"
@@ -286,7 +299,7 @@ VRAM_ManagerFree:
     @Err_ExceededPoolSize:
     VRAM_ERROR "VRAM_MGR: Exceeded pool size"
 
-    ENDIF  ; BLDCONF_ERROR_CHECKS
+    ENDIF  ; BLDCONF_VRAM_MGR_DEBUG
 
     rts
 
@@ -337,13 +350,13 @@ VRAM_ManagerMergeRightNeighbour:
     ; ======================================
 
     ; Sanity check - block must be free
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
     btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a3)
     bne    @Err_Allocd
     ENDIF
     
     ; Sanity check - block must have right-hand neighbour
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
     tst.w  VRAMBlock_Next(a3)
     beq    @Err_NoNeighbour
     ENDIF
@@ -354,7 +367,7 @@ VRAM_ManagerMergeRightNeighbour:
     VRAM_BLOCK_IDX_TO_ADDR a2
 
     ; Sanity check - neighbour must be free
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
     btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a2)
     bne    @Err_NeighbourAllocd
     ENDIF
@@ -374,6 +387,10 @@ VRAM_ManagerMergeRightNeighbour:
     move.w #0x0000, VRAMBlock_Prev(a2)
     move.w #0x0000, VRAMBlock_Next(a2)
 
+    IF BLDCONF_VRAM_MGR_DEBUG
+    move.l #0x0, VRAMBlock_DebugAllocAddr(a2)
+    ENDIF
+
     ; Link neighbour's next with this
     tst.w  d2
     beq    @NoNextNext                  ; End of list?
@@ -391,7 +408,7 @@ VRAM_ManagerMergeRightNeighbour:
 
     rts
 
-    IF BLDCONF_ERROR_CHECKS
+    IF BLDCONF_VRAM_MGR_DEBUG
 
     @Err_Allocd:
     VRAM_ERROR "VRAM_MGR: Block not free"
@@ -402,7 +419,7 @@ VRAM_ManagerMergeRightNeighbour:
     @Err_NeighbourAllocd:
     VRAM_ERROR "VRAM_MGR: Neighbour block not free"
 
-    ENDIF  ; BLDCONF_ERROR_CHECKS
+    ENDIF  ; BLDCONF_VRAM_MGR_DEBUG
 
     rts
 
@@ -417,7 +434,11 @@ VRAM_ManagerDrawTable:
     ; loaded.
     ; ======================================
 
+    IF BLDCONF_VRAM_MGR_DEBUG
+    DBG_DRAW_STRING #4,#5,"Owner  Addr   Size/F Prev   Next"
+    ELSE
     DBG_DRAW_STRING #4,#5,"Addr   Size/F Prev   Next"
+    ENDIF
 
     PUSH.L a0
 
@@ -428,11 +449,19 @@ VRAM_ManagerDrawTable:
     @EntryLp:
     move.w #0x04, d0                    ; X
 
-    STACK_ALLOC 32, a0                  ; Alloc space for string
+    STACK_ALLOC 64, a0                  ; Alloc space for string
 
     PUSHM.L d0-d2/a0-a2
    
     PUSHM.L d0-d1/a0                    ; Backup string start addr
+
+    IF BLDCONF_VRAM_MGR_DEBUG
+    ; Owner (callee)
+    move.l VRAMBlock_DebugAllocAddr(a2), d0
+    bsr    STR_ItoA_Hex_w
+    move.l a1, a0
+    move.b #' ', (a0)+
+    ENDIF
 
     ; Block addr
     move.w VRAMBlock_Addr(a2), d0
@@ -466,7 +495,7 @@ VRAM_ManagerDrawTable:
 
     POPM.L d0-d2/a0-a2
 
-    STACK_FREE 32                       ; Free string
+    STACK_FREE 64                       ; Free string
 
     addi.w #0x1, d1
     addi.l #SIZEOF_VRAMBlock, a2
