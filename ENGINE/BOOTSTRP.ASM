@@ -23,6 +23,9 @@ Bootstrap:
     lea    default_vdp_regs, a0
     bsr    VDP_LoadRegisters
 
+    ; Initialise gamepads
+    bsr    PAD_Initialise
+
     ; Clear VRAM
     bsr    VRAM_Clear
 

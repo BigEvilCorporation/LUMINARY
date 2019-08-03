@@ -17,6 +17,7 @@ VDP_LoadTiles:
 
     VDP_SETADDRESS d0,#0x0000,#VDP_CMD_VRAM_WRITE
 
+    subq   #0x1, d1
     @TileLp:
     ; 32 bytes per tile
     REPT 8

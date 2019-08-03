@@ -63,3 +63,23 @@ POPALL: macro
     ; ======================================
 	movem.l (sp)+, d0-d7/a0-a6
 	endm
+
+STACK_ALLOC: macro bytes,addr_reg
+    ; ======================================
+    ; Allocate bytes from stack
+    ; ======================================
+    ; bytes    - Bytes to alloc
+    ; addr_reg - Dest address reg
+    ; ======================================
+	sub.l  #\bytes, sp
+    move.l sp, \addr_reg
+	endm
+	
+STACK_FREE: macro bytes
+    ; ======================================
+    ; Free bytes to stack
+    ; ======================================
+    ; bytes    - Bytes to free
+    ; ======================================
+	addi.l #\bytes, sp
+	endm

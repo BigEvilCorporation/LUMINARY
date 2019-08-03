@@ -23,6 +23,7 @@
 
     ; Macros
     include 'engine/macros/assets.asm'
+    include 'engine/macros/debug.asm'
     include 'engine/macros/interpts.asm'
     include 'engine/macros/memory.asm'
     include 'engine/macros/stack.asm'
@@ -33,9 +34,11 @@
     include 'engine/bootstrp.asm'
     include 'engine/dbgdraw.asm'
     include 'engine/error.asm'
+    include 'engine/gamepad.asm'
     include 'engine/interpts.asm'
     include 'engine/palettes.asm'
     include 'engine/ram.asm'
+    include 'engine/strings.asm'
     include 'engine/tiles.asm'
     include 'engine/vdp.asm'
     include 'engine/vdpregs.asm'

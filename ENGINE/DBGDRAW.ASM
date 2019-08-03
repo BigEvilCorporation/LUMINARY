@@ -6,8 +6,6 @@
 ; DBGDRAW.ASM - Debug drawing routines
 ; ============================================================================================
 
-CHARMAP_ASCII_START			            equ 0x20 ; First ASCII code in table
-
 DBG_DrawString:
     ; ======================================
     ; Draws debug text string to plane A.
@@ -32,7 +30,7 @@ DBG_DrawString:
     moveq  #0x0, d3
     move.b (a0)+, d3
     beq    @End
-    sub.b  #CHARMAP_ASCII_START, d3     ; Tile idx = char - ascii start + font addr
+    sub.b  #STR_ASCII_START, d3         ; Tile idx = char - ascii start + font addr
     add.w  d0, d3
     move.w d3, PORT_VDP_DATA
     bra    @CharLp                      

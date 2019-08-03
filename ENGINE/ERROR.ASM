@@ -7,22 +7,7 @@
 ; ============================================================================================
 
 ERR_TEXT_POS_X  equ 0x04
-ERR_TEXT_POS_Y  equ 0x04
-
-    ; ======================================
-    ; Resets the system and draws an error
-    ; string, incl. registers and stack
-    ; ======================================
-    ; No params
-    ; ======================================
-RAISE_ERROR: macro string
-    bsr    ERR_ResetForError
-    lea    @err_string\@, a0
-    bsr    ERR_DrawAndHalt
-    @err_string\@:
-    dc.b   \string\,0
-    even
-    endm
+ERR_TEXT_POS_Y  equ 0x02
 
 ERR_ResetForError:
     ; ======================================
@@ -54,9 +39,9 @@ ERR_ResetForError:
 
     rts
 
-ERR_DrawAndHalt:
+ERR_DrawMessage:
     ; ======================================
-    ; Draws an error message and halts.
+    ; Draws an error message.
     ; Resets VDP regs, loads debug font
     ; at VRAM 0x0000.
     ; ======================================

@@ -9,7 +9,7 @@
 ; ============================================================================================
 
 VRAM_MGR_MAX_ALLOCATIONS                equ 256
-VRAM_MGR_BIT_ALLOCATED                  equ 15
+VRAM_MGR_BIT_ALLOCATED                  equ 15	
 VRAM_MGR_SIZE_MASK                      equ 0x7FFF
 
     STRUCT_BEGIN VRAMBlock
@@ -35,6 +35,19 @@ VRAM_BLOCK_IDX_TO_ADDR: macro idxreg
 VRAM_BLOCK_ADDR_TO_IDX: macro idxreg
     sub.l  a0,\idxreg
     subi.l #VRAMManager_BlockTable,\idxreg
+    endm
+
+VRAM_ERROR: macro string
+    PUSH.L a0
+    bsr    ERR_ResetForError
+    lea    @err_string\@, a0
+    bsr    ERR_DrawMessage
+    POP.L  a0
+    bsr    VRAM_ManagerDrawTable
+    bra    *
+    @err_string\@:
+    dc.b   \string\,0
+    even
     endm
 
 VRAM_ManagerInit:
@@ -172,12 +185,12 @@ VRAM_ManagerAlloc:
 
     @Err_OutOfMem:
     move.w VRAMManager_TilesFree(a0), d6
-    RAISE_ERROR "VRAM_MGR: Out of VRAM"
+    VRAM_ERROR "VRAM_MGR: Out of VRAM"
 
     IF BLDCONF_ERROR_CHECKS
 
     @Err_BadNewAddr:
-    RAISE_ERROR "VRAM_MGR: Block out of range"
+    VRAM_ERROR "VRAM_MGR: Block out of range"
 
     ENDIF
 
@@ -237,8 +250,9 @@ VRAM_ManagerFree:
     VRAM_BLOCK_IDX_TO_ADDR a2
 
     ; If right neighbour is free, merge it into this block
-    btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a3)
+    btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a2)
     bne    @NoNext
+    move.l a1, a3
     bsr    VRAM_ManagerMergeRightNeighbour
 
     @NoNext:
@@ -263,13 +277,13 @@ VRAM_ManagerFree:
     IF BLDCONF_ERROR_CHECKS
 
     @Err_NotAllocd:
-    RAISE_ERROR "VRAM_MGR: Block not allocated"
+    VRAM_ERROR "VRAM_MGR: Block not allocated"
 
     @Err_BadAddr:
-    RAISE_ERROR "VRAM_MGR: Address mismatch"
+    VRAM_ERROR "VRAM_MGR: Address mismatch"
 
     @Err_ExceededPoolSize:
-    RAISE_ERROR "VRAM_MGR: Exceeded pool size"
+    VRAM_ERROR "VRAM_MGR: Exceeded pool size"
 
     ENDIF  ; BLDCONF_ERROR_CHECKS
 
@@ -299,7 +313,7 @@ VRAM_ManagerGetTableEntry:
     bne    @SearchLp
 
     @Err_OutOfHandles:
-    RAISE_ERROR "VRAM_MGR: Out of table space"
+    VRAM_ERROR "VRAM_MGR: Out of table space"
 
     @Found:
 
@@ -374,14 +388,84 @@ VRAM_ManagerMergeRightNeighbour:
     IF BLDCONF_ERROR_CHECKS
 
     @Err_Allocd:
-    RAISE_ERROR "VRAM_MGR: Block not free"
+    VRAM_ERROR "VRAM_MGR: Block not free"
 
     @Err_NoNeighbour:
-    RAISE_ERROR "VRAM_MGR: No block neighbour"
+    VRAM_ERROR "VRAM_MGR: No block neighbour"
 
     @Err_NeighbourAllocd:
-    RAISE_ERROR "VRAM_MGR: Neighbour block not free"
+    VRAM_ERROR "VRAM_MGR: Neighbour block not free"
 
     ENDIF  ; BLDCONF_ERROR_CHECKS
+
+    rts
+
+VRAM_ManagerDrawTable:
+    ; ======================================
+    ; Draws VRAM allocation table to screen
+    ; (first 16 entries)
+    ; ======================================
+    ; a0   VRAM Manager
+    ; ======================================
+    ; Expects debug font and palette to be
+    ; loaded.
+    ; ======================================
+
+    DBG_DRAW_STRING #4,#5,"Addr   Size/F Prev   Next"
+
+    PUSH.L a0
+
+    lea    VRAMManager_BlockTable(a0), a2
+
+    move.w #0x07, d1                    ; Y
+    move.w #16-1, d2                    ; 16 entries
+    @EntryLp:
+    move.w #0x04, d0                    ; X
+
+    STACK_ALLOC 32, a0                  ; Alloc space for string
+
+    PUSHM.L d0-d2/a0-a2
+   
+    PUSHM.L d0-d1/a0                    ; Backup string start addr
+
+    ; Block addr
+    move.w VRAMBlock_Addr(a2), d0
+    bsr    STR_ItoA_Hex_w
+    move.l a1, a0
+    move.b #' ', (a0)+
+
+    ; Block size/flags
+    move.w VRAMBlock_SizeFlags(a2), d0
+    bsr    STR_ItoA_Hex_w
+    move.l a1, a0
+    move.b #' ', (a0)+
+
+    ; Prev
+    moveq  #0x0, d0
+    move.w VRAMBlock_Prev(a2), d0
+    divu   #SIZEOF_VRAMBlock, d0
+    bsr    STR_ItoA_Hex_w
+    move.l a1, a0
+    move.b #' ', (a0)+
+
+    ; Next
+    moveq  #0x0, d0
+    move.w VRAMBlock_Next(a2), d0
+    divu   #SIZEOF_VRAMBlock, d0
+    bsr    STR_ItoA_Hex_w
+
+    POPM.L d0-d1/a0                     ; Restore string start addr                         
+
+    bsr    DBG_DrawString               ; Draw string
+
+    POPM.L d0-d2/a0-a2
+
+    STACK_FREE 32                       ; Free string
+
+    addi.w #0x1, d1
+    addi.l #SIZEOF_VRAMBlock, a2
+    dbra   d2, @EntryLp
+
+    POP.L  a0
 
     rts

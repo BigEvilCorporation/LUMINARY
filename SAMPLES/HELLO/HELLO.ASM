@@ -13,6 +13,13 @@
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
 
+DRAW_VRAM: macro
+    PUSH.L a0
+    bsr    ERR_ResetForError
+    POP.L  a0
+    bsr    VRAM_ManagerDrawTable
+    endm
+
 Main:
     ; ======================================
     ; Program entry point
@@ -28,44 +35,60 @@ Main:
     bsr    VRAM_AddPool
     
     @Lp:
+
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
 	lea    RAM_VRAM_Manager, a0
     move.w #0x0030, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_1
-    ; 0x00000000
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
    
     move.w #0x0018, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_2
-    ; 0x00080010
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
     move.w #0x0100, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_3
-    ; 0x00100020
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
     move.w #0x0020, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_4
-    ; 0x00180030
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_2, d0
     bsr    VRAM_ManagerFree
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_3, d0
     bsr    VRAM_ManagerFree
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
     move.w #0x0038, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_5
-    ; 0x00080010
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_1, d0
     bsr    VRAM_ManagerFree
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_4, d0
     bsr    VRAM_ManagerFree
+    DRAW_VRAM
+    bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_5, d0
     bsr    VRAM_ManagerFree

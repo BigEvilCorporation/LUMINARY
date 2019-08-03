@@ -20,6 +20,11 @@ SIZE_TILE_SHIFT                         equ 0x05
 SIZE_PALETTE_B                          equ 0x20
 SIZE_PALETTE_SHIFT                      equ 0x05
 
+; Strings
+STR_ASCII_START			                equ 0x20
+STR_ASCII_NUMERIC_OFFSET                equ 0x30
+STR_ASCII_ALPHA_OFFSET                  equ 0x41
+
 ; Stack
 STACK_TOP                               equ 0x00FFE000
 
@@ -40,7 +45,7 @@ VRAM_END					            equ (VRAM_START+VRAM_SIZE_B)
 ; Planes
 VDP_PLANE_WIDTH                         equ 0x40
 VDP_PLANE_HEIGHT                        equ 0x20
-VDP_PLANE_WIDTH_SHIFT                   equ 0x06
+VDP_PLANE_WIDTH_SHIFT                   equ 0x07
 
 ; VRAM addresses
 VRAM_ADDR_TILES			                equ 0x0000
@@ -73,23 +78,44 @@ VDP_CMD_CRAM_READ		                equ 0x00000020
 VDP_CMD_VSRAM_WRITE		                equ 0x40000010
 VDP_CMD_VSRAM_READ		                equ 0x00000010
 
-; Status register
-STATUS_REG_TRACE		equ (1<<15)
-STATUS_REG_UNUSED1		equ (1<<14)
-STATUS_REG_SUPERVISOR	equ (1<<13)
-STATUS_REG_UNUSED2		equ (1<<12)
-STATUS_REG_UNUSED3		equ (1<<11)
-STATUS_REG_INT2			equ (1<<10)
-STATUS_REG_INT1			equ (1<<9)
-STATUS_REG_INT0			equ (1<<8)
-STATUS_REG_UNUSED4		equ (1<<7)
-STATUS_REG_UNUSED5		equ (1<<6)
-STATUS_REG_UNUSED6		equ (1<<5)
-STATUS_REG_CCR_EXTEND	equ (1<<4)
-STATUS_REG_CCR_NEGATIVE	equ (1<<3)
-STATUS_REG_CCR_ZERO		equ (1<<2)
-STATUS_REG_CCR_OVERFLOW	equ (1<<1)
-STATUS_REG_CCR_CARRY	equ (1<<0)
+; Gamepad ports
+PORT_PAD_DATA_A                         equ 0x00A10003
+PORT_PAD_DATA_B                         equ 0x00A10005
+PORT_PAD_DATA_C                         equ 0x00A10007
+PORT_PAD_CTRL_A                         equ 0x00A10009
+PORT_PAD_CTRL_B                         equ 0x00A1000B
+PORT_PAD_CTRL_C                         equ 0x00A1000D
 
-STATUS_REG_INIT			equ (STATUS_REG_SUPERVISOR|STATUS_REG_INT0|STATUS_REG_INT1)
-STATUS_REG_INT_DISABLE	equ (STATUS_REG_INT0|STATUS_REG_INT1|STATUS_REG_INT2)
+PAD_BYTE_LATCH			                equ 0x40
+
+PAD_BUTTON_UP                           equ 0x0
+PAD_BUTTON_DOWN                         equ 0x1
+PAD_BUTTON_LEFT                         equ 0x2
+PAD_BUTTON_RIGHT                        equ 0x3
+PAD_BUTTON_A                            equ 0xC
+PAD_BUTTON_B                            equ 0x4
+PAD_BUTTON_C                            equ 0x5
+PAD_BUTTON_START                        equ 0xD
+
+PAD_BUTTON_ALL			                equ 0x303F
+
+; Status register
+STATUS_REG_TRACE		                equ (1<<15)
+STATUS_REG_UNUSED1		                equ (1<<14)
+STATUS_REG_SUPERVISOR	                equ (1<<13)
+STATUS_REG_UNUSED2		                equ (1<<12)
+STATUS_REG_UNUSED3		                equ (1<<11)
+STATUS_REG_INT2			                equ (1<<10)
+STATUS_REG_INT1			                equ (1<<9)
+STATUS_REG_INT0			                equ (1<<8)
+STATUS_REG_UNUSED4		                equ (1<<7)
+STATUS_REG_UNUSED5		                equ (1<<6)
+STATUS_REG_UNUSED6		                equ (1<<5)
+STATUS_REG_CCR_EXTEND	                equ (1<<4)
+STATUS_REG_CCR_NEGATIVE	                equ (1<<3)
+STATUS_REG_CCR_ZERO		                equ (1<<2)
+STATUS_REG_CCR_OVERFLOW	                equ (1<<1)
+STATUS_REG_CCR_CARRY	                equ (1<<0)
+                
+STATUS_REG_INIT			                equ (STATUS_REG_SUPERVISOR|STATUS_REG_INT0|STATUS_REG_INT1)
+STATUS_REG_INT_DISABLE	                equ (STATUS_REG_INT0|STATUS_REG_INT1|STATUS_REG_INT2)
