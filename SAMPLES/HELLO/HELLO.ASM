@@ -26,69 +26,62 @@ Main:
     ; ======================================
     ; Called from bootstrap only
     ; ======================================
-
-    lea    RAM_VRAM_Manager, a0
-    bsr    VRAM_ManagerInit
-
-    move.w #0x0000, d0
-    move.w #0xB000/SIZE_TILE_B, d1
-    bsr    VRAM_AddPool
     
     @Lp:
 
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
 	lea    RAM_VRAM_Manager, a0
     move.w #0x0030, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_1
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
    
     move.w #0x0018, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_2
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
     move.w #0x0100, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_3
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
     move.w #0x0020, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_4
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_2, d0
     bsr    VRAM_ManagerFree
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_3, d0
     bsr    VRAM_ManagerFree
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
     move.w #0x0038, d0
     bsr    VRAM_ManagerAlloc
     move.l d1, RAM_vram_hndl_5
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_1, d0
     bsr    VRAM_ManagerFree
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_4, d0
     bsr    VRAM_ManagerFree
     DRAW_VRAM
-    bsr    PAD_WaitAnyButton
+    ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_5, d0
     bsr    VRAM_ManagerFree

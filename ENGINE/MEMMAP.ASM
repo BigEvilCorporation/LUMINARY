@@ -9,7 +9,7 @@
     rsset  RAM_START
 
     ; Debug
-RAM_DBG_FONT_VRAM                       rs.w 1
+RAM_DBG_FONT_VRAM                       rs.l 1
 
     ; VRAM manager
     STRUCT_ALLOC RAM_VRAM_Manager,VRAMManager

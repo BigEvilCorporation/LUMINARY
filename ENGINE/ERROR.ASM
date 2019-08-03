@@ -30,7 +30,7 @@ ERR_ResetForError:
     move.w #0x0, d0
     move.w #SIZEOF_debug_font/SIZE_TILE_B, d1
     bsr    VDP_LoadTiles
-    move.w #0x0, RAM_DBG_FONT_VRAM
+    move.l #0x0, RAM_DBG_FONT_VRAM
 
     ; Load debug palette
     lea    error_palette, a0

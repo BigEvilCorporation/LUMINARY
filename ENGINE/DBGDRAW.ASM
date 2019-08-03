@@ -23,7 +23,7 @@ DBG_DrawString:
     VDP_SETADDRESS d3, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
 
     ; Get font addr
-    move.w RAM_DBG_FONT_VRAM, d0
+    move.l RAM_DBG_FONT_VRAM, d0
 
     ; Loop until terminator
     @CharLp:
