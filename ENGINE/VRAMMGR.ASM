@@ -144,11 +144,11 @@ VRAM_ManagerAlloc:
     beq    @NextBlockFree               ; If next block is allocated, need a new table entry
     @NewTableEntry:
     move.w d5, d6                       ; Backup next block
-    move.w a2, a3
+    move.l a2, a3
     bsr    VRAM_ManagerGetTableEntry    ; Find/alloc new table entry
     move.w d4, VRAMBlock_Prev(a2)       ; Attach to left neighbour (a1)
     move.w d5, VRAMBlock_Next(a1)      
-    cmp.l  #0x0, a3
+    tst.w  d6
     beq    @NoNext
     move.w d6, VRAMBlock_Next(a2)       ; Attach to right neighbour (a3)
     move.w d5, VRAMBlock_Prev(a3)
@@ -230,39 +230,40 @@ VRAM_ManagerFree:
     bclr   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a1)
 
     ; Keep count
-    move.w VRAMBlock_SizeFlags(a1), d5
-    andi.w #VRAM_MGR_SIZE_MASK, d5
-    add.w  d5, VRAMManager_TilesFree(a0)
+    move.w VRAMBlock_SizeFlags(a1), d4
+    andi.w #VRAM_MGR_SIZE_MASK, d4
+    add.w  d4, VRAMManager_TilesFree(a0)
 
     ; Sanity check - freed size must not exceed pool size
     IF BLDCONF_ERROR_CHECKS
-    move.w VRAMManager_PoolSize(a0), d5
-    cmp.w  VRAMManager_TilesFree(a0), d5
+    move.w VRAMManager_PoolSize(a0), d4
+    cmp.w  VRAMManager_TilesFree(a0), d4
     blt    @Err_ExceededPoolSize
     ENDIF
 
     ; Get right neighbour
     tst.w  VRAMBlock_Next(a1)
     beq    @NoNext
-    move.w VRAMBlock_Next(a1), d5
+    move.w VRAMBlock_Next(a1), d4
     move.l #0x0, a2
-    move.w d5, a2
+    move.w d4, a2
     VRAM_BLOCK_IDX_TO_ADDR a2
 
     ; If right neighbour is free, merge it into this block
     btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a2)
     bne    @NoNext
     move.l a1, a3
+    move.w d1, d5
     bsr    VRAM_ManagerMergeRightNeighbour
 
     @NoNext:
 
     ; Get left neighbour
-    move.w VRAMBlock_Prev(a1), d1
-    cmp.w  d1, d3
+    move.w VRAMBlock_Prev(a1), d5
+    cmp.w  d5, d3
     beq    @NoPrev
     move.l #0x0, a3
-    move.w d1, a3
+    move.w d5, a3
     VRAM_BLOCK_IDX_TO_ADDR a3
 
     ; If left neighbour is free, merge this block into it
@@ -363,14 +364,19 @@ VRAM_ManagerMergeRightNeighbour:
     andi.w #VRAM_MGR_SIZE_MASK, d6
     add.w  d6, VRAMBlock_SizeFlags(a3)
 
-    ; Invalidate neighbour
-    move.w #0x0000, VRAMBlock_SizeFlags(a2)
-
-    ; Link this block with neighbour's next
-    tst.w  VRAMBlock_Next(a2)
-    beq    @NoNextNext                  ; End of list?
-    move.l #0x0, d2
+    ; Get neighbour's next
+    moveq  #0x0, d2
     move.w VRAMBlock_Next(a2), d2
+
+    ; Invalidate neighbour
+    move.w #0x0000, VRAMBlock_Addr(a2)
+    move.w #0x0000, VRAMBlock_SizeFlags(a2)
+    move.w #0x0000, VRAMBlock_Prev(a2)
+    move.w #0x0000, VRAMBlock_Next(a2)
+
+    ; Link neighbour's next with this
+    tst.w  d2
+    beq    @NoNextNext                  ; End of list?
     move.w d2, VRAMBlock_Next(a3)       ; This block's next
     move.l d2, a2
     VRAM_BLOCK_IDX_TO_ADDR a2
