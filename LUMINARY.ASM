@@ -26,6 +26,7 @@
     include 'engine/macros/debug.asm'
     include 'engine/macros/interpts.asm'
     include 'engine/macros/memory.asm'
+    include 'engine/macros/sprites.asm'
     include 'engine/macros/stack.asm'
     include 'engine/macros/struct.asm'
     include 'engine/macros/vdp.asm'

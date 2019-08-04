@@ -9,6 +9,7 @@
     ; Single sprite
     STRUCT_BEGIN Sprite
 Sprite_VRAMHndl                         rs.l 1 ; VRAM handle
+Sprite_DrawFlags                        rs.w 1 ; Priority/palette/flip flags preformatted for hardware (see SPRITE_SET_* macros)
 Sprite_Layout                           rs.b 1 ; Layout/dimensions
     STRUCT_END
 
@@ -54,11 +55,10 @@ SPR_DrawSingle:
 	; a0   Sprite
     ; d0.w X coord
     ; d1.w Y coord
-    ; d2.b Palette
-    ; d3.b Priority (0 or 1)
-    ; d4.b Flip X
-    ; d5.b Flip Y
     ; ======================================
+
+    ; Get table ptr
+    move.l RAM_SPRITE_TABLE_PTR, a1
 
     ; Get next sprite index
     move.w RAM_SPRITE_NEXT_IDX, d6
@@ -75,32 +75,15 @@ SPR_DrawSingle:
     ; Next ID
     addi.w #0x1, RAM_SPRITE_NEXT_IDX
 
-    ; Get tile ID
-    move.l Sprite_VRAMHndl(a0), d6
-
-    ; Build palette/flip/priority/tileId word
-	; Bit pattern: LPPV HTTT TTTT TTTT (L=Lo/Hi priority, P=Palette, V=VFlip, H=HFlip, T-TileId)
-	andi.w #0x3, d2		; Palette in bottom two bits
-	andi.w #0x1, d3		; Priority in bottom bit
-	andi.w #0x1, d4		; Flip X in bottom bit
-    andi.w #0x1, d5		; Flip Y in bottom bit
-	ror.w  #0x3, d2		; Palette to bits 13-14
-	ror.w  #0x1, d3		; Priority to bit 15
-	ror.w  #0x5, d4		; Flip X to bit 11
-    ror.w  #0x4, d5		; Flip Y to bit 12
-	or.w   d3, d2		; Combine
-	or.w   d4, d2
-    or.w   d5, d2
-	or.w   d6, d3
-
-    ; Get table ptr
-    move.l RAM_SPRITE_TABLE_PTR, a1
+    ; Combine tile ID and flags
+    move.l Sprite_VRAMHndl(a0), d2
+    or.w   Sprite_DrawFlags(a0), d2
 
     ; Populate next hardware sprite
     move.w d1, (a1)+                    ; Coord Y
     move.b Sprite_Layout(a0), (a1)+     ; Dimensions
     move.b #0x0, (a1)+                  ; Next ID
-    move.w d3, (a1)+                    ; Prio/pal/flip/tileId
+    move.w d2, (a1)+                    ; Prio/pal/flip/tileId
     move.w d0, (a1)+                    ; Coord X
 
     ; Advance ptr

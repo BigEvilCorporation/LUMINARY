@@ -45,6 +45,24 @@ VRAM_END					            equ (VRAM_START+VRAM_SIZE_B)
 
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40
+VDP_SPRITE_FLAG_MASK_FLIPX              equ 0x0800
+VDP_SPRITE_FLAG_MASK_FLIPY              equ 0x1000
+VDP_SPRITE_FLAG_MASK_PRIO               equ 0x8000
+VDP_SPRITE_FLAG_MASK_PAL                equ 0x6000
+VDP_SPRITE_FLAG_NMASK_FLIPX             equ 0xF7FF
+VDP_SPRITE_FLAG_NMASK_FLIPY             equ 0xEFFF
+VDP_SPRITE_FLAG_NMASK_PRIO              equ 0x7FFF
+VDP_SPRITE_FLAG_NMASK_PAL               equ 0x9FFF
+VDP_SPRITE_FLAG_SHIFT_FLIPX             equ 0x0B
+VDP_SPRITE_FLAG_SHIFT_FLIPY             equ 0x0C
+VDP_SPRITE_FLAG_SHIFT_PRIO              equ 0x0F
+VDP_SPRITE_FLAG_SHIFT_PAL               equ 0x0D
+VDP_SPRITE_FLAG_ROR_FLIPX               equ 0x05
+VDP_SPRITE_FLAG_ROR_FLIPY               equ 0x04
+VDP_SPRITE_FLAG_ROR_PRIO                equ 0x01
+VDP_SPRITE_FLAG_ROR_PAL                 equ 0x03
+
+; Sprite layout configurations
 VDP_SPRITE_LAYOUT_1x1                   equ %0000
 VDP_SPRITE_LAYOUT_1x2                   equ %0001
 VDP_SPRITE_LAYOUT_1x3                   equ %0010
