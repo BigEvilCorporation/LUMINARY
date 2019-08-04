@@ -38,6 +38,7 @@
     include 'engine/interpts.asm'
     include 'engine/palettes.asm'
     include 'engine/ram.asm'
+    include 'engine/sprites.asm'
     include 'engine/strings.asm'
     include 'engine/tiles.asm'
     include 'engine/vdp.asm'

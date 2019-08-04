@@ -16,8 +16,7 @@
 DRAW_VRAM: macro
     PUSH.L a0
     bsr    ERR_ResetForError
-    lea    RAM_VRAM_Manager, a0
-    bsr    VRAM_ManagerDrawTable
+    bsr    VRAMMGR_DrawTable
     POP.L  a0
     endm
 
@@ -27,65 +26,93 @@ Main:
     ; ======================================
     ; Called from bootstrap only
     ; ======================================
+
+    ; Alloc test sprite
+    move.w #0x1, d0
+    bsr    VRAMMGR_Alloc
+    lea    RAM_TEST_SPRITE, a0
+    move.l d1, Sprite_VRAMHndl(a0)
+    move.b #VDP_SPRITE_LAYOUT_1x1, Sprite_Layout(a0)
+
+    ; Load test sprite tiles
+    lea    TestSprite, a0
+    move.w d1, d0
+    move.w #0x1, d1
+    bsr    VDP_LoadTiles
+
+    lea    tst_pal, a0
+    move.b #0x1, d0
+    bsr    VDP_LoadPalette
     
     @Lp:
+
+    lea    RAM_TEST_SPRITE, a0
+    move.w #0x0088, d0
+    move.w #0x0088, d1
+    move.b #0x0, d2
+    move.b #0x1, d3
+    move.b #0x0, d4
+    move.b #0x0, d5
+    bsr    SPR_DrawSingle
 
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
 	lea    RAM_VRAM_Manager, a0
     move.w #0x0030, d0
-    bsr    VRAM_ManagerAlloc
+    bsr    VRAMMGR_Alloc
     move.l d1, RAM_vram_hndl_1
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
    
     move.w #0x0018, d0
-    bsr    VRAM_ManagerAlloc
+    bsr    VRAMMGR_Alloc
     move.l d1, RAM_vram_hndl_2
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
     move.w #0x0100, d0
-    bsr    VRAM_ManagerAlloc
+    bsr    VRAMMGR_Alloc
     move.l d1, RAM_vram_hndl_3
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
     move.w #0x0020, d0
-    bsr    VRAM_ManagerAlloc
+    bsr    VRAMMGR_Alloc
     move.l d1, RAM_vram_hndl_4
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_2, d0
-    bsr    VRAM_ManagerFree
+    bsr    VRAMMGR_Free
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_3, d0
-    bsr    VRAM_ManagerFree
+    bsr    VRAMMGR_Free
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
     move.w #0x0038, d0
-    bsr    VRAM_ManagerAlloc
+    bsr    VRAMMGR_Alloc
     move.l d1, RAM_vram_hndl_5
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_1, d0
-    bsr    VRAM_ManagerFree
+    bsr    VRAMMGR_Free
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_4, d0
-    bsr    VRAM_ManagerFree
+    bsr    VRAMMGR_Free
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
     move.l RAM_vram_hndl_5, d0
-    bsr    VRAM_ManagerFree
+    bsr    VRAMMGR_Free
+
+    bsr    SPR_CommitAndClearTable
 
     ; Loop forever
     
@@ -93,6 +120,16 @@ Main:
 
     ; Asset includes
 	include 'engine/assets.asm'
+
+TestSprite:
+    dc.l 0x01010101
+    dc.l 0x10101010
+    dc.l 0x01010101
+    dc.l 0x10101010
+    dc.l 0x01010101
+    dc.l 0x10101010
+    dc.l 0x01010101
+    dc.l 0x10101010
 
 tst_pal:
     dc.w   0x0000

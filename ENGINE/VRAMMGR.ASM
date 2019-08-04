@@ -41,25 +41,25 @@ VRAM_BLOCK_ADDR_TO_IDX: macro idxreg
     endm
 
 VRAM_ERROR: macro string
-    PUSH.L a0
     bsr    ERR_ResetForError
     lea    @err_string\@, a0
     bsr    ERR_DrawMessage
-    POP.L  a0
-    bsr    VRAM_ManagerDrawTable
+    lea    RAM_VRAM_Manager, a0
+    bsr    VRAMMGR_DrawTable
     bra    *
     @err_string\@:
     dc.b   \string\,0
     even
     endm
 
-VRAM_ManagerInit:
+VRAMMGR_Initialise:
     ; ======================================
     ; Initialises a VRAM manager
     ; ======================================
-    ; a0   VRAM Manager
+    ; No params
     ; ======================================
 
+    lea    RAM_VRAM_Manager, a0
     lea    VRAMManager_BlockTable(a0), a1
     move.w #(SIZEOF_VRAMBlock*VRAM_MGR_MAX_ALLOCATIONS), d0
     MEMZERO.B a1,d0
@@ -71,14 +71,15 @@ VRAM_ManagerInit:
 
     rts
 
-VRAM_ManagerAddPool:
+VRAMMGR_AddPool:
     ; ======================================
     ; Adds a pool to a VRAM manager
     ; ======================================
-    ; a0   VRAM Manager
     ; d0.w Memory pool address (tiles)
     ; d1.w Memory pool size (tiles)
     ; ======================================
+
+    lea    RAM_VRAM_Manager, a0
 
     ; TODO: Multiple pools
     move.w d0, VRAMManager_PoolAddr(a0)
@@ -94,12 +95,11 @@ VRAM_ManagerAddPool:
 
     rts
 
-VRAM_ManagerAlloc:
+VRAMMGR_Alloc:
     ; ======================================
     ; Allocates a block of VRAM tiles
     ; ======================================
     ; In:
-    ; a0   VRAM Manager
     ; d0.w Allocation size (tiles)
     ; ======================================
     ; Out:
@@ -109,9 +109,11 @@ VRAM_ManagerAlloc:
     ; ======================================
 
     IF BLDCONF_VRAM_MGR_DEBUG
-    ; Take address of callee for debugging
+    ; Take address of call site for debugging
     move.l (sp), a6
     ENDIF
+
+    lea    RAM_VRAM_Manager, a0
 
     ; Check if enough memory free
     cmp.w  VRAMManager_TilesFree(a0), d0
@@ -153,7 +155,7 @@ VRAM_ManagerAlloc:
     @NewTableEntry:
     move.w d5, d6                       ; Backup next block
     move.l a2, a3
-    bsr    VRAM_ManagerGetTableEntry    ; Find/alloc new table entry
+    bsr    VRAMMGR_GetTableEntry    ; Find/alloc new table entry
     move.w d4, VRAMBlock_Prev(a2)       ; Attach to left neighbour (a1)
     move.w d5, VRAMBlock_Next(a1)      
     tst.w  d6
@@ -209,14 +211,15 @@ VRAM_ManagerAlloc:
 
     rts
 
-VRAM_ManagerFree:
+VRAMMGR_Free:
     ; ======================================
     ; Frees a block of VRAM tiles
     ; ======================================
     ; In:
-    ; a0   VRAM Manager
     ; d0.l Memory handle
     ; ======================================
+
+    lea    RAM_VRAM_Manager, a0
 
     ; Get table entry
     move.w d0, d1                       ; Backup addr
@@ -267,7 +270,7 @@ VRAM_ManagerFree:
     bne    @NoNext
     move.l a1, a3
     move.w d1, d5
-    bsr    VRAM_ManagerMergeRightNeighbour
+    bsr    VRAMMGR_MergeRightNeighbour
 
     @NoNext:
 
@@ -282,7 +285,7 @@ VRAM_ManagerFree:
     ; If left neighbour is free, merge this block into it
     btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a3)
     bne    @NoPrev
-    bsr    VRAM_ManagerMergeRightNeighbour
+    bsr    VRAMMGR_MergeRightNeighbour
 
     @NoPrev:
 
@@ -303,7 +306,7 @@ VRAM_ManagerFree:
 
     rts
 
-VRAM_ManagerGetTableEntry:
+VRAMMGR_GetTableEntry:
     ; ======================================
     ; Finds or creates a new tracking entry
     ; ======================================
@@ -333,7 +336,7 @@ VRAM_ManagerGetTableEntry:
 
     rts
 
-VRAM_ManagerMergeRightNeighbour:
+VRAMMGR_MergeRightNeighbour:
     ; ======================================
     ; Merges right-hand neighbour into this
     ; block, and invalidates it
@@ -423,12 +426,12 @@ VRAM_ManagerMergeRightNeighbour:
 
     rts
 
-VRAM_ManagerDrawTable:
+VRAMMGR_DrawTable:
     ; ======================================
     ; Draws VRAM allocation table to screen
     ; (first 16 entries)
     ; ======================================
-    ; a0   VRAM Manager
+    ; No params
     ; ======================================
     ; Expects debug font and palette to be
     ; loaded.
@@ -442,6 +445,7 @@ VRAM_ManagerDrawTable:
 
     PUSH.L a0
 
+    lea    RAM_VRAM_Manager, a0
     lea    VRAMManager_BlockTable(a0), a2
 
     move.w #0x07, d1                    ; Y

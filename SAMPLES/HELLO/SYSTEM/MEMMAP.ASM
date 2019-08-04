@@ -6,9 +6,10 @@
 ; MEMMAP.ASM - "Hello world" memory map
 ; ============================================================================================
 
-    rsset RAM_GAME_START
-RAM_vram_hndl_1 rs.l 1
-RAM_vram_hndl_2 rs.l 1
-RAM_vram_hndl_3 rs.l 1
-RAM_vram_hndl_4 rs.l 1
-RAM_vram_hndl_5 rs.l 1
+    RSSET RAM_GAME_START
+RAM_VRAM_HNDL_1                         rs.l 1
+RAM_VRAM_HNDL_2                         rs.l 1
+RAM_VRAM_HNDL_3                         rs.l 1
+RAM_VRAM_HNDL_4                         rs.l 1
+RAM_VRAM_HNDL_5                         rs.l 1
+RAM_TEST_SPRITE                         rs.b SIZEOF_Sprite

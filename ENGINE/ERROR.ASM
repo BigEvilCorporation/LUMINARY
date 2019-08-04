@@ -19,7 +19,7 @@ ERR_ResetForError:
     ; ======================================
 
     ; Initialise TMSS
-    bsr    VDP_InitialiseTMSS
+    bsr    VDP_WriteTMSS
 
     ; Load default VDP regs
     lea    default_vdp_regs, a0

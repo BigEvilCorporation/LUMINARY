@@ -11,18 +11,12 @@ VDP_LoadTiles:
     ; Loads tiles into VRAM
     ; ======================================
     ; a0   Tiles
-    ; d0.w VRAM address
+    ; d0.w VRAM address (tiles)
     ; d1.w Num tiles
     ; ======================================
 
-    VDP_SETADDRESS d0,#0x0000,#VDP_CMD_VRAM_WRITE
-
-    subq   #0x1, d1
-    @TileLp:
-    ; 32 bytes per tile
-    REPT 8
-    move.l (a0)+, PORT_VDP_DATA
-    ENDR
-    dbra   d1, @TileLp
+    lsl.w  #SIZE_TILE_SHIFT_B, d0
+    lsl.w  #SIZE_TILE_SHIFT_W, d1
+    bsr    VDP_DMATransferVRAM
 
     rts

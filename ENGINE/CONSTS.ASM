@@ -14,7 +14,8 @@ SIZE_LONG                               equ 4
 SIZE_TILE_B                             equ 0x20
 SIZE_TILE_W                             equ SIZE_TILE_B/SIZE_WORD
 SIZE_TILE_L                             equ SIZE_TILE_B/SIZE_LONG
-SIZE_TILE_SHIFT                         equ 0x05
+SIZE_TILE_SHIFT_B                       equ 0x05
+SIZE_TILE_SHIFT_W                       equ 0x04
 
 ; VDP palettes
 SIZE_PALETTE_B                          equ 0x20
@@ -41,6 +42,25 @@ VRAM_SIZE_W				                equ (VRAM_SIZE_B/2)
 VRAM_SIZE_L				                equ (VRAM_SIZE_B/4)
 VRAM_START				                equ 0x00000000
 VRAM_END					            equ (VRAM_START+VRAM_SIZE_B)
+
+; Sprites
+VDP_MAX_SPRITES                         equ 0x40
+VDP_SPRITE_LAYOUT_1x1                   equ %0000
+VDP_SPRITE_LAYOUT_1x2                   equ %0001
+VDP_SPRITE_LAYOUT_1x3                   equ %0010
+VDP_SPRITE_LAYOUT_1x4                   equ %0011
+VDP_SPRITE_LAYOUT_2x1                   equ %0100
+VDP_SPRITE_LAYOUT_2x2                   equ %0101
+VDP_SPRITE_LAYOUT_2x3                   equ %0110
+VDP_SPRITE_LAYOUT_2x4                   equ %0111
+VDP_SPRITE_LAYOUT_3x1                   equ %1000
+VDP_SPRITE_LAYOUT_3x2                   equ %1001
+VDP_SPRITE_LAYOUT_3x3                   equ %1010
+VDP_SPRITE_LAYOUT_3x4                   equ %1011
+VDP_SPRITE_LAYOUT_4x1                   equ %1100
+VDP_SPRITE_LAYOUT_4x2                   equ %1101
+VDP_SPRITE_LAYOUT_4x3                   equ %1110
+VDP_SPRITE_LAYOUT_4x4                   equ %1111
 
 ; Planes
 VDP_PLANE_WIDTH                         equ 0x40
@@ -77,6 +97,28 @@ VDP_CMD_CRAM_WRITE		                equ 0xC0000000
 VDP_CMD_CRAM_READ		                equ 0x00000020
 VDP_CMD_VSRAM_WRITE		                equ 0x40000010
 VDP_CMD_VSRAM_READ		                equ 0x00000010
+
+; VDP memory access commands (DMA)
+VDP_CMD_DMA_VRAM_WRITE                  equ 0x40000080
+VDP_CMD_DMA_CRAM_WRITE                  equ 0xC0000080
+VDP_CMD_DMA_VSRAM_WRITE                 equ 0x40000090
+
+; VDP DMA modes
+VDP_DMA_MODE_TRANSFER		            equ 0x00
+VDP_DMA_MODE_COPY		                equ 0xC0
+VDP_DMA_MODE_FILL		                equ 0x80
+
+; VDP DMA top byte address masks
+VDP_DMA_ADDR_MASK_WRITE_B               equ 0x7F
+VDP_DMA_ADDR_MASK_WRITE_L               equ 0x007FFFFF
+VDP_DMA_ADDR_MASK_COPY                  equ 0x3F
+VDP_DMA_ADDR_MASK_FILL                  equ 0x3F
+
+; CRAM addresses
+CRAM_ADDR_PAL_0			                equ 0x0000
+CRAM_ADDR_PAL_1			                equ 0x0020
+CRAM_ADDR_PAL_2			                equ 0x0040
+CRAM_ADDR_PAL_3			                equ 0x0060
 
 ; Gamepad ports
 PORT_PAD_DATA_A                         equ 0x00A10003
@@ -116,6 +158,6 @@ STATUS_REG_CCR_NEGATIVE	                equ (1<<3)
 STATUS_REG_CCR_ZERO		                equ (1<<2)
 STATUS_REG_CCR_OVERFLOW	                equ (1<<1)
 STATUS_REG_CCR_CARRY	                equ (1<<0)
-                
+
 STATUS_REG_INIT			                equ (STATUS_REG_SUPERVISOR|STATUS_REG_INT0|STATUS_REG_INT1)
 STATUS_REG_INT_DISABLE	                equ (STATUS_REG_INT0|STATUS_REG_INT1|STATUS_REG_INT2)
