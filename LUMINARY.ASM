@@ -18,10 +18,10 @@
 ;
 ; ============================================================================================
 
-    ; Default build config
+    ; Engine default build config
     include 'engine/bldconf.asm'
 
-    ; Macros
+    ; Engine macros
     include 'engine/macros/assets.asm'
     include 'engine/macros/debug.asm'
     include 'engine/macros/interpts.asm'
@@ -47,5 +47,16 @@
     include 'engine/vram.asm'
     include 'engine/vrammgr.asm'
 
-    ; Memory map
+    ; Game framework default build config
+    include 'framewk/bldconf.asm'
+
+    ; Game framework macros
+    include 'framewk/macros/entity.asm'
+
+    ; Game framework
+    include 'framewk/entity.asm'
+    include 'framewk/entmgr.asm'
+
+    ; Memory maps
     include 'engine/memmap.asm'
+    include 'framewk/memmap.asm'

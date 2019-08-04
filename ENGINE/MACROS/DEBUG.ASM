@@ -3,8 +3,34 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 3rd August 2019
 ; ============================================================================================
-; DEBUG.ASM - Debugging macros
+; DEBUG.ASM - Error and debugging macros
 ; ============================================================================================
+
+    ; ======================================
+    ; Assembly time static error
+    ; ======================================
+    ; string - Error string to output
+    ; ======================================
+DBG_STATIC_ERROR: macro string
+    inform 2,\string\,\2,\3,\4
+    endm
+
+    ; ======================================
+    ; Resets the system and draws an error
+    ; string, incl. registers and stack,
+    ; and halts indefinitely.
+    ; ======================================
+    ; string - Error string to draw
+    ; ======================================
+DBG_RAISE_ERROR: macro string
+    bsr    ERR_ResetForError
+    lea    @err_string\@, a0
+    bsr    ERR_DrawMessage
+    bra    *
+    @err_string\@:
+    dc.b   \string\,0
+    even
+    endm
 
     ; ======================================
     ; Draws a string to plane A
@@ -29,21 +55,4 @@ DBG_DRAW_STRING: macro x,y,string
     even
     @string_end\@:
     POPM.L d0-d3/a0
-    endm
-
-    ; ======================================
-    ; Resets the system and draws an error
-    ; string, incl. registers and stack,
-    ; and halts indefinitely.
-    ; ======================================
-    ; string - Error string to draw
-    ; ======================================
-DBG_RAISE_ERROR: macro string
-    bsr    ERR_ResetForError
-    lea    @err_string\@, a0
-    bsr    ERR_DrawMessage
-    bra    *
-    @err_string\@:
-    dc.b   \string\,0
-    even
     endm

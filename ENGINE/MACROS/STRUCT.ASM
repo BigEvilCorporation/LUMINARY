@@ -27,6 +27,6 @@ STRUCT_END: macro
 SIZEOF_\__STRUCT_NAME rs.b 0
 	endm
 
-STRUCT_ALLOC: macro varname,structname
+STRUCT_ALLOC: macro structname,varname
 \varname\: rs.b SIZEOF_\structname
 	endm
