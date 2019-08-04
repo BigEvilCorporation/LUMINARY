@@ -27,6 +27,8 @@ Main:
     ; Called from bootstrap only
     ; ======================================
 
+    bsr    TestSpawn
+
     ; Alloc test sprite
     move.w #0x1, d0
     bsr    VRAMMGR_Alloc

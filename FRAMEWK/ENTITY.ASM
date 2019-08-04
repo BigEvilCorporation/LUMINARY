@@ -26,18 +26,32 @@ SpriteComp_Layout                       rs.b 1
     ENT_COMPONENT SpriteComp
     ENTITY_END
 
-PseudoUpdate:
+TestSpawn:
+
+    lea    entity_player_spawndesc, a1
+    bsr    ENT_SpawnEntity
+
+    rts
+
+PhysicsBody_Initialise:
+    rts
+
+SpriteComp_Initialise:
+    rts
+
+Player_Spawn:
+
+    rts
+
+Player_Despawn:
+
+    rts
+
+Player_Update:
 
     ENT_GETCOMPONENT Player, PhysicsBody, a0, a1
     move.l #0x00010000, PhysicsBody_VelocityX(a1)
     move.l #0x00008000, PhysicsBody_VelocityX(a1)
     bset   #PHYSICS_FLAG_NOCOLLISION, PhysicsBody_Flags(a1)
-
-    rts
-
-PseudoRender:
-
-    ENT_GETCOMPONENT Player, SpriteComp, a0, a1
-    move.b #SPRITE_FLAG_FLIP_X, SpriteComp_DrawFlags(a1)
 
     rts

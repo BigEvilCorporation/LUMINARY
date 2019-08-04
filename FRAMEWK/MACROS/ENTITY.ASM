@@ -6,13 +6,25 @@
 ; ENTITY.ASM - Entity and component structure helper macros
 ; ============================================================================================
 
+    ; ======================================
+    ; Entity spawn description, auto-generated
+    ; by ENTITY_BEGIN/ENTITY_END.
+    ; Do not build directly.
+    ; ======================================
+    STRUCT_BEGIN EntitySpawnDesc
+EntitySpawnDesc_NumComponents           rs.w 1
+EntitySpawnDesc_ConstructorTable        rs.l 1
+    STRUCT_END
+
 ENTITY_BEGIN: macro name
     ; ======================================
     ; Begins definition of a named entity
     ; ======================================
     ; Name - Entity name
     ; ======================================
-__ENTITY_NAME equs "\name\"
+__ENTITY_NAME equs "\name\"                     ; Store entity name for ENTITY_END
+__ENTITY_COMPONENT_COUNT = 0                    ; Begin counting components
+ENTITY_\__ENTITY_NAME\_COMPONENT_CONSTRUCTOR_TABLE:    ; Begin component constructor table
 Entity_ListNext                         rs.w 1
 Entity_BlockId                          rs.w 1
 Entity_PosX                             rs.l 1
@@ -30,6 +42,13 @@ __SIZEOF_\__ENTITY_NAME rs.b 0
     IF __SIZEOF_\__ENTITY_NAME>BLDCONF_ENT_BLOCK_SIZE
     DBG_STATIC_ERROR "Entity type \__ENTITY_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__ENTITY_NAME, BLDCONF_ENT_BLOCK_SIZE
     ENDIF
+ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
+
+    ; Entity spawn descriptor
+Entity_\__ENTITY_NAME\_SpawnDesc:
+    dc.w   ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT
+    dc.l   ENTITY_\__ENTITY_NAME\_COMPONENT_CONSTRUCTOR_TABLE
+    even
 	endm
 
 ENTITY_COMPONENT_BEGIN: macro name
@@ -64,6 +83,8 @@ ENT_COMPONENT: macro component_name
     ; ======================================
     ; Name - Component name
     ; ======================================
+__ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
+    dc.l   \component_name\_Initialise                  ; Add constructor to table
 Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1
     endm
 
