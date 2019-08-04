@@ -17,6 +17,6 @@ RAM_SPRITE_TABLE_PTR                    rs.l 1
 RAM_SPRITE_NEXT_IDX                     rs.w 1
 
     ; VRAM manager
-    STRUCT_ALLOC VRAMManager,RAM_VRAM_Manager
+    STRUCT_ALLOC VRAMManager,RAM_VRAM_MANAGER
 
 RAM_FRAMEWORK_START                     rs.b 0

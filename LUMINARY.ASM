@@ -7,9 +7,7 @@
 ; ============================================================================================
 ; Include files from game project the following order:
 ;
-;  - game/bldconf.asm (if applicable)
-;  - engine/consts.asm
-;  - engine/vectrtab.asm
+;  - bootstrp.asm
 ;  - game/header.asm
 ;  - luminary.asm (this file)
 ;  - game/memmap.asm
@@ -17,9 +15,6 @@
 ;  - Everything else...
 ;
 ; ============================================================================================
-
-    ; Engine default build config
-    include 'engine/bldconf.asm'
 
     ; Engine macros
     include 'engine/macros/assets.asm'
@@ -46,9 +41,6 @@
     include 'engine/vdpregs.asm'
     include 'engine/vram.asm'
     include 'engine/vrammgr.asm'
-
-    ; Game framework default build config
-    include 'framewk/bldconf.asm'
 
     ; Game framework macros
     include 'framewk/macros/entity.asm'

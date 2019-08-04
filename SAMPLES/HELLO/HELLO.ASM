@@ -7,8 +7,7 @@
 ; ============================================================================================
 
     ; Code includes
-    include 'engine/consts.asm'
-    include 'engine/vectrtab.asm'
+    include 'bootstrp.asm'
     include 'samples/hello/system/header.asm'
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
@@ -26,6 +25,9 @@ Main:
     ; ======================================
     ; Called from bootstrap only
     ; ======================================
+
+    ; Initialise entity manager
+    bsr    ENT_Initialise
 
     bsr    TestSpawn
 
@@ -67,7 +69,7 @@ Main:
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
     
-	lea    RAM_VRAM_Manager, a0
+	lea    RAM_VRAM_MANAGER, a0
     move.w #0x0030, d0
     bsr    VRAMMGR_Alloc
     move.l d1, RAM_vram_hndl_1

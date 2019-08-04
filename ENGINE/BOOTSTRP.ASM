@@ -34,7 +34,7 @@ Bootstrap:
     bsr    VRAMMGR_AddPool
     
     ; Load debug font
-    lea    RAM_VRAM_Manager, a0
+    lea    RAM_VRAM_MANAGER, a0
     move.w #SIZEOF_debug_font/SIZE_TILE_B, d0
     bsr    VRAMMGR_Alloc
     move.l d1, RAM_DBG_FONT_VRAM

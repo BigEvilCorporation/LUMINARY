@@ -44,7 +44,7 @@ VRAM_ERROR: macro string
     bsr    ERR_ResetForError
     lea    @err_string\@, a0
     bsr    ERR_DrawMessage
-    lea    RAM_VRAM_Manager, a0
+    lea    RAM_VRAM_MANAGER, a0
     bsr    VRAMMGR_DrawTable
     bra    *
     @err_string\@:
@@ -59,7 +59,7 @@ VRAMMGR_Initialise:
     ; No params
     ; ======================================
 
-    lea    RAM_VRAM_Manager, a0
+    lea    RAM_VRAM_MANAGER, a0
     lea    VRAMManager_BlockTable(a0), a1
     move.w #(SIZEOF_VRAMBlock*VRAM_MGR_MAX_ALLOCATIONS), d0
     MEMZERO.B a1,d0
@@ -79,7 +79,7 @@ VRAMMGR_AddPool:
     ; d1.w Memory pool size (tiles)
     ; ======================================
 
-    lea    RAM_VRAM_Manager, a0
+    lea    RAM_VRAM_MANAGER, a0
 
     ; TODO: Multiple pools
     move.w d0, VRAMManager_PoolAddr(a0)
@@ -113,7 +113,7 @@ VRAMMGR_Alloc:
     move.l (sp), a6
     ENDIF
 
-    lea    RAM_VRAM_Manager, a0
+    lea    RAM_VRAM_MANAGER, a0
 
     ; Check if enough memory free
     cmp.w  VRAMManager_TilesFree(a0), d0
@@ -219,7 +219,7 @@ VRAMMGR_Free:
     ; d0.l Memory handle
     ; ======================================
 
-    lea    RAM_VRAM_Manager, a0
+    lea    RAM_VRAM_MANAGER, a0
 
     ; Get table entry
     move.w d0, d1                       ; Backup addr
@@ -445,7 +445,7 @@ VRAMMGR_DrawTable:
 
     PUSH.L a0
 
-    lea    RAM_VRAM_Manager, a0
+    lea    RAM_VRAM_MANAGER, a0
     lea    VRAMManager_BlockTable(a0), a2
 
     move.w #0x07, d1                    ; Y

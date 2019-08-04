@@ -7,6 +7,15 @@
 ; ============================================================================================
 
     ; ======================================
+    ; Entity block allocation data, auto-generated
+    ; by ENTITY_BEGIN/ENTITY_END.
+    ; Do not build directly.
+    ; ======================================
+    STRUCT_BEGIN EntityBlockData
+EntityBlock_Flags                       rs.w 1
+    STRUCT_END
+
+    ; ======================================
     ; Component slot description, auto-generated
     ; by ENTITY_BEGIN/ENTITY_END.
     ; Do not build directly.
@@ -35,8 +44,8 @@ ENTITY_BEGIN: macro name
 __ENTITY_NAME equs "\name\"                     ; Store entity name for ENTITY_END
 __ENTITY_COMPONENT_COUNT = 0                    ; Begin counting components
 ENTITY_\__ENTITY_NAME\_COMPONENT_CONSTRUCTOR_TABLE:    ; Begin component constructor table
+    RSSET  SIZEOF_EntityBlockData
 Entity_ListNext                         rs.w 1
-Entity_BlockId                          rs.w 1
 Entity_PosX                             rs.l 1
 Entity_PosY                             rs.l 1
 Entity_Flags                            rs.w 1
@@ -49,7 +58,7 @@ ENTITY_END: macro
     ; No params
     ; ======================================
 __SIZEOF_\__ENTITY_NAME rs.b 0
-    IF __SIZEOF_\__ENTITY_NAME>BLDCONF_ENT_BLOCK_SIZE
+    IF __SIZEOF_\__ENTITY_NAME>ENT_MGR_BLOCK_SIZE
     DBG_STATIC_ERROR "Entity type \__ENTITY_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__ENTITY_NAME, BLDCONF_ENT_BLOCK_SIZE
     ENDIF
 ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
@@ -68,9 +77,8 @@ ENTITY_COMPONENT_BEGIN: macro name
     ; Name - Component name
     ; ======================================
 __COMPONENT_NAME equs "\name\"
-    rsset 0
+    RSSET  SIZEOF_EntityBlockData
 \__COMPONENT_NAME\_ListNext             rs.w 1
-\__COMPONENT_NAME\_BlockId              rs.w 1
 	endm
 
 ENTITY_COMPONENT_END: macro
@@ -80,7 +88,7 @@ ENTITY_COMPONENT_END: macro
     ; No params
     ; ======================================
 __SIZEOF_\__COMPONENT_NAME rs.b 0
-    IF __SIZEOF_\__COMPONENT_NAME>BLDCONF_ENT_BLOCK_SIZE
+    IF __SIZEOF_\__COMPONENT_NAME>ENT_MGR_BLOCK_SIZE
     DBG_STATIC_ERROR "Component type \__COMPONENT_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__COMPONENT_NAME, BLDCONF_ENT_BLOCK_SIZE
     ENDIF
 	endm

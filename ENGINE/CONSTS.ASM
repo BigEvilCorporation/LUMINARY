@@ -28,6 +28,7 @@ STR_ASCII_ALPHA_OFFSET                  equ 0x41
 
 ; Stack
 STACK_TOP                               equ 0x00FFE000
+STACK_SIZE                              equ BLDCONF_STACK_SIZE
 
 ; RAM
 RAM_SIZE_B				                equ 0x0000FFFF

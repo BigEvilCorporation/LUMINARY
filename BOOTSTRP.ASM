@@ -3,17 +3,18 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 4th August 2019
 ; ============================================================================================
-; MEMMAP.ASM - Memory map for Luminary Game Framework
+; BOOTSTRP.ASM - First include file, includes bldconf, consts, and vector table
+; ============================================================================================
+; See LUMINARY.ASM for example include order
 ; ============================================================================================
 
-    rsset  RAM_FRAMEWORK_START
+    ; Build configs
+    include 'engine/bldconf.asm'
+    include 'framewk/bldconf.asm'
 
-    ; Entity manager
-    STRUCT_ALLOC EntityManager,RAM_ENTITYMANAGER
+    ; Constants
+    include 'engine/consts.asm'
+    include 'framewk/consts.asm'
 
-RAM_GAME_START                          rs.b 0
-
-    ; Keep entity table in upper 32kb, so movea.w
-    ; sign extends to RAM addr
-    rsset (STACK_TOP-STACK_SIZE)-(ENT_MGR_BLOCK_SIZE*ENT_MGR_MAX_BLOCKS)
-RAM_ENTITYBLOCKTABLE                    rs.b (ENT_MGR_BLOCK_SIZE*ENT_MGR_MAX_BLOCKS)
+    ; 68000 vector table
+    include 'engine/vectrtab.asm'
