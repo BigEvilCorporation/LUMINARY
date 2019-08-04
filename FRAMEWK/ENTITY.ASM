@@ -28,7 +28,7 @@ SpriteComp_Layout                       rs.b 1
 
 TestSpawn:
 
-    lea    entity_player_spawndesc, a1
+    lea    Entity_Player_SpawnDesc, a0
     bsr    ENT_SpawnEntity
 
     rts

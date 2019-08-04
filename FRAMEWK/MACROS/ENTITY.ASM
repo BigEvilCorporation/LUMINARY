@@ -7,6 +7,16 @@
 ; ============================================================================================
 
     ; ======================================
+    ; Component slot description, auto-generated
+    ; by ENTITY_BEGIN/ENTITY_END.
+    ; Do not build directly.
+    ; ======================================
+    STRUCT_BEGIN ComponentSlotDesc
+ComponentSlotDesc_AddrOffset            rs.w 1
+ComponentSlotDesc_Constructor           rs.l 1
+    STRUCT_END
+
+    ; ======================================
     ; Entity spawn description, auto-generated
     ; by ENTITY_BEGIN/ENTITY_END.
     ; Do not build directly.
@@ -44,7 +54,7 @@ __SIZEOF_\__ENTITY_NAME rs.b 0
     ENDIF
 ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
 
-    ; Entity spawn descriptor
+    ; Fill in EntitySpawnDesc data
 Entity_\__ENTITY_NAME\_SpawnDesc:
     dc.w   ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT
     dc.l   ENTITY_\__ENTITY_NAME\_COMPONENT_CONSTRUCTOR_TABLE
@@ -83,9 +93,10 @@ ENT_COMPONENT: macro component_name
     ; ======================================
     ; Name - Component name
     ; ======================================
+    dc.w   __RS                                         ; Fill in ComponentSlotDesc data
+    dc.l   \component_name\_Initialise
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
-    dc.l   \component_name\_Initialise                  ; Add constructor to table
-Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1
+Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1 ; Struct space for component address
     endm
 
 ENT_GETCOMPONENT: macro entity_name,component_name,entity_addr,addr_reg
