@@ -59,9 +59,8 @@ ENT_SpawnEntity:
     @ConstructorLp:
     PUSH.L a3                           ; Backup entity
     bsr    ENT_AllocEntityBlock         ; Allocate block for component
-                                        ; TODO: Insert into entity (add entity component offset to table)
-    add.w  (a2)+, a3                    ; Component addr offset
-    move.w a0, (a3)                     ; Set component address on entity
+    add.w  (a2)+, a3                    ; Get component ptr offset
+    move.w a0, (a3)                     ; Set component ptr on entity
     move.l (a2)+, a3                    ; Get component constructor addr
     PUSHM.L d0/a0-a4
     jsr    (a3)                         ; Call component constructor
