@@ -32,7 +32,7 @@ ENT_SpawnEntity:
     ; its components
     ; ======================================
     ; In:
-    ; a0   Entity spawn desc
+    ; a0   Entity type desc
     ; ======================================
     ; Out:
     ; a0   Entity addr
@@ -42,7 +42,7 @@ ENT_SpawnEntity:
 
     ; Check enough space free
     lea    RAM_ENTITYMANAGER, a4
-    move.w EntitySpawnDesc_NumComponents(a1), d0	; Component count
+    move.w EntityTypeDesc_NumComponents(a1), d0	; Component count
     addq   #0x1, d0									; +1 for entity
     move.w EntityManager_BlocksFree(a4), d1
     cmp.w  d0, d1
@@ -52,9 +52,14 @@ ENT_SpawnEntity:
     bsr    ENT_AllocEntityBlock
     move.l a0, a3
 
+    ; Set type desc
+    move.l a1, Entity_TypeDesc(a0)
+    
+    PUSH.L a0
+
     ; Alloc all component blocks and call constructors
-    move.w EntitySpawnDesc_NumComponents(a1), d0
-    move.l EntitySpawnDesc_ConstructorTable(a1), a2
+    move.w EntityTypeDesc_NumComponents(a1), d0
+    move.l EntityTypeDesc_ComponentSlots(a1), a2
     subi.w #0x1, d0
     @ConstructorLp:
     PUSH.L a3                           ; Backup entity
@@ -67,6 +72,8 @@ ENT_SpawnEntity:
     POPM.L  d0/a0-a4
     POP.L  a3                           ; Restore entity
     dbra   d0, @ConstructorLp
+    
+    POP.L  a0
 
     ; Increment entities allocated
     addi.w #0x1, EntityManager_EntityCount(a4)
@@ -80,11 +87,34 @@ ENT_SpawnEntity:
 
 ENT_DespawnEntity:
     ; ======================================
-    ; Despawns and deallocates and entity
+    ; Despawns and deallocates an entity
     ; and its components
     ; ======================================
     ; a0   Entity addr
     ; ======================================
+
+    lea    RAM_ENTITYMANAGER, a4
+
+    ; Free all components
+    move.l Entity_TypeDesc(a0), a1
+    move.w EntityTypeDesc_NumComponents(a1), d0
+    move.l EntityTypeDesc_ComponentSlots(a1), a2
+    subi.w #0x1, d0
+    @ComponentLp:
+    move.l a0, a3
+    add.w  ComponentSlotDesc_AddrOffset(a2), a3
+    movea.w (a3), a3
+    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a3)
+    addi.w #0x1, EntityManager_BlocksFree(a4)
+    adda.w #SIZEOF_ComponentSlotDesc, a2
+    dbra   d0, @ComponentLp
+
+    ; Free entity
+    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
+    addi.w #0x1, EntityManager_BlocksFree(a4)
+
+    ; Set last free block
+    move.w a0, EntityManager_LastFreeBlock(a4)
 
     rts
 
@@ -128,14 +158,5 @@ ENT_AllocEntityBlock:
 
     @Err_NoFreeBlocks:
     DBG_RAISE_ERROR "ENT_AllocEntityBlock: No free blocks"
-
-    rts
-
-ENT_FreeEntityBlock:
-    ; ======================================
-    ; Frees an entity/component block
-    ; ======================================
-    ; a0   Block addr
-    ; ======================================
 
     rts
