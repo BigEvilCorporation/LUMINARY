@@ -9,54 +9,51 @@
 PHYSICS_FLAG_NOCOLLISION                equ 4
 SPRITE_FLAG_FLIP_X                      equ 3
 
-    ENTITY_COMPONENT_BEGIN PhysicsBody
-PhysicsBody_VelocityX                   rs.l 1
-PhysicsBody_VelocityY                   rs.l 1
-PhysicsBody_Flags                       rs.b 1
+    ENTITY_COMPONENT_BEGIN ECPhysicsBody
+ECPhysicsBody_VelocityX                rs.l 1
+ECPhysicsBody_VelocityY                rs.l 1
+ECPhysicsBody_Flags                    rs.b 1
     ENTITY_COMPONENT_END
 
-    ENTITY_COMPONENT_BEGIN SpriteComp
-SpriteComp_VRAMHndl                     rs.l 1
-SpriteComp_DrawFlags                    rs.w 1
-SpriteComp_Layout                       rs.b 1
+    ENTITY_COMPONENT_BEGIN ECSprite
+ECSprite_Sprite                        rs.b SIZEOF_Sprite
     ENTITY_COMPONENT_END
 
-    ENTITY_BEGIN Player
-	ENT_COMPONENT PhysicsBody
-    ENT_COMPONENT SpriteComp
+    ENTITY_BEGIN EPlayer
+	ENT_COMPONENT ECPhysicsBody
+    ENT_COMPONENT ECSprite
     ENTITY_END
 
 TestSpawn:
 
-    lea    Entity_Player_TypeDesc, a0
+    lea    EPlayer_TypeDesc, a0
     bsr    ENT_SpawnEntity
 
     bsr    ENT_DespawnEntity
 
-    lea    Entity_Player_TypeDesc, a0
+    lea    EPlayer_TypeDesc, a0
     bsr    ENT_SpawnEntity
 
     rts
 
-PhysicsBody_Initialise:
+ECPhysicsBody_Initialise:
     rts
 
-SpriteComp_Initialise:
+ECSprite_Initialise:
     rts
 
-Player_Spawn:
-
-    rts
-
-Player_Despawn:
+EPlayer_Spawn:
 
     rts
 
-Player_Update:
+EPlayer_Despawn:
 
-    ENT_GETCOMPONENT Player, PhysicsBody, a0, a1
-    move.l #0x00010000, PhysicsBody_VelocityX(a1)
-    move.l #0x00008000, PhysicsBody_VelocityX(a1)
-    bset   #PHYSICS_FLAG_NOCOLLISION, PhysicsBody_Flags(a1)
+    rts
+EPlayer_Update:
+
+    ENT_GETCOMPONENT EPlayer, ECPhysicsBody, a0, a1
+    move.l #0x00010000, ECPhysicsBody_VelocityX(a1)
+    move.l #0x00008000, ECPhysicsBody_VelocityX(a1)
+    bset   #PHYSICS_FLAG_NOCOLLISION, ECPhysicsBody_Flags(a1)
 
     rts

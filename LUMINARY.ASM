@@ -20,6 +20,7 @@
     include 'engine/macros/assets.asm'
     include 'engine/macros/debug.asm'
     include 'engine/macros/interpts.asm'
+    include 'engine/macros/linklist.asm'
     include 'engine/macros/memory.asm'
     include 'engine/macros/sprites.asm'
     include 'engine/macros/stack.asm'
@@ -44,6 +45,7 @@
 
     ; Game framework macros
     include 'framewk/macros/entity.asm'
+    include 'framewk/macros/entmgr.asm'
 
     ; Game framework
     include 'framewk/entity.asm'

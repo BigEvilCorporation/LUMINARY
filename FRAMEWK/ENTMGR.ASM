@@ -12,6 +12,12 @@ EntityManager_EntityCount               rs.w 1
 EntityManager_BlocksFree                rs.w 1
     STRUCT_END
 
+	STRUCT_BEGIN EntityBlockList
+EntityBlockList_Head					rs.w 1
+EntityBlockList_Tail					rs.w 1
+EntityBlockList_Size					rs.w 1
+	STRUCT_END
+
 ENT_Initialise:
     ; ======================================
     ; Initialises entity manager
@@ -38,10 +44,11 @@ ENT_SpawnEntity:
     ; a0   Entity addr
     ; ======================================
 
+    lea    RAM_ENTITYMANAGER, a4
+
     move.l a0, a1
 
     ; Check enough space free
-    lea    RAM_ENTITYMANAGER, a4
     move.w EntityTypeDesc_NumComponents(a1), d0	; Component count
     addq   #0x1, d0									; +1 for entity
     move.w EntityManager_BlocksFree(a4), d1
@@ -62,15 +69,20 @@ ENT_SpawnEntity:
     move.l EntityTypeDesc_ComponentSlots(a1), a2
     subi.w #0x1, d0
     @ConstructorLp:
-    PUSH.L a3                           ; Backup entity
-    bsr    ENT_AllocEntityBlock         ; Allocate block for component
-    add.w  (a2)+, a3                    ; Get component ptr offset
-    move.w a0, (a3)                     ; Set component ptr on entity
-    move.l (a2)+, a3                    ; Get component constructor addr
+    PUSH.L a3                                       ; Backup entity
+    bsr    ENT_AllocEntityBlock                     ; Allocate block for component
+    add.w  ComponentSlotDesc_AddrOffset(a2), a3     ; Get component ptr offset
+    move.w a0, (a3)                                 ; Set component ptr on entity
+    move.l ComponentSlotDesc_Constructor(a2), a3    ; Get component constructor addr
     PUSHM.L d0/a0-a4
-    jsr    (a3)                         ; Call component constructor
+    jsr    (a3)                                     ; Call component constructor
     POPM.L  d0/a0-a4
-    POP.L  a3                           ; Restore entity
+    PUSHM.L d0/a0-a4
+    move.l ComponentSlotDesc_LinkedList(a2), a1     ; Add to component list
+    bsr    ENT_LinkEntityBlock
+    POPM.L  d0/a0-a4
+    POP.L  a3                                       ; Restore entity
+    addi.w #SIZEOF_ComponentSlotDesc, a2            ; Next component
     dbra   d0, @ConstructorLp
     
     POP.L  a0
@@ -102,11 +114,19 @@ ENT_DespawnEntity:
     subi.w #0x1, d0
     @ComponentLp:
     move.l a0, a3
-    add.w  ComponentSlotDesc_AddrOffset(a2), a3
-    movea.w (a3), a3
-    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a3)
-    addi.w #0x1, EntityManager_BlocksFree(a4)
-    adda.w #SIZEOF_ComponentSlotDesc, a2
+    add.w  ComponentSlotDesc_AddrOffset(a2), a3                 ; Get component addr offset
+    movea.w (a3), a3                                            ; Get component address
+    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a3) ; Clear alloc'd flag
+    addi.w #0x1, EntityManager_BlocksFree(a4)                   ; Keep count
+
+    ; Unlink from component list
+    PUSHM.L d0/a0-a4
+    move.l a3, a0
+    move.l ComponentSlotDesc_LinkedList(a2), a1
+    bsr    ENT_UnlinkEntityBlock
+    POPM.L  d0/a0-a4
+
+    adda.w #SIZEOF_ComponentSlotDesc, a2                        ; Next component
     dbra   d0, @ComponentLp
 
     ; Free entity
@@ -160,3 +180,117 @@ ENT_AllocEntityBlock:
     DBG_RAISE_ERROR "ENT_AllocEntityBlock: No free blocks"
 
     rts
+
+ENT_LinkEntityBlock:
+    ; ======================================
+    ; Appends an entity/component block to
+    ; a linked list
+    ; ======================================
+    ; a0   Block addr
+    ; a1   Linked list
+    ; ======================================
+
+	; Sanity check - make sure block isn't already in a list
+	IFND FINAL
+
+	; Check block's next ptr is null
+	cmp.w  #0x0, EntityBlock_Next(a0)
+	beq    @NoNextLink
+	DBG_RAISE_ERROR "ENT_LinkEntityBlock: Already in list"
+	@NoNextLink:
+
+	; Check block isn't the list head
+	move.w EntityBlockList_Head(a1), a2
+	cmp.w  a0, a2
+	bne    @NotHead
+	DBG_RAISE_ERROR "ENT_LinkEntityBlock: Already in list"
+	@NotHead:
+
+	; Check block isn't the list tail
+	move.w EntityBlockList_Tail(a1), a2
+	cmp.w  a0, a2
+	bne    @NotTail
+	DBG_RAISE_ERROR "ENT_LinkEntityBlock: Already in list"
+	@NotTail:
+
+	ENDIF
+
+	; If first in list, set as head and tail
+	cmp.w  #0x0, EntityBlockList_Head(a1)
+	bne    @HasHead
+	move.w a0, EntityBlockList_Head(a1)
+	move.w a0, EntityBlockList_Tail(a1)
+	bra    @End
+	@HasHead:
+	
+	; else link to current tail, then set as current tail
+	move.w EntityBlockList_Tail(a1), a2
+	move.w a0, EntityBlock_Next(a2)
+	move.w a0, EntityBlockList_Tail(a1)
+	
+	@End:
+	
+	; Increment count
+	addq.w #0x1, EntityBlockList_Size(a1)
+	
+	rts
+
+ENT_UnlinkEntityBlock:
+    ; ======================================
+    ; Removes an entity/component block from
+    ; a linked list
+    ; ======================================
+    ; a0   Block addr
+    ; a1   Linked list
+    ; ======================================
+
+	move.w  #0x0, a2
+	
+	move.w EntityBlockList_Head(a1), a3	; Get list head
+	@BlockLp:						    ; For all blocks in list
+	cmp.w  a0, a3						; Check if block to remove
+	beq    @Found
+	move.w a3, a2						; Backup prev
+	move.w EntityBlock_Next(a3), a3	    ; Get next ptr
+	bra    @BlockLp
+
+	; Error, block wasn't in this list
+	IFND FINAL
+    DBG_RAISE_ERROR "ENT_UnlinkEntityBlock: Not in list"
+    ELSE
+    rts
+	ENDIF
+	
+	@Found:
+	
+	; Check if new head
+	cmp.w  #0x0, a2
+	beq    @NewHead
+	
+	; Link next with prev
+	move.w EntityBlock_Next(a0), EntityBlock_Next(a2)
+	bra    @EndLink
+	
+	@NewHead:
+	
+	; Removed block was head, set new head
+	move.w EntityBlock_Next(a0), EntityBlockList_Head(a1)
+	
+	@EndLink:
+	
+	; Check if new tail
+	cmp.w   #0x0, EntityBlock_Next(a0)
+	bne     @NotTail
+	
+	; Removed block was tail, set new tail
+	move.w  a2, EntityBlockList_Tail(a1)
+	
+	@NotTail:
+	
+	; Clear removed block's next link
+	move.w #0x0, EntityBlock_Next(a0)
+
+	; Decrement count
+	subq.w #0x1, EntityBlockList_Size(a1)
+	
+	rts

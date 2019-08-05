@@ -12,6 +12,7 @@
     ; ======================================
     STRUCT_BEGIN EntityBlockData
 EntityBlock_Flags                       rs.w 1
+EntityBlock_Next                        rs.w 1
     STRUCT_END
 
     ; ======================================
@@ -20,6 +21,7 @@ EntityBlock_Flags                       rs.w 1
     ; ======================================
     STRUCT_BEGIN ComponentSlotDesc
 ComponentSlotDesc_AddrOffset            rs.w 1
+ComponentSlotDesc_LinkedList            rs.l 1
 ComponentSlotDesc_Constructor           rs.l 1
     STRUCT_END
 
@@ -40,10 +42,9 @@ ENTITY_BEGIN: macro name
     ; ======================================
 __ENTITY_NAME equs "\name\"                     ; Store entity name for ENTITY_END
 __ENTITY_COMPONENT_COUNT = 0                    ; Begin counting components
-ENTITY_\__ENTITY_NAME\_COMPONENT_CONSTRUCTOR_TABLE:    ; Begin component constructor table
+ENTITY_\__ENTITY_NAME\_COMPONENT_SLOTDESC_TABLE:; Begin component slot desc table
     RSSET  SIZEOF_EntityBlockData
 Entity_TypeDesc                         rs.l 1
-Entity_ListNext                         rs.w 1
 Entity_PosX                             rs.l 1
 Entity_PosY                             rs.l 1
 Entity_Flags                            rs.w 1
@@ -62,9 +63,9 @@ __SIZEOF_\__ENTITY_NAME rs.b 0
 ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
 
     ; Fill in EntityTypeDesc data
-Entity_\__ENTITY_NAME\_TypeDesc:
+\__ENTITY_NAME\_TypeDesc:
     dc.w   ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT
-    dc.l   ENTITY_\__ENTITY_NAME\_COMPONENT_CONSTRUCTOR_TABLE
+    dc.l   ENTITY_\__ENTITY_NAME\_COMPONENT_SLOTDESC_TABLE
     even
 	endm
 
@@ -76,7 +77,6 @@ ENTITY_COMPONENT_BEGIN: macro name
     ; ======================================
 __COMPONENT_NAME equs "\name\"
     RSSET  SIZEOF_EntityBlockData
-\__COMPONENT_NAME\_ListNext             rs.w 1
 	endm
 
 ENTITY_COMPONENT_END: macro
@@ -100,6 +100,7 @@ ENT_COMPONENT: macro component_name
     ; Name - Component name
     ; ======================================
     dc.w   __RS                                         ; Fill in ComponentSlotDesc data
+    dc.l   EntityBlockList_\component_name
     dc.l   \component_name\_Initialise
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
 Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1 ; Struct space for component address

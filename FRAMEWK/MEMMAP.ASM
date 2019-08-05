@@ -11,6 +11,10 @@
     ; Entity manager
     STRUCT_ALLOC EntityManager,RAM_ENTITYMANAGER
 
+    ; Entity component lists
+    ENT_COMPONENT_LIST ECSprite
+    ENT_COMPONENT_LIST ECPhysicsBody
+
 RAM_GAME_START                          rs.b 0
 
     ; Keep entity table in upper 32kb, so movea.w
