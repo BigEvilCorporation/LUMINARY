@@ -51,7 +51,7 @@ ECSprite_Load:
     ; Alloc tiles
     PUSHM.L d1/a0-a1
     bsr    VRAMMGR_Alloc
-    move.w d1, d0
+    move.l d1, d0
     POPM.L  d1/a0-a1
 
     move.l d0, Sprite_VRAMHndl(a0)      ; Store VRAM handle

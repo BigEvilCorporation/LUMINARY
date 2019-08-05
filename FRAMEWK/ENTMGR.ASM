@@ -132,7 +132,7 @@ ENT_DespawnEntity:
     move.l EntityTypeDesc_ComponentSlots(a1), a2
     subi.w #0x1, d0
     @ComponentLp:
-    move.l a0, a3
+    move.l a0, a3												; Get entity
     add.w  ComponentSlotDesc_AddrOffset(a2), a3                 ; Get component addr offset
     movea.w (a3), a3                                            ; Get component address
     bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a3) ; Clear alloc'd flag
@@ -146,8 +146,9 @@ ENT_DespawnEntity:
     POPM.L  d0/a0-a4
 
     ; Call destructor
-    move.l ComponentSlotDesc_Destructor(a2), a3
     PUSHM.L d0/a0-a4
+    move.l a3, a0
+    move.l ComponentSlotDesc_Destructor(a2), a3
     jsr    (a3)
     POPM.L  d0/a0-a4
 
@@ -334,12 +335,13 @@ ENT_UpdateAll:
     beq    @NoEntities
 
     @EntLp:
+    movea.w EntityBlock_Next(a0), a2    ; Get next entity first, update can call destructor
     move.l Entity_TypeDesc(a0), a1      ; Get type desc
     move.l EntityTypeDesc_Update(a1), a1; Get update func
-    PUSHM.L a0-a1
+    PUSHM.L a0-a2
     jsr    (a1)                         ; Update
-    POPM.L  a0-a1
-    movea.w EntityBlock_Next(a0), a0    ; Next entity
+    POPM.L  a0-a2
+    move.l a2, a0
     cmp.w  #0x0, a0
     bne    @EntLp
 

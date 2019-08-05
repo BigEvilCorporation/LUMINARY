@@ -24,6 +24,35 @@ DRAW_VRAM: macro
     ENT_COMPONENT ECSprite
     ENTITY_END
 
+SpawnPlayer:
+
+    ; Spawn player entity
+    lea    EPlayer_TypeDesc, a0
+    bsr    ENT_SpawnEntity
+    
+    PUSH.L a0
+
+    ; Set position
+    move.w #0x0088, Entity_PosX(a0)
+    move.w #0x0088, Entity_PosY(a0)
+
+    ; Init player's sprite component
+    PUSH.L a0
+    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0
+    lea    TestSprite, a1
+    move.w #0x1, d0
+    move.b #VDP_SPRITE_LAYOUT_1x1, d1
+    bsr    ECSprite_Load
+    POP.L  a0
+
+    ; Init player's physics component
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
+    move.w #0x0001, ECPhysicsBody_AccelX(a0)
+    
+    POP.L a0
+    
+    rts
+
 EPlayer_Initialise:
     rts
 
@@ -31,6 +60,13 @@ EPlayer_Shutdown:
     rts
 
 EPlayer_Update:
+
+    cmp.w  #VDP_SCREEN_WIDTH_PX, Entity_PosX(a0)
+    blt    @Ok
+    bsr    ENT_DespawnEntity
+    bsr    SpawnPlayer
+    @Ok:
+
     rts
 
 Main:
@@ -61,26 +97,21 @@ Main:
     ;move.w #0x1, d1
     ;bsr    VDP_LoadTiles
 
-    ; Spawn player entity
-    lea    EPlayer_TypeDesc, a0
-    bsr    ENT_SpawnEntity
-
-    ; Set position
+    bsr    SpawnPlayer
     move.w #0x0088, Entity_PosX(a0)
     move.w #0x0088, Entity_PosY(a0)
-
-    ; Init player's sprite component
-    PUSH.L a0
-    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0
-    lea    TestSprite, a1
-    move.w #0x1, d0
-    move.b #VDP_SPRITE_LAYOUT_1x1, d1
-    bsr    ECSprite_Load
-    POP.L  a0
-
-    ; Init player's physics component
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #0x0001, ECPhysicsBody_AccelX(a0)
+    
+	bsr    SpawnPlayer
+    move.w #0x0030, Entity_PosX(a0)
+    move.w #0x0100, Entity_PosY(a0)
+    
+	bsr    SpawnPlayer
+    move.w #0x0090, Entity_PosX(a0)
+    move.w #0x0110, Entity_PosY(a0)
+    
+    bsr    SpawnPlayer
+    move.w #0x0100, Entity_PosX(a0)
+    move.w #0x0120, Entity_PosY(a0)
 
     ; Load palettes
     lea    tst_pal_0, a0
