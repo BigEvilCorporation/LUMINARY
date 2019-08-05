@@ -24,6 +24,15 @@ DRAW_VRAM: macro
     ENT_COMPONENT ECSprite
     ENTITY_END
 
+EPlayer_Initialise:
+    rts
+
+EPlayer_Shutdown:
+    rts
+
+EPlayer_Update:
+    rts
+
 Main:
     ; ======================================
     ; Program entry point
@@ -94,6 +103,7 @@ Main:
 
     ;DRAW_VRAM
 
+    bsr    ENT_UpdateAll
     bsr    ECPhysicsBody_Step
     bsr    ECSprite_DrawAll
     bsr    SPR_CommitAndClearTable
