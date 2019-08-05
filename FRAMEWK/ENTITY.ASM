@@ -15,10 +15,6 @@ ECPhysicsBody_VelocityY                rs.l 1
 ECPhysicsBody_Flags                    rs.b 1
     ENTITY_COMPONENT_END
 
-    ENTITY_COMPONENT_BEGIN ECSprite
-ECSprite_Sprite                        rs.b SIZEOF_Sprite
-    ENTITY_COMPONENT_END
-
     ENTITY_BEGIN EPlayer
 	ENT_COMPONENT ECPhysicsBody
     ENT_COMPONENT ECSprite
@@ -37,9 +33,6 @@ TestSpawn:
     rts
 
 ECPhysicsBody_Initialise:
-    rts
-
-ECSprite_Initialise:
     rts
 
 EPlayer_Spawn:

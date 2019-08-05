@@ -29,24 +29,40 @@ Main:
     ; Initialise entity manager
     bsr    ENT_Initialise
 
-    bsr    TestSpawn
+    ;bsr    TestSpawn
 
-    ; Alloc test sprite
+    ;; Alloc test sprite
+    ;move.w #0x1, d0
+    ;bsr    VRAMMGR_Alloc
+    ;lea    RAM_TEST_SPRITE, a0
+    ;move.l d1, Sprite_VRAMHndl(a0)
+    ;move.b #VDP_SPRITE_LAYOUT_1x1, Sprite_Layout(a0)    
+    ;SPRITE_SETPALETTE_CONST a0,1
+    ;SPRITE_SETFLIPX_CONST a0,1
+    ;SPRITE_SETFLIPY_CONST a0,1
+
+    ;; Load test sprite tiles
+    ;lea    TestSprite, a0
+    ;move.w d1, d0
+    ;move.w #0x1, d1
+    ;bsr    VDP_LoadTiles
+
+    ; Spawn player entity
+    lea    EPlayer_TypeDesc, a0
+    bsr    ENT_SpawnEntity
+
+    ; Set position
+    move.w #0x0088, Entity_PosX(a0)
+    move.w #0x0088, Entity_PosY(a0)
+
+    ; Init player's sprite component
+    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0
+    lea    TestSprite, a1
     move.w #0x1, d0
-    bsr    VRAMMGR_Alloc
-    lea    RAM_TEST_SPRITE, a0
-    move.l d1, Sprite_VRAMHndl(a0)
-    move.b #VDP_SPRITE_LAYOUT_1x1, Sprite_Layout(a0)    
-    SPRITE_SETPALETTE_CONST a0,1
-    SPRITE_SETFLIPX_CONST a0,1
-    SPRITE_SETFLIPY_CONST a0,1
+    move.b #VDP_SPRITE_LAYOUT_1x1, d1
+    bsr    ECSprite_Load
 
-    ; Load test sprite tiles
-    lea    TestSprite, a0
-    move.w d1, d0
-    move.w #0x1, d1
-    bsr    VDP_LoadTiles
-
+    ; Load palettes
     lea    tst_pal_1, a0
     move.b #0x1, d0
     bsr    VDP_LoadPalette
@@ -61,10 +77,10 @@ Main:
     
     @Lp:
 
-    lea    RAM_TEST_SPRITE, a0
-    move.w #0x0088, d0
-    move.w #0x0088, d1
-    bsr    SPR_DrawSingle
+    ;lea    RAM_TEST_SPRITE, a0
+    ;move.w #0x0088, d0
+    ;move.w #0x0088, d1
+    ;bsr    SPR_DrawSingle
 
     DRAW_VRAM
     ;bsr    PAD_WaitAnyButton
@@ -123,6 +139,7 @@ Main:
     move.l RAM_vram_hndl_5, d0
     bsr    VRAMMGR_Free
 
+    bsr    ECSprite_DrawAll
     bsr    SPR_CommitAndClearTable
 
     ; Loop forever

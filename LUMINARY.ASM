@@ -51,6 +51,9 @@
     include 'framewk/entity.asm'
     include 'framewk/entmgr.asm'
 
+    ; Entities and components
+    include 'framewk/entities/sprite.asm'
+
     ; Memory maps
     include 'engine/memmap.asm'
     include 'framewk/memmap.asm'

@@ -71,6 +71,7 @@ ENT_SpawnEntity:
     @ConstructorLp:
     PUSH.L a3                                       ; Backup entity
     bsr    ENT_AllocEntityBlock                     ; Allocate block for component
+    move.w a3, Component_Owner(a0)                  ; Set entity ptr on component
     add.w  ComponentSlotDesc_AddrOffset(a2), a3     ; Get component ptr offset
     move.w a0, (a3)                                 ; Set component ptr on entity
     move.l ComponentSlotDesc_Constructor(a2), a3    ; Get component constructor addr
