@@ -91,6 +91,14 @@ ENT_SpawnEntity:
     ; Increment entities allocated
     addi.w #0x1, EntityManager_EntityCount(a4)
 
+    ; Call constructor
+    move.l EntityTypeDesc_Constructor(a1), a3
+    jsr    (a3)
+
+    ; Add to entity list
+    lea    EntityBlockList_Entities, a1
+    bsr    ENT_LinkEntityBlock
+
     rts
 
     @Err_NotEnoughBlocks:
@@ -108,8 +116,18 @@ ENT_DespawnEntity:
 
     lea    RAM_ENTITYMANAGER, a4
 
-    ; Free all components
+    ; Remove from entity list
+    lea    EntityBlockList_Entities, a1
+    bsr    ENT_UnlinkEntityBlock
+
+    ; Call destructor
     move.l Entity_TypeDesc(a0), a1
+    move.l EntityTypeDesc_Destructor(a1), a3
+    PUSHM.L a0-a1
+    jsr    (a3)
+    POPM.L  a0-a1
+
+    ; Free all components
     move.w EntityTypeDesc_NumComponents(a1), d0
     move.l EntityTypeDesc_ComponentSlots(a1), a2
     subi.w #0x1, d0
@@ -125,6 +143,12 @@ ENT_DespawnEntity:
     move.l a3, a0
     move.l ComponentSlotDesc_LinkedList(a2), a1
     bsr    ENT_UnlinkEntityBlock
+    POPM.L  d0/a0-a4
+
+    ; Call destructor
+    move.l ComponentSlotDesc_Destructor(a2), a3
+    PUSHM.L d0/a0-a4
+    jsr    (a3)
     POPM.L  d0/a0-a4
 
     adda.w #SIZEOF_ComponentSlotDesc, a2                        ; Next component
@@ -295,3 +319,30 @@ ENT_UnlinkEntityBlock:
 	subq.w #0x1, EntityBlockList_Size(a1)
 	
 	rts
+
+ENT_UpdateAll:
+    ; ======================================
+    ; Updates all entities, calling
+    ; [EntityName]_Update on each
+    ; ======================================
+    ; No params
+    ; ======================================
+
+    lea    EntityBlockList_Entities, a0
+    movea.w EntityBlockList_Head(a0), a0
+    cmp.w  #0x0, a0
+    beq    @NoEntities
+
+    @EntLp:
+    move.l Entity_TypeDesc(a0), a1      ; Get type desc
+    move.l EntityTypeDesc_Update(a1), a1; Get update func
+    PUSHM.L a0-a1
+    jsr    (a1)                         ; Update
+    POPM.L  a0-a1
+    movea.w EntityBlock_Next(a0), a0    ; Next entity
+    cmp.w  #0x0, a0
+    bne    @EntLp
+
+    @NoEntities:
+
+    rts

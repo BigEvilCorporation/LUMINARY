@@ -27,6 +27,15 @@ ECPhysicsBody_Initialise:
 
     rts
 
+ECPhysicsBody_Shutdown:
+    ; ======================================
+    ; ECPhysicsBody destructor
+    ; ======================================
+	; a0   Component
+    ; ======================================
+
+    rts
+
 ECPhysicsBody_Step:
     ; ======================================
     ; Steps all physics bodies and handles

@@ -23,6 +23,7 @@ EntityBlock_Next                        rs.w 1
 ComponentSlotDesc_AddrOffset            rs.w 1
 ComponentSlotDesc_LinkedList            rs.l 1
 ComponentSlotDesc_Constructor           rs.l 1
+ComponentSlotDesc_Destructor            rs.l 1
     STRUCT_END
 
     ; ======================================
@@ -32,6 +33,9 @@ ComponentSlotDesc_Constructor           rs.l 1
     STRUCT_BEGIN EntityTypeDesc
 EntityTypeDesc_NumComponents            rs.w 1
 EntityTypeDesc_ComponentSlots           rs.l 1
+EntityTypeDesc_Constructor              rs.l 1
+EntityTypeDesc_Destructor               rs.l 1
+EntityTypeDesc_Update                   rs.l 1
     STRUCT_END
 
     ; ======================================
@@ -80,6 +84,9 @@ ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
 \__ENTITY_NAME\_TypeDesc:
     dc.w   ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT
     dc.l   ENTITY_\__ENTITY_NAME\_COMPONENT_SLOTDESC_TABLE
+    dc.l   \__ENTITY_NAME\_Initialise
+    dc.l   \__ENTITY_NAME\_Shutdown
+    dc.l   \__ENTITY_NAME\_Update
     even
 	endm
 
@@ -116,6 +123,7 @@ ENT_COMPONENT: macro component_name
     dc.w   __RS                                         ; Fill in ComponentSlotDesc data
     dc.l   EntityBlockList_\component_name
     dc.l   \component_name\_Initialise
+    dc.l   \component_name\_Shutdown
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
 Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1 ; Struct space for component address
     endm

@@ -11,6 +11,9 @@
     ; Entity manager
     STRUCT_ALLOC EntityManager,RAM_ENTITYMANAGER
 
+    ; Entity list
+    ENT_COMPONENT_LIST Entities
+
     ; Entity component lists
     ENT_COMPONENT_LIST ECSprite
     ENT_COMPONENT_LIST ECPhysicsBody

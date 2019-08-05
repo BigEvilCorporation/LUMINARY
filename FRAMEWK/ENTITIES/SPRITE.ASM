@@ -11,6 +11,27 @@ ECSprite_SpriteData                    rs.b SIZEOF_Sprite
     ENTITY_COMPONENT_END
 
 ECSprite_Initialise:
+    ; ======================================
+    ; ECSprite constructor
+    ; ======================================
+	; a0   Component
+    ; ======================================
+
+    rts
+
+ECSprite_Shutdown:
+    ; ======================================
+    ; ECSprite destructor
+    ; ======================================
+	; a0   Component
+    ; ======================================
+
+    lea    ECSprite_SpriteData(a0), a0
+    move.l Sprite_VRAMHndl(a0), d0
+    beq    @NotLoaded
+    bsr    VRAMMGR_Free
+    @NotLoaded:
+
     rts
 
 ECSprite_Load:
