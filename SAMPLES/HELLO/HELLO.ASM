@@ -33,7 +33,6 @@ PlayerSpawnData:
     dc.w   0x000F
 
     ; SDPhysicsBody
-    dc.w   0x1010
 
     ; SDSprite
     dc.l   TestSprite
@@ -52,14 +51,11 @@ SpawnPlayer:
     ; Spawn player entity
     lea    EPlayer_TypeDesc, a0
     lea    PlayerSpawnData, a1
-    ; TODO: Position
+    move.w #0x0088, d0
+    move.w #0x0088, d1
     bsr    ENT_SpawnEntity
     
     PUSH.L a0
-
-    ; Set position
-    move.w #0x0088, Entity_PosX(a0)
-    move.w #0x0088, Entity_PosY(a0)
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0

@@ -21,7 +21,7 @@ ECSprite_Initialise:
     ; ECSprite constructor
     ; ======================================
 	; a0   Component
-    ; a1   Component spawn data
+    ; a1   Spawn data
     ; ======================================
 
     move.w SDSprite_SizeTiles(a1), d0

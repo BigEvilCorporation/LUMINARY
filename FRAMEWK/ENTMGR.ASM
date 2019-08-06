@@ -40,6 +40,8 @@ ENT_SpawnEntity:
     ; In:
     ; a0   Entity type desc
     ; a1   Entity spawn data
+    ; d0.w Position X
+    ; d1.w Position Y
     ; ======================================
     ; Out:
     ; a0   Entity addr
@@ -50,17 +52,21 @@ ENT_SpawnEntity:
     move.l a0, a5
 
     ; Check enough space free
-    move.w EntityTypeDesc_NumComponents(a5), d0	; Component count
-    addq   #0x1, d0									; +1 for entity
-    move.w EntityManager_BlocksFree(a4), d1
-    cmp.w  d0, d1
+    move.w EntityTypeDesc_NumComponents(a5), d2	; Component count
+    addq   #0x1, d2									; +1 for entity
+    move.w EntityManager_BlocksFree(a4), d3
+    cmp.w  d2, d3
     blt    @Err_NotEnoughBlocks
 
     ; Alloc block for entity
+    PUSHM.W d0-d1
     bsr    ENT_AllocEntityBlock
+    POPM.W  d0-d1
     move.l a0, a3
 
-    ; Set type desc
+    ; Set position and type desc
+    move.w d0, Entity_PosX(a0)
+    move.w d1, Entity_PosY(a0)
     move.l a5, Entity_TypeDesc(a0)
     
     PUSH.L a0
