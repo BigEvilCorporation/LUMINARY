@@ -41,10 +41,30 @@ PlayerSpawnData:
 
     even
 
-    ; TODO:
-    ; Spawn data for entity and all components merged into one block
-    ; ENTITY_SPAWN_DATA_/COMPONENT_SPAWN_DATA_ macros keep track of size
-    ; ENTITY_BEGIN/COMPONENT_BEGIN macros add spawn data offsets to ComponentSlotDesc within entity desc
+TestScene1_Entities:
+    dc.l   EPlayer_TypeDesc             ; SceneEntity_EntityType
+    dc.l   PlayerSpawnData              ; SceneEntity_SpawnData
+    dc.w   0x0088                       ; SceneEntity_PosX
+    dc.w   0x0088                       ; SceneEntity_PosY
+    ; --
+    dc.l   EPlayer_TypeDesc             ; SceneEntity_EntityType
+    dc.l   PlayerSpawnData              ; SceneEntity_SpawnData
+    dc.w   0x0030                       ; SceneEntity_PosX
+    dc.w   0x0100                       ; SceneEntity_PosY
+    ; --
+    dc.l   EPlayer_TypeDesc             ; SceneEntity_EntityType
+    dc.l   PlayerSpawnData              ; SceneEntity_SpawnData
+    dc.w   0x0090                       ; SceneEntity_PosX
+    dc.w   0x0110                       ; SceneEntity_PosY
+    ; --
+    dc.l   EPlayer_TypeDesc             ; SceneEntity_EntityType
+    dc.l   PlayerSpawnData              ; SceneEntity_SpawnData
+    dc.w   0x0100                       ; SceneEntity_PosX
+    dc.w   0x0120                       ; SceneEntity_PosY
+
+TestScene1:
+    dc.w 4                              ; SceneData_EntityCount
+    dc.l TestScene1_Entities            ; SceneData_Entities
 
 SpawnPlayer:
 
@@ -54,14 +74,6 @@ SpawnPlayer:
     move.w #0x0088, d0
     move.w #0x0088, d1
     bsr    ENT_SpawnEntity
-    
-    PUSH.L a0
-
-    ; Init player's physics component
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #0x0001, ECPhysicsBody_AccelX(a0)
-    
-    POP.L a0
     
     rts
 
@@ -74,6 +86,10 @@ EPlayer_Initialise:
     ; ======================================
 
     move.w SDPlayer_SomeVariable(a1), d0
+
+    ; Init player's physics component
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
+    move.w #0x0001, ECPhysicsBody_AccelX(a0)
 
     rts
 
@@ -118,22 +134,6 @@ Main:
     ;move.w #0x1, d1
     ;bsr    VDP_LoadTiles
 
-    bsr    SpawnPlayer
-    move.w #0x0088, Entity_PosX(a0)
-    move.w #0x0088, Entity_PosY(a0)
-    
-	bsr    SpawnPlayer
-    move.w #0x0030, Entity_PosX(a0)
-    move.w #0x0100, Entity_PosY(a0)
-    
-	bsr    SpawnPlayer
-    move.w #0x0090, Entity_PosX(a0)
-    move.w #0x0110, Entity_PosY(a0)
-    
-    bsr    SpawnPlayer
-    move.w #0x0100, Entity_PosX(a0)
-    move.w #0x0120, Entity_PosY(a0)
-
     ; Load palettes
     lea    tst_pal_0, a0
     move.b #0x0, d0
@@ -150,6 +150,27 @@ Main:
     lea    tst_pal_3, a0
     move.b #0x3, d0
     bsr    VDP_LoadPalette
+
+    ; Load scene
+    lea    RAM_TESTSCENE1, a0
+    lea    TestScene1, a1
+    bsr    SCN_LoadScene
+
+    ;bsr    SpawnPlayer
+    ;move.w #0x0088, Entity_PosX(a0)
+    ;move.w #0x0088, Entity_PosY(a0)
+    ;
+	;bsr    SpawnPlayer
+    ;move.w #0x0030, Entity_PosX(a0)
+    ;move.w #0x0100, Entity_PosY(a0)
+    ;
+	;bsr    SpawnPlayer
+    ;move.w #0x0090, Entity_PosX(a0)
+    ;move.w #0x0110, Entity_PosY(a0)
+    ;
+    ;bsr    SpawnPlayer
+    ;move.w #0x0100, Entity_PosX(a0)
+    ;move.w #0x0120, Entity_PosY(a0)
     
     @Lp:
 

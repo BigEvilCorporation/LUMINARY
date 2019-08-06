@@ -10,6 +10,9 @@
 
 ; Entity/component system block size
 BLDCONF_ENT_MGR_BLOCK_SIZE              equ 32
-BLDCONF_ENT_MGR_BLOCK_MAX_BLOCKS        equ 128
+BLDCONF_ENT_MGR_BLOCK_MAX_BLOCKS        equ 256
+
+; Scene config
+BLDCONF_SCN_MAX_ENTITIES                equ 64
 
     ENDIF

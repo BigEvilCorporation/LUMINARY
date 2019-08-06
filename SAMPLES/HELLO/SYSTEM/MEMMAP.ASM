@@ -7,9 +7,4 @@
 ; ============================================================================================
 
     RSSET RAM_GAME_START
-RAM_VRAM_HNDL_1                         rs.l 1
-RAM_VRAM_HNDL_2                         rs.l 1
-RAM_VRAM_HNDL_3                         rs.l 1
-RAM_VRAM_HNDL_4                         rs.l 1
-RAM_VRAM_HNDL_5                         rs.l 1
-RAM_TEST_SPRITE                         rs.b SIZEOF_Sprite
+    STRUCT_ALLOC Scene,RAM_TESTSCENE1

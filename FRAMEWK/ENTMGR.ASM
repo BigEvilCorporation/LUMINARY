@@ -100,8 +100,10 @@ ENT_SpawnEntity:
     addi.w #0x1, EntityManager_EntityCount(a4)
 
     ; Call constructor
+    PUSH.L a0
     move.l EntityTypeDesc_Constructor(a5), a3
     jsr    (a3)
+    POP.L  a0
 
     ; Add to entity list
     lea    EntityBlockList_Entities, a1

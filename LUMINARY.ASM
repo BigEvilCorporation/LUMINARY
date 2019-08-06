@@ -50,6 +50,7 @@
     ; Game framework
     include 'framewk/entity.asm'
     include 'framewk/entmgr.asm'
+    include 'framewk/scene.asm'
 
     ; Entities and components
     include 'framewk/entities/physbody.asm'
