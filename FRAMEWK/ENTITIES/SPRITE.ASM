@@ -6,6 +6,12 @@
 ; SPRITE.ASM - Sprite entity component
 ; ============================================================================================
 
+    COMPONENT_SPAWN_DATA_BEGIN ECSprite
+SDSprite_TileData                       rs.l 1
+SDSprite_SizeTiles                      rs.w 1
+SDSprite_Layout                         rs.b 1
+    COMPONENT_SPAWN_DATA_END
+
     ENTITY_COMPONENT_BEGIN ECSprite
 ECSprite_SpriteData                    rs.b SIZEOF_Sprite
     ENTITY_COMPONENT_END
@@ -15,7 +21,13 @@ ECSprite_Initialise:
     ; ECSprite constructor
     ; ======================================
 	; a0   Component
+    ; a1   Component spawn data
     ; ======================================
+
+    move.w SDSprite_SizeTiles(a1), d0
+    move.b SDSprite_Layout(a1), d1
+    move.l SDSprite_TileData(a1), a1
+    bsr    ECSprite_Load
 
     rts
 

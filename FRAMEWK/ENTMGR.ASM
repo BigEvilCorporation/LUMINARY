@@ -39,6 +39,7 @@ ENT_SpawnEntity:
     ; ======================================
     ; In:
     ; a0   Entity type desc
+    ; a1   Entity spawn data
     ; ======================================
     ; Out:
     ; a0   Entity addr
@@ -46,10 +47,10 @@ ENT_SpawnEntity:
 
     lea    RAM_ENTITYMANAGER, a4
 
-    move.l a0, a1
+    move.l a0, a5
 
     ; Check enough space free
-    move.w EntityTypeDesc_NumComponents(a1), d0	; Component count
+    move.w EntityTypeDesc_NumComponents(a5), d0	; Component count
     addq   #0x1, d0									; +1 for entity
     move.w EntityManager_BlocksFree(a4), d1
     cmp.w  d0, d1
@@ -60,29 +61,30 @@ ENT_SpawnEntity:
     move.l a0, a3
 
     ; Set type desc
-    move.l a1, Entity_TypeDesc(a0)
+    move.l a5, Entity_TypeDesc(a0)
     
     PUSH.L a0
 
     ; Alloc all component blocks and call constructors
-    move.w EntityTypeDesc_NumComponents(a1), d0
-    move.l EntityTypeDesc_ComponentSlots(a1), a2
+    move.w EntityTypeDesc_NumComponents(a5), d0
+    move.l EntityTypeDesc_ComponentSlots(a5), a2
     subi.w #0x1, d0
     @ConstructorLp:
-    PUSH.L a3                                       ; Backup entity
+    PUSHM.L a1/a3                                   ; Backup entity and spawn data
     bsr    ENT_AllocEntityBlock                     ; Allocate block for component
     move.w a3, Component_Owner(a0)                  ; Set entity ptr on component
-    add.w  ComponentSlotDesc_AddrOffset(a2), a3     ; Get component ptr offset
+    add.w  ComponentSlotDesc_AddrOffset(a2), a3     ; Get component ptr offset (within entity)
+    add.w  ComponentSlotDesc_SpawnDataOffset(a2), a1; Get component spawn data offset (within spawn data)
     move.w a0, (a3)                                 ; Set component ptr on entity
     move.l ComponentSlotDesc_Constructor(a2), a3    ; Get component constructor addr
-    PUSHM.L d0/a0-a4
+    PUSHM.L d0/a0-a5
     jsr    (a3)                                     ; Call component constructor
-    POPM.L  d0/a0-a4
-    PUSHM.L d0/a0-a4
+    POPM.L  d0/a0-a5
+    PUSHM.L d0/a0-a5
     move.l ComponentSlotDesc_LinkedList(a2), a1     ; Add to component list
     bsr    ENT_LinkEntityBlock
-    POPM.L  d0/a0-a4
-    POP.L  a3                                       ; Restore entity
+    POPM.L d0/a0-a5
+    POPM.L a1/a3                                    ; Restore entity and spawn data
     addi.w #SIZEOF_ComponentSlotDesc, a2            ; Next component
     dbra   d0, @ConstructorLp
     
@@ -92,7 +94,7 @@ ENT_SpawnEntity:
     addi.w #0x1, EntityManager_EntityCount(a4)
 
     ; Call constructor
-    move.l EntityTypeDesc_Constructor(a1), a3
+    move.l EntityTypeDesc_Constructor(a5), a3
     jsr    (a3)
 
     ; Add to entity list

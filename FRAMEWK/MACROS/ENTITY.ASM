@@ -21,6 +21,7 @@ EntityBlock_Next                        rs.w 1
     ; ======================================
     STRUCT_BEGIN ComponentSlotDesc
 ComponentSlotDesc_AddrOffset            rs.w 1
+ComponentSlotDesc_SpawnDataOffset       rs.w 1
 ComponentSlotDesc_LinkedList            rs.l 1
 ComponentSlotDesc_Constructor           rs.l 1
 ComponentSlotDesc_Destructor            rs.l 1
@@ -56,15 +57,46 @@ Entity_PosY                             rs.l 1  ; World pos Y (16.16)
 Component_Owner                         rs.w 1  ; Owning entity
     STRUCT_END
 
+    ; ======================================
+    ; Begins definition of a named entity's
+    ; spawn data
+    ; ======================================
+    ; Name - Entity name
+    ; ======================================
+ENTITY_SPAWN_DATA_BEGIN: macro entity_name
+__ENTITY_NAME equs "\entity_name\" 
+    RSSET  0
+    endm
+
+ENTITY_SPAWN_DATA_END: macro
+    STRUCT_ALIGN
+__SIZEOF_\__ENTITY_NAME\__SPAWNDATA     rs.b 0
+    endm
+
+    ; ======================================
+    ; Begins definition of a component's
+    ; spawn data
+    ; ======================================
+    ; Name - Entity name
+    ; ======================================
+COMPONENT_SPAWN_DATA_BEGIN: macro component_name
+    ENTITY_SPAWN_DATA_BEGIN \component_name
+    endm
+
+COMPONENT_SPAWN_DATA_END: macro
+    ENTITY_SPAWN_DATA_END
+    endm
+
 ENTITY_BEGIN: macro name
     ; ======================================
     ; Begins definition of a named entity
     ; ======================================
     ; Name - Entity name
     ; ======================================
-__ENTITY_NAME equs "\name\"                     ; Store entity name for ENTITY_END
-__ENTITY_COMPONENT_COUNT = 0                    ; Begin counting components
-ENTITY_\__ENTITY_NAME\_COMPONENT_SLOTDESC_TABLE:; Begin component slot desc table
+__ENTITY_NAME equs "\name\"                                         ; Store entity name for ENTITY_END
+__ENTITY_COMPONENT_COUNT = 0                                        ; Begin counting components
+__COMPONENT_SPAWN_DATA_OFFSET = __SIZEOF_\__ENTITY_NAME\__SPAWNDATA ; Begin counting component spawn data size
+ENTITY_\__ENTITY_NAME\_COMPONENT_SLOTDESC_TABLE:                    ; Begin component slot desc table
     RSSET  SIZEOF_EntityBase
 	endm
 
@@ -121,10 +153,12 @@ ENT_COMPONENT: macro component_name
     ; Name - Component name
     ; ======================================
     dc.w   __RS                                         ; Fill in ComponentSlotDesc data
+    dc.w   __COMPONENT_SPAWN_DATA_OFFSET
     dc.l   EntityBlockList_\component_name
     dc.l   \component_name\_Initialise
     dc.l   \component_name\_Shutdown
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
+__COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_name\__SPAWNDATA  ; Offset spawn data ptr
 Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1 ; Struct space for component address
     endm
 

@@ -19,15 +19,40 @@ DRAW_VRAM: macro
     POP.L  a0
     endm
 
+    ENTITY_SPAWN_DATA_BEGIN EPlayer
+SDPlayer_SomeVariable                   rs.w 1
+    ENTITY_SPAWN_DATA_END
+
     ENTITY_BEGIN EPlayer
 	ENT_COMPONENT ECPhysicsBody
     ENT_COMPONENT ECSprite
     ENTITY_END
 
+PlayerSpawnData:
+    ; SDPlayer
+    dc.w   0x000F
+
+    ; SDPhysicsBody
+    dc.w   0x1010
+
+    ; SDSprite
+    dc.l   TestSprite
+    dc.w   1
+    dc.b   VDP_SPRITE_LAYOUT_1x1
+
+    even
+
+    ; TODO:
+    ; Spawn data for entity and all components merged into one block
+    ; ENTITY_SPAWN_DATA_/COMPONENT_SPAWN_DATA_ macros keep track of size
+    ; ENTITY_BEGIN/COMPONENT_BEGIN macros add spawn data offsets to ComponentSlotDesc within entity desc
+
 SpawnPlayer:
 
     ; Spawn player entity
     lea    EPlayer_TypeDesc, a0
+    lea    PlayerSpawnData, a1
+    ; TODO: Position
     bsr    ENT_SpawnEntity
     
     PUSH.L a0
@@ -35,15 +60,6 @@ SpawnPlayer:
     ; Set position
     move.w #0x0088, Entity_PosX(a0)
     move.w #0x0088, Entity_PosY(a0)
-
-    ; Init player's sprite component
-    PUSH.L a0
-    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0
-    lea    TestSprite, a1
-    move.w #0x1, d0
-    move.b #VDP_SPRITE_LAYOUT_1x1, d1
-    bsr    ECSprite_Load
-    POP.L  a0
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
@@ -54,6 +70,15 @@ SpawnPlayer:
     rts
 
 EPlayer_Initialise:
+    ; ======================================
+    ; EPlayer constructor
+    ; ======================================
+	; a0   Entity
+    ; a1   Entity spawn data
+    ; ======================================
+
+    move.w SDPlayer_SomeVariable(a1), d0
+
     rts
 
 EPlayer_Shutdown:
@@ -147,12 +172,12 @@ Main:
 
 TestSprite:
     dc.l 0x00000000
-    dc.l 0x01111110
-    dc.l 0x01000000
-    dc.l 0x01000000
-    dc.l 0x01000000
-    dc.l 0x01000000
-    dc.l 0x01000000
+    dc.l 0x00111100
+    dc.l 0x01100110
+    dc.l 0x01000010
+    dc.l 0x01000010
+    dc.l 0x01100110
+    dc.l 0x00111100
     dc.l 0x00000000
 
 tst_pal_0:

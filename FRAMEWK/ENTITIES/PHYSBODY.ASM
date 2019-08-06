@@ -5,6 +5,9 @@
 ; ============================================================================================
 ; PHYSBODY.ASM - Physics body sprite component
 ; ============================================================================================
+
+    COMPONENT_SPAWN_DATA_BEGIN ECPhysicsBody
+    COMPONENT_SPAWN_DATA_END
     
     ENTITY_COMPONENT_BEGIN ECPhysicsBody
 ECPhysicsBody_VelX                      rs.l 1
@@ -18,6 +21,7 @@ ECPhysicsBody_Initialise:
     ; ECPhysicsBody constructor
     ; ======================================
 	; a0   Component
+    ; a1   Component spawn data
     ; ======================================
 
     move.l #0x0, ECPhysicsBody_VelX(a0)
