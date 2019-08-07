@@ -157,6 +157,7 @@ ENT_COMPONENT: macro component_name
     dc.l   EntityBlockList_\component_name
     dc.l   \component_name\_Initialise
     dc.l   \component_name\_Shutdown
+    STRUCT_ALIGN
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
 __COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_name\__SPAWNDATA  ; Offset spawn data ptr
 Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1 ; Struct space for component address

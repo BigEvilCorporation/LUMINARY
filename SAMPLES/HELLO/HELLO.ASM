@@ -19,6 +19,14 @@ DRAW_VRAM: macro
     POP.L  a0
     endm
 
+    COMPONENT_SPAWN_DATA_BEGIN ECAIBrain
+SDAIBrain_InitialState                  rs.b 1
+    COMPONENT_SPAWN_DATA_END
+
+    ENTITY_COMPONENT_BEGIN ECAIBrain
+ECAIBrain_State                         rs.b 1
+    ENTITY_COMPONENT_END
+
     ENTITY_SPAWN_DATA_BEGIN EPlayer
 SDPlayer_SomeVariable                   rs.w 1
     ENTITY_SPAWN_DATA_END
@@ -27,6 +35,29 @@ SDPlayer_SomeVariable                   rs.w 1
 	ENT_COMPONENT ECPhysicsBody
     ENT_COMPONENT ECSprite
     ENTITY_END
+
+    ENTITY_SPAWN_DATA_BEGIN EEnemy
+SDEnemy_Type                            rs.b 1
+    ENTITY_SPAWN_DATA_END
+
+    ENTITY_BEGIN EEnemy
+EEnemy_DebugName                        rs.b 8
+EEnemy_Type                             rs.b 1
+	ENT_COMPONENT ECPhysicsBody
+    ENT_COMPONENT ECSprite
+    ENT_COMPONENT ECAIBrain
+    ENTITY_END
+
+ECAIBrain_Initialise:
+    rts
+ECAIBrain_Shutdown:
+    rts
+EEnemy_Initialise:
+    rts
+EEnemy_Shutdown:
+    rts
+EEnemy_Update:
+    rts
 
 PlayerSpawnData:
     ; SDPlayer

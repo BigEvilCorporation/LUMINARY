@@ -59,7 +59,7 @@ namespace luminary
 		struct TextBlock
 		{
 			std::string name;
-			std::vector<std::string> block;
+			std::vector<std::vector<std::string>> block;
 		};
 
 		std::vector<TextBlock> m_entityTextBlocks;
@@ -73,15 +73,14 @@ namespace luminary
 		std::vector<Component> m_components;
 
 		void FindTextBlocks(const std::string& filename);
-		std::string FindComponentName(std::string line, size_t pos);
-		std::string FindEntityName(const std::string& line, size_t pos);
-		std::string FindComponentSpawnName(std::string line, size_t pos);
-		std::string FindEntitySpawnName(const std::string& line, size_t pos);
+		std::string GetNameToken(const std::vector<std::string>& tokens);
 		bool ParseEntity(const TextBlock& textBlock, Entity& entity);
 		bool ParseComponent(const TextBlock& textBlock, Component& component);
 		void ParseSpawnData(const TextBlock& textBlock, SpawnData& spawnData);
-		bool ParseParam(const std::string& line, Param& param);
-		Component* ParseComponentDef(const std::string& line, size_t pos);
+		bool ParseParam(const std::vector<std::string>& line, Param& param);
+		Component* ParseComponentDef(const std::vector<std::string>& line, size_t pos);
+		SpawnData* FindComponentSpawnData(const std::string& componentName);
+		SpawnData* FindEntitySpawnData(const std::string& entityName);
 
 		ion::io::FileSystem m_fileSystem;
 	};

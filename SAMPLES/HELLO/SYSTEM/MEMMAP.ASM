@@ -7,4 +7,5 @@
 ; ============================================================================================
 
     RSSET RAM_GAME_START
-    STRUCT_ALLOC Scene,RAM_TESTSCENE1
+        STRUCT_ALLOC Scene,RAM_TESTSCENE1
+        ENT_COMPONENT_LIST ECAIBrain
