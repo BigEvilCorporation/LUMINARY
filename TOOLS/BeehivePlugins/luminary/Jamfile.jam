@@ -1,0 +1,13 @@
+ApplyIonDefines luminary ;
+ApplyIonIncludes luminary ;
+ApplyIonCore luminary ;
+ApplyIonIo luminary ;
+
+local LUMINARY_SRC = 
+	EntityParser.cpp
+	EntityParser.h
+	;
+
+AutoSourceGroup luminary : $(LUMINARY_SRC) ;
+C.RuntimeType luminary : static ;
+C.Library luminary : $(LUMINARY_SRC) ;
