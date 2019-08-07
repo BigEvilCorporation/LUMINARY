@@ -6,6 +6,9 @@ ApplyIonIo luminary ;
 local LUMINARY_SRC = 
 	EntityParser.cpp
 	EntityParser.h
+	SceneExporter.cpp
+	SceneExporter.h
+	Types.h
 	;
 
 AutoSourceGroup luminary : $(LUMINARY_SRC) ;

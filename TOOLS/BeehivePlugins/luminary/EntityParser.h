@@ -7,47 +7,17 @@
 // of entities and components for tools exporting.
 // ============================================================================================
 
+#pragma once
+
 #include <string>
 #include <vector>
 
 #include <ion/io/FileSystem.h>
 
+#include "Types.h"
+
 namespace luminary
 {
-	enum class ParamSize
-	{
-		Byte,
-		Word,
-		Long
-	};
-
-	struct Param
-	{
-		std::string name;
-		ParamSize size;
-	};
-
-	struct SpawnData
-	{
-		std::string name;
-		std::vector<Param> params;
-	};
-
-	struct Component
-	{
-		std::string name;
-		SpawnData spawnData;
-		std::vector<Param> params;
-	};
-
-	struct Entity
-	{
-		std::string name;
-		SpawnData spawnData;
-		std::vector<Param> params;
-		std::vector<Component> components;
-	};
-
 	class EntityParser
 	{
 	public:

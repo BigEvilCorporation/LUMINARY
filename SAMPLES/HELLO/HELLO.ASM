@@ -11,6 +11,7 @@
     include 'samples/hello/system/header.asm'
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
+    include 'samples/hello/data/scenes/scene1.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -184,7 +185,7 @@ Main:
 
     ; Load scene
     lea    RAM_TESTSCENE1, a0
-    lea    TestScene1, a1
+    lea    SceneData_tst1, a1
     bsr    SCN_LoadScene
 
     ;bsr    SpawnPlayer
