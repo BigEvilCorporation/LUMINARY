@@ -47,6 +47,8 @@ VRAM_END					            equ (VRAM_START+VRAM_SIZE_B)
 ; Screen
 VDP_SCREEN_WIDTH_PX                     equ 0x0140 ; 320 (H40 mode)
 VDP_SCREEN_HEIGHT_PX                    equ 0x00E0 ; 224 (V28 mode)
+VDP_SPRITE_BORDER_X		                equ 0x0080
+VDP_SPRITE_BORDER_Y		                equ 0x0080
 
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40

@@ -8,6 +8,10 @@ local LUMINARY_SRC =
 	EntityParser.h
 	SceneExporter.cpp
 	SceneExporter.h
+	SpriteExporter.cpp
+	SpriteExporter.h
+	Tags.cpp
+	Tags.h
 	Types.h
 	;
 
