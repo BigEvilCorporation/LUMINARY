@@ -35,6 +35,9 @@ static const std::string s_comment = ";";
 static const std::string s_rsByte = "rs.b";
 static const std::string s_rsWord = "rs.w";
 static const std::string s_rsLong = "rs.l";
+static const std::string s_tagStart = "[TAGS=";
+static const std::string s_tagEnd = "]";
+static const std::string s_tagDelim = ",";
 
 namespace luminary
 {
@@ -145,6 +148,21 @@ namespace luminary
 		for (int i = 0; i < tokens.size(); i++)
 		{
 			if (ion::string::CompareNoCase(tokens[i], string))
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	int TokenStartsWith(const std::vector<std::string>& tokens, const std::string& string)
+	{
+		std::string lower = ion::string::ToLower(string);
+
+		for (int i = 0; i < tokens.size(); i++)
+		{
+			if (ion::string::StartsWith(ion::string::ToLower(tokens[i]), lower))
 			{
 				return i;
 			}
@@ -393,10 +411,31 @@ namespace luminary
 				return false;
 			}
 
+			//Check for tags
+			int tags = -1;
+			if ((tags = TokenStartsWith(line, s_tagStart)) >= 0)
+			{
+				ParseTags(line[tags], param);
+			}
+
 			return true;
 		}
 		
 		return false;
+	}
+
+	void EntityParser::ParseTags(const std::string& tagLine, Param& param)
+	{
+		if (ion::string::StartsWith(tagLine, s_tagStart))
+		{
+			//Extract tag keywords
+			std::string tags = tagLine.substr(s_tagStart.size(), tagLine.size() - s_tagStart.size());
+			size_t tagEnd = tags.find_first_of(s_tagEnd);
+			tags = tags.substr(0, tagEnd);
+
+			//Tokenise all tags
+			ion::string::Tokenise(tags, param.tags, s_tagDelim[0]);
+		}
 	}
 
 	Component* EntityParser::ParseComponentDef(const std::vector<std::string>& line, size_t pos)

@@ -24,6 +24,7 @@ namespace luminary
 		std::string name;
 		ParamSize size;
 		std::string value;
+		std::vector<std::string> tags;
 	};
 
 	struct SpawnData

@@ -7,9 +7,9 @@
 ; ============================================================================================
 
     COMPONENT_SPAWN_DATA_BEGIN ECSprite
-SDSprite_TileData                       rs.l 1
-SDSprite_SizeTiles                      rs.w 1
-SDSprite_Layout                         rs.b 1
+SDSprite_TileData                       rs.l 1  ; [TAGS=SPRITE_TILES]
+SDSprite_SizeTiles                      rs.w 1  ; [TAGS=SPRITE_SIZE]
+SDSprite_Layout                         rs.b 1  ; [TAGS=SPRITE_LAYOUT]
     COMPONENT_SPAWN_DATA_END
 
     ENTITY_COMPONENT_BEGIN ECSprite
