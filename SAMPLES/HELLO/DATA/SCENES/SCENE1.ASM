@@ -1,16 +1,16 @@
 SceneEntitySpawnData_tst1_EPlayer_ent1:
-	dc.w 0x0	; SDPlayer_SomeVariable
+	dc.w 0x1	; SDPlayer_SomeVariable
 	; ECSprite
-    dc.l   TestSprite
-    dc.w   1
-    dc.b   VDP_SPRITE_LAYOUT_1x1
+	dc.l TestSprite	; SDSprite_TileData
+	dc.w 1	; SDSprite_SizeTiles
+	dc.b VDP_SPRITE_LAYOUT_1x1	; SDSprite_Layout
 	even
 SceneEntitySpawnData_tst1_EPlayer_ent2:
 	dc.w 0x0	; SDPlayer_SomeVariable
 	; ECSprite
-    dc.l   TestSprite
-    dc.w   1
-    dc.b   VDP_SPRITE_LAYOUT_1x1
+	dc.l TestSprite	; SDSprite_TileData
+	dc.w 1	; SDSprite_SizeTiles
+	dc.b VDP_SPRITE_LAYOUT_1x1	; SDSprite_Layout
 	even
 
 SceneEntityData_tst1:
