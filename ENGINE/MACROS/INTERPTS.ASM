@@ -9,7 +9,7 @@
 ; Disable interrupts (pushes to stack)
 INT_DISABLE: macro
 	PUSH.W sr
-	ori.w  #STATUS_REG_INT_DISABLE, sr
+	ori.w  #CPU_STATUS_REG_INT_DISABLE, sr
 	endm
 
 ; Restore interrupts (pops from stack)

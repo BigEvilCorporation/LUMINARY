@@ -111,6 +111,18 @@ PORT_VDP_CONTROL                        equ 0x00C00004
 PORT_VDP_DATA                           equ 0x00C00000
 PORT_VDP_TMSS                           equ 0x00A14000
 
+; VDP status register bits
+VDP_STATUS_FIFOEMPTY                    equ 0x9    ; FIFO Empty
+VDP_STATUS_FIFOFULL                     equ 0x8    ; FIFO Full
+VDP_STATUS_VINTPENDING                  equ 0x7    ; Vertical interrupt pending
+VDP_STATUS_SPRITEOVERFLOW               equ 0x6    ; Sprite overflow on current scan line
+VDP_STATUS_SPRITECOLLISION              equ 0x5    ; Sprite collision
+VDP_STATUS_ODDFRAME                     equ 0x4    ; Odd frame
+VDP_STATUS_VBLANK                       equ 0x3    ; Vertical blanking
+VDP_STATUS_HBLANK                       equ 0x2    ; Horizontal blanking
+VDP_STATUS_DMA                          equ 0x1    ; DMA in progress
+VDP_STATUS_PAL                          equ 0x0    ; PAL mode flag
+
 ; TMSS
 TMSS_SIGNATURE                          equ 'SEGA'
 
@@ -167,22 +179,22 @@ PAD_BUTTON_START                        equ 0xD
 PAD_BUTTON_ALL			                equ 0x303F
 
 ; Status register
-STATUS_REG_TRACE		                equ (1<<15)
-STATUS_REG_UNUSED1		                equ (1<<14)
-STATUS_REG_SUPERVISOR	                equ (1<<13)
-STATUS_REG_UNUSED2		                equ (1<<12)
-STATUS_REG_UNUSED3		                equ (1<<11)
-STATUS_REG_INT2			                equ (1<<10)
-STATUS_REG_INT1			                equ (1<<9)
-STATUS_REG_INT0			                equ (1<<8)
-STATUS_REG_UNUSED4		                equ (1<<7)
-STATUS_REG_UNUSED5		                equ (1<<6)
-STATUS_REG_UNUSED6		                equ (1<<5)
-STATUS_REG_CCR_EXTEND	                equ (1<<4)
-STATUS_REG_CCR_NEGATIVE	                equ (1<<3)
-STATUS_REG_CCR_ZERO		                equ (1<<2)
-STATUS_REG_CCR_OVERFLOW	                equ (1<<1)
-STATUS_REG_CCR_CARRY	                equ (1<<0)
+CPU_STATUS_REG_TRACE		            equ (1<<15)
+CPU_STATUS_REG_UNUSED1		            equ (1<<14)
+CPU_STATUS_REG_SUPERVISOR	            equ (1<<13)
+CPU_STATUS_REG_UNUSED2		            equ (1<<12)
+CPU_STATUS_REG_UNUSED3		            equ (1<<11)
+CPU_STATUS_REG_INT2			            equ (1<<10)
+CPU_STATUS_REG_INT1			            equ (1<<9)
+CPU_STATUS_REG_INT0			            equ (1<<8)
+CPU_STATUS_REG_UNUSED4		            equ (1<<7)
+CPU_STATUS_REG_UNUSED5		            equ (1<<6)
+CPU_STATUS_REG_UNUSED6		            equ (1<<5)
+CPU_STATUS_REG_CCR_EXTEND	            equ (1<<4)
+CPU_STATUS_REG_CCR_NEGATIVE	            equ (1<<3)
+CPU_STATUS_REG_CCR_ZERO		            equ (1<<2)
+CPU_STATUS_REG_CCR_OVERFLOW	            equ (1<<1)
+CPU_STATUS_REG_CCR_CARRY	            equ (1<<0)
 
-STATUS_REG_INIT			                equ (STATUS_REG_SUPERVISOR|STATUS_REG_INT0|STATUS_REG_INT1)
-STATUS_REG_INT_DISABLE	                equ (STATUS_REG_INT0|STATUS_REG_INT1|STATUS_REG_INT2)
+CPU_STATUS_REG_INIT			            equ (CPU_STATUS_REG_SUPERVISOR|CPU_STATUS_REG_INT0|CPU_STATUS_REG_INT1)
+CPU_STATUS_REG_INT_DISABLE	            equ (CPU_STATUS_REG_INT0|CPU_STATUS_REG_INT1|CPU_STATUS_REG_INT2)

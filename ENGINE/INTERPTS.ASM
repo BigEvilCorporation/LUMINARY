@@ -22,6 +22,7 @@ INT_Exception:
 ; INT_VBlank - Vertical blank
 ; ======================================
 INT_VBlank:
+    addq.l #0x1, RAM_VBLANK_COUNTER
     rte
 
 ; ======================================

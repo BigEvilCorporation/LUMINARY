@@ -8,6 +8,9 @@
 
     rsset  RAM_START
 
+    ; Interrupt counters
+RAM_VBLANK_COUNTER                      rs.l 1
+
     ; Debug
 RAM_DBG_FONT_VRAM                       rs.l 1
 

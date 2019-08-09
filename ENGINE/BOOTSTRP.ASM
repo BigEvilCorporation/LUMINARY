@@ -44,5 +44,8 @@ Bootstrap:
     move.w #SIZEOF_debug_font/SIZE_TILE_B, d1
     bsr    VDP_LoadTiles
 
+    ; Init status register
+	move.w #CPU_STATUS_REG_INIT, sr	    ; INT level 3 (all interrupts) + supervisor
+
     ; Jump to program main
     jmp    Main

@@ -45,7 +45,7 @@ EPlayer_Initialise:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #0x0001, ECPhysicsBody_AccelX(a0)
+    move.w #0x0800, ECPhysicsBody_AccelX(a0)
 
     rts
 
@@ -54,6 +54,7 @@ EPlayer_Shutdown:
 
 EPlayer_Update:
 
+    ; If entity out of bounce
     cmp.w  #VDP_SCREEN_WIDTH_PX+VDP_SPRITE_BORDER_X, Entity_PosX(a0)
     bgt    @Reset
     cmp.w  #VDP_SCREEN_HEIGHT_PX+VDP_SPRITE_BORDER_Y, Entity_PosY(a0)
@@ -65,19 +66,32 @@ EPlayer_Update:
 
     @Reset:
 
-    move.w EPlayer_SpawnPosX(a0), Entity_PosX(a0)
-    move.w EPlayer_SpawnPosY(a0), Entity_PosY(a0)
+    ; Fetch state
+    move.w EPlayer_SpawnPosX(a0), d0
+    move.w EPlayer_SpawnPosY(a0), d1
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
+    move.w ECPhysicsBody_AccelX(a1), d2
+    move.w ECPhysicsBody_AccelY(a1), d3
 
-    PUSH.L a0
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.l #0x0, ECPhysicsBody_VelX(a0)
-    move.l #0x0, ECPhysicsBody_VelY(a0)
-    move.w ECPhysicsBody_AccelX(a0), d0
-    move.w ECPhysicsBody_AccelY(a0), d1
-    neg.w  d0
-    move.w d1, ECPhysicsBody_AccelX(a0)
-    move.w d0, ECPhysicsBody_AccelY(a0)
-    POP.L  a0
+    PUSHM.W d2-d3
+    PUSHM.W d0-d1
+
+    ; Remove this entity
+    bsr    ENT_DespawnEntity
+
+    ; Spawn a new one
+    POPM.W d0-d1
+    lea    EPlayer_TypeDesc, a0
+    lea    SceneEntitySpawnData_tst1_EPlayer_player1, a1
+    bsr    ENT_SpawnEntity
+
+    ; Restore state
+    POPM.W d2-d3
+
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
+    neg.w  d2
+    move.w d3, ECPhysicsBody_AccelX(a1)
+    move.w d2, ECPhysicsBody_AccelY(a1)
     
     @End:
 
@@ -107,10 +121,18 @@ Main:
 
     ;DRAW_VRAM
 
+    ; Update and draw
     bsr    ENT_UpdateAll
     bsr    ECPhysicsBody_Step
     bsr    ECSprite_DrawAll
     bsr    SPR_CommitAndClearTable
+
+    ; Wait vsync
+    move.l RAM_VBLANK_COUNTER, d0
+    @VSync:
+    move.l RAM_VBLANK_COUNTER, d1
+    cmp.b  d0, d1
+    beq    @VSync
 
     ; Loop forever
     bra    @Lp
