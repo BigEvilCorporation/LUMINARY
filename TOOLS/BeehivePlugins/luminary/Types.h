@@ -21,6 +21,11 @@ namespace luminary
 
 	struct Param
 	{
+		bool operator == (const Param& rhs) const
+		{
+			return name == rhs.name && size == rhs.size && value == rhs.value;
+		}
+
 		std::string name;
 		ParamSize size;
 		std::string value;

@@ -13,6 +13,7 @@
 #include <ion/core/utils/STL.h>
 
 #include <sstream>
+#include <map>
 
 namespace luminary
 {
@@ -66,66 +67,118 @@ namespace luminary
 		{
 			std::stringstream stream;
 
+			struct ExportedSpawnData
+			{
+				std::string labelName;
+				std::vector<const SpawnData*> data;
+			};
+
+			std::map<std::string, ExportedSpawnData> exportedSpawnDatas;
+
 			//Export entity and component spawn data tables
 			for (int i = 0; i < entities.size(); i++)
 			{
 				const Entity& entity = entities[i];
+				std::stringstream spawnDataName;
+				spawnDataName << "SceneEntitySpawnData_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name;
 
-				stream << "SceneEntitySpawnData_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << ":" << std::endl;
+				//Build spawn data block from entity and all components
+				std::vector<const SpawnData*> spawnDataBlock;
+				spawnDataBlock.push_back(&entity.spawnData);
 
-				//Export entity spawn data
-				for (int j = 0; j < entity.spawnData.params.size(); j++)
+				for (int j = 0; j < entity.components.size(); j++)
 				{
-					const Param& param = entity.spawnData.params[j];
-					std::string value = param.value;
-					if (value.size() == 0)
-						value = "0";
+					spawnDataBlock.push_back(&entity.components[j].spawnData);
+				}
 
-					switch (param.size)
+				//If spawn data params matches any previously exported, save some space by sharing it
+				const ExportedSpawnData* matchingSpawnData = nullptr;
+				for (std::map<std::string, ExportedSpawnData>::const_iterator it = exportedSpawnDatas.begin(), end = exportedSpawnDatas.end(); it != end && !matchingSpawnData; ++it)
+				{
+					bool match = it->second.data.size() == spawnDataBlock.size();
+
+					//Ignoring position, so compare individual SpawnData::params
+					for (int j = 0; j < it->second.data.size() && match; j++)
 					{
-					case ParamSize::Byte:
-						stream << "\tdc.b " << value << "\t; " << param.name << std::endl;
-						break;
-					case ParamSize::Word:
-						stream << "\tdc.w " << value << "\t; " << param.name << std::endl;
-						break;
-					case ParamSize::Long:
-						stream << "\tdc.l " << value << "\t; " << param.name << std::endl;
-						break;
+						match = (it->second.data[j]->params == spawnDataBlock[j]->params);
+					}
+
+					if (match)
+					{
+						matchingSpawnData = &it->second;
 					}
 				}
 
-				//Export component spawn data
-				for (int j = 0; j < entity.components.size(); j++)
+				if (matchingSpawnData)
 				{
-					const Component& component = entity.components[j];
-					if (component.spawnData.params.size() > 0)
+					ExportedSpawnData exportedData;
+					exportedData.labelName = matchingSpawnData->labelName;
+					exportedSpawnDatas.insert(std::make_pair(entity.spawnData.name, exportedData));
+				}
+				else
+				{
+					//Export to file
+					stream << spawnDataName.str() << ":" << std::endl;
+
+					//Export entity spawn data
+					for (int j = 0; j < entity.spawnData.params.size(); j++)
 					{
-						stream << "\t; " << component.name << std::endl;
+						const Param& param = entity.spawnData.params[j];
+						std::string value = param.value;
+						if (value.size() == 0)
+							value = "0";
 
-						for (int k = 0; k < component.spawnData.params.size(); k++)
+						switch (param.size)
 						{
-							const Param& param = component.spawnData.params[k];
-							std::string value = param.value;
-							if (value.size() == 0)
-								value = "0";
-
-							switch (param.size)
-							{
-							case ParamSize::Byte:
-								stream << "\tdc.b " << value << "\t; " << param.name << std::endl;
-								break;
-							case ParamSize::Word:
-								stream << "\tdc.w " << value << "\t; " << param.name << std::endl;
-								break;
-							case ParamSize::Long:
-								stream << "\tdc.l " << value << "\t; " << param.name << std::endl;
-								break;
-							}
+						case ParamSize::Byte:
+							stream << "\tdc.b " << value << "\t; " << param.name << std::endl;
+							break;
+						case ParamSize::Word:
+							stream << "\tdc.w " << value << "\t; " << param.name << std::endl;
+							break;
+						case ParamSize::Long:
+							stream << "\tdc.l " << value << "\t; " << param.name << std::endl;
+							break;
 						}
-
-						stream << "\teven" << std::endl;
 					}
+
+					//Export component spawn data
+					for (int j = 0; j < entity.components.size(); j++)
+					{
+						const Component& component = entity.components[j];
+						if (component.spawnData.params.size() > 0)
+						{
+							stream << "\t; " << component.name << std::endl;
+
+							for (int k = 0; k < component.spawnData.params.size(); k++)
+							{
+								const Param& param = component.spawnData.params[k];
+								std::string value = param.value;
+								if (value.size() == 0)
+									value = "0";
+
+								switch (param.size)
+								{
+								case ParamSize::Byte:
+									stream << "\tdc.b " << value << "\t; " << param.name << std::endl;
+									break;
+								case ParamSize::Word:
+									stream << "\tdc.w " << value << "\t; " << param.name << std::endl;
+									break;
+								case ParamSize::Long:
+									stream << "\tdc.l " << value << "\t; " << param.name << std::endl;
+									break;
+								}
+							}
+
+							stream << "\teven" << std::endl;
+						}
+					}
+
+					ExportedSpawnData exportedData;
+					exportedData.labelName = spawnDataName.str();
+					exportedData.data = spawnDataBlock;
+					exportedSpawnDatas.insert(std::make_pair(entity.spawnData.name, exportedData));
 				}
 			}
 
@@ -138,10 +191,17 @@ namespace luminary
 			{
 				const Entity& entity = entities[i];
 
-				stream << "SceneEntity_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << ":" << std::endl;
+				std::stringstream spawnDataName;
+				spawnDataName << "SceneEntity_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << ":" << std::endl;
+
+				std::map<std::string, ExportedSpawnData>::const_iterator it = exportedSpawnDatas.find(entity.spawnData.name);
+				if (it != exportedSpawnDatas.end())
+				{
+					spawnDataName.str(it->second.labelName);
+				}
 
 				stream << "\tdc.l " << entity.name << "_Typedesc\t; Entity descriptor" << std::endl;
-				stream << "\tdc.l " << "SceneEntitySpawnData_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << "\t; Entity spawn data" << std::endl;
+				stream << "\tdc.l " << spawnDataName.str() << "\t; Entity spawn data" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX) << "\t; Position X" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY) << "\t; Position Y" << std::endl;
 			}

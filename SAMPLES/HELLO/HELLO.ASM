@@ -13,7 +13,17 @@
     include 'samples/hello/system/memmap.asm'
     include 'samples/hello/data/scenes/scene1.asm'
     include 'samples/hello/data/sprites/test.asm'
+    include 'samples/hello/data/sprites/test2.asm'
+    include 'samples/hello/data/sprites/test3.asm'
+    include 'samples/hello/data/sprites/test4.asm'
+    include 'samples/hello/data/sprites/test5.asm'
+    include 'samples/hello/data/sprites/test6.asm'
     include 'samples/hello/data/palettes/test.asm'
+    include 'samples/hello/data/palettes/test2.asm'
+    include 'samples/hello/data/palettes/test3.asm'
+    include 'samples/hello/data/palettes/test4.asm'
+    include 'samples/hello/data/palettes/test5.asm'
+    include 'samples/hello/data/palettes/test6.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -26,6 +36,7 @@ DRAW_VRAM: macro
     ENTITY_SPAWN_DATA_END
 
     ENTITY_BEGIN EPlayer
+EPlayer_SpawnData                       rs.l 1
 EPlayer_SpawnPosX                       rs.w 1
 EPlayer_SpawnPosY                       rs.w 1
 	ENT_COMPONENT ECPhysicsBody
@@ -42,6 +53,7 @@ EPlayer_Initialise:
 
     move.w Entity_PosX(a0), EPlayer_SpawnPosX(a0)
     move.w Entity_PosY(a0), EPlayer_SpawnPosY(a0)
+    move.l a1, EPlayer_SpawnData(a0)
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
@@ -69,29 +81,30 @@ EPlayer_Update:
     ; Fetch state
     move.w EPlayer_SpawnPosX(a0), d0
     move.w EPlayer_SpawnPosY(a0), d1
+    move.l EPlayer_SpawnData(a0), d2
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
-    move.w ECPhysicsBody_AccelX(a1), d2
-    move.w ECPhysicsBody_AccelY(a1), d3
+    move.w ECPhysicsBody_AccelX(a1), d3
+    move.w ECPhysicsBody_AccelY(a1), d4
 
-    PUSHM.W d2-d3
-    PUSHM.W d0-d1
+    PUSHM.W d3-d4
+    PUSHM.L d0-d2
 
     ; Remove this entity
     bsr    ENT_DespawnEntity
 
     ; Spawn a new one
-    POPM.W d0-d1
+    POPM.L d0-d2
     lea    EPlayer_TypeDesc, a0
-    lea    SceneEntitySpawnData_tst1_EPlayer_player1, a1
+    move.l d2, a1
     bsr    ENT_SpawnEntity
 
     ; Restore state
-    POPM.W d2-d3
+    POPM.W d3-d4
 
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
-    neg.w  d2
-    move.w d3, ECPhysicsBody_AccelX(a1)
-    move.w d2, ECPhysicsBody_AccelY(a1)
+    neg.w  d3
+    move.w d4, ECPhysicsBody_AccelX(a1)
+    move.w d3, ECPhysicsBody_AccelY(a1)
     
     @End:
 
@@ -108,7 +121,7 @@ Main:
     bsr    ENT_Initialise
 
     ; Load palettes
-    lea    palette_test, a0
+    lea    palette_test2, a0
     move.b #0x0, d0
     bsr    VDP_LoadPalette  
 
