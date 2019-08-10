@@ -16,6 +16,7 @@ INT_Null:
 ; INT_Exception - CPU error
 ; ======================================
 INT_Exception:
+    DBG_RAISE_ERROR "INT_Exception"
     rte
 
 ; ======================================
