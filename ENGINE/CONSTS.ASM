@@ -52,6 +52,9 @@ VDP_SPRITE_BORDER_Y		                equ 0x0080
 
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40
+VDP_SPRITE_FLAG_FLIPX                   equ 11
+VDP_SPRITE_FLAG_FLIPY                   equ 12
+VDP_SPRITE_FLAG_PRIO                    equ 15
 VDP_SPRITE_FLAG_MASK_FLIPX              equ 0x0800
 VDP_SPRITE_FLAG_MASK_FLIPY              equ 0x1000
 VDP_SPRITE_FLAG_MASK_PRIO               equ 0x8000

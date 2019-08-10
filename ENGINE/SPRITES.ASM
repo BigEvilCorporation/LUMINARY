@@ -158,6 +158,12 @@ SPR_DrawSheet:
     ; Get layout tile count table
     lea    SpriteLayoutTileCountTable, a5
 
+    ; If flipped X, start the offset table at next coord
+    btst   #VDP_SPRITE_FLAG_FLIPX, d3
+    beq    @NoFlipX
+    addq.w #SIZE_LONG, a4
+    @NoFlipX:
+
     ; Combine tile ID and flags
     or.w   d3, d2
     
