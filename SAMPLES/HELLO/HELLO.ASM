@@ -73,7 +73,7 @@ EPlayer_Initialise:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    ;move.w #0x0800, ECPhysicsBody_AccelX(a0)
+    move.w #0x1000, ECPhysicsBody_AccelX(a0)
 
     rts
 
@@ -150,11 +150,12 @@ Main:
 
     ;DRAW_VRAM
 
-    ; Update and draw
+    ; Update
     bsr    ENT_UpdateAll
     bsr    ECPhysicsBody_Step
+
+    ; Draw
     bsr    ECSprite_DrawAll
-    bsr    SPR_CommitAndClearTable
 
     ; Wait vsync
     move.l RAM_VBLANK_COUNTER, d0
@@ -162,6 +163,9 @@ Main:
     move.l RAM_VBLANK_COUNTER, d1
     cmp.b  d0, d1
     beq    @VSync
+
+    ; DMA
+    bsr    SPR_CommitAndClearTable
 
     ; Loop forever
     bra    @Lp
