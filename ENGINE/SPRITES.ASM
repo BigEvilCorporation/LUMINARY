@@ -13,8 +13,14 @@ Sprite_DrawFlags                        rs.w 1 ; Priority/palette/flip flags pre
 Sprite_Layout                           rs.b 1 ; Layout/dimensions
     STRUCT_END
 
-    ; Multi-sprite
-    STRUCT_BEGIN MultiSprite
+    ; Multi-sprite sheet
+    STRUCT_BEGIN SpriteSheet
+SpriteSheet_TileData    			    rs.l 1 ; Base address of tile data
+SpriteSheet_LayoutTable                 rs.l 1 ; Address of table of VDP layout per subsprite
+SpriteSheet_PosOffsetTable	            rs.l 1 ; Address of table of position offsets per subsprite
+SpriteSheet_WidthHeightTiles		    rs.w 1 ; Sprite object width/height in tiles (0xWWHH)
+SpriteSheet_SizeTiles				    rs.w 1 ; Sprite object single frame size in tiles
+SpriteSheet_SizeSubsprites			    rs.w 1 ; Sprite object single frame size in subsprites
     STRUCT_END
 
     ; Hardware sprite
@@ -26,6 +32,25 @@ VDPSprite_Prio_Pal_Flip_TileIdHi        rs.b 1 ; Priority (15), palette (14-13),
 VDPSprite_TileIdLo                      rs.b 1 ;  + tile ID lo (7-0)
 VDPSprite_CoordX        		        rs.w 1 ; X coord
     STRUCT_END
+    
+    ; Number of tiles per sprite layout configuration
+SpriteLayoutTileCountTable:
+	dc.b 1  ; 0000 (1x1)
+	dc.b 2  ; 0001 (1x2)
+	dc.b 3  ; 0010 (1x3)
+	dc.b 4  ; 0011 (1x4)
+	dc.b 2  ; 0100 (2x1)
+	dc.b 4  ; 0101 (2x2)
+	dc.b 6  ; 0110 (2x3)
+	dc.b 8  ; 0111 (2x4)
+	dc.b 3  ; 1000 (3x1)
+	dc.b 6  ; 1001 (3x2)
+	dc.b 9  ; 1010 (3x3)
+	dc.b 12 ; 1011 (3x4)
+	dc.b 4  ; 1100 (4x1)
+	dc.b 8  ; 1101 (4x2)
+	dc.b 12 ; 1110 (4x3)
+	dc.b 16 ; 1111 (4x4)
 
 SPR_Initialise:
     ; ======================================
@@ -55,6 +80,8 @@ SPR_DrawSingle:
 	; a0   Sprite
     ; d0.w X coord
     ; d1.w Y coord
+    ; d2.l VRAM hndl
+    ; d3.w Draw flags
     ; ======================================
 
     ; Get table ptr
@@ -76,8 +103,7 @@ SPR_DrawSingle:
     addi.w #0x1, RAM_SPRITE_NEXT_IDX
 
     ; Combine tile ID and flags
-    move.l Sprite_VRAMHndl(a0), d2
-    or.w   Sprite_DrawFlags(a0), d2
+    or.w   d3, d2
 
     ; Populate next hardware sprite
     move.w d1, (a1)+                    ; Coord Y
@@ -96,15 +122,91 @@ SPR_DrawSingle:
 
     rts
 
-SPR_DrawMulti:
+SPR_DrawSheet:
     ; ======================================
-    ; Adds a multi-sprite for drawing at
-    ; the end of the frame.
+    ; Adds a multi sprite from sheet for
+    ; drawing at the end of the frame.
     ; ======================================
-	; a0   Sprite
+	; a0   Sprite sheet
     ; d0.w X coord
     ; d1.w Y coord
+    ; d2.l VRAM handle
+    ; d3.w Draw flags
     ; ======================================
+
+    ; Get table ptr
+    move.l RAM_SPRITE_TABLE_PTR, a1
+
+    ; Get next sprite index
+    move.w RAM_SPRITE_NEXT_IDX, d6
+
+    ; Get num subsprites
+    move.w SpriteSheet_SizeSubsprites(a0), d5
+
+    ; Check if table depleted
+    move.w d6, d4
+    add.w  d5, d4
+    cmp.w  #VDP_MAX_SPRITES, d4
+    bge    @Err_OutOfSprites
+
+    ; Get layout table
+    move.l SpriteSheet_LayoutTable(a0), a2
+
+    ; Get pos offset table
+    move.l SpriteSheet_PosOffsetTable(a0), a4
+    
+    ; Get layout tile count table
+    lea    SpriteLayoutTileCountTable, a5
+
+    ; Combine tile ID and flags
+    or.w   d3, d2
+    
+    ; Clear for tile count offset
+    moveq  #0x0, d7
+
+    subi.w #0x1, d5
+    @SubSpriteLp:
+
+    ; Link prev in table to this
+    tst.w   d6
+	beq     @FirstInTable
+	move.b  d6, (-SIZEOF_VDPSprite+VDPSprite_NextId)(a1)
+	@FirstInTable:
+
+    ; Next ID
+    addq.w #0x1, d6
+    
+    ; Next pos
+    add.w  (a4)+, d0
+    add.w  (a4)+, d1
+    addq.w #SIZE_LONG, a4
+    
+    ; Next layout
+    move.b (a2)+, d7
+
+    ; Populate next hardware sprite
+    move.w d1, (a1)+                    ; Coord Y
+    move.b d7, (a1)+                    ; Layout
+    move.b #0x0, (a1)+                  ; Next ID
+    move.w d2, (a1)+                    ; Prio/pal/flip/tileId
+    move.w d0, (a1)+                    ; Coord X
+    
+	; Next tile idx using layout table lookup
+	move.b (a5,d7), d7
+	add.w  d7, d2
+
+    dbra   d5, @SubSpriteLp
+
+    ; Advance ptr
+    move.l a1, RAM_SPRITE_TABLE_PTR
+
+    ; Advance index
+    move.w d6, RAM_SPRITE_NEXT_IDX
+
+    rts
+
+    @Err_OutOfSprites:
+    DBG_RAISE_ERROR "Out of sprites"
 
     rts
 

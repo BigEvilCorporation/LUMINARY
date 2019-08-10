@@ -12,19 +12,15 @@ actor_test:
 actor_test_VRAM_size_b		equ 0x80	; VRAM size to alloc (size of largest frame, bytes)
 
 ;==============================================================
-; Actor: test Sprite: test
+; Actor: test Sprite sheet: test
 ;==============================================================
-actor_test_sprite_test:
-	dc.l spritesheet_test_test
-	dc.l actor_test_sheet_test_frame_0_subsprite_dimensions_bits
-	dc.l actor_test_sheet_test_frame_0_subsprite_pos_offsets
-	dc.l palette_test
-	dc.w (actor_test_sheet_test_width<<8)|actor_test_sheet_test_height
-	dc.w actor_test_VRAM_size_b
-	dc.w actor_test_sheet_test_frame_0_size_t
-	dc.w actor_test_sheet_test_frame_0_size_subsprites
-	dc.b 0x0
-	dc.b 0x0
+actor_test_spritesheet_test:
+	dc.l actor_test_sheet_test_tiledata	; SpriteSheet_TileData
+	dc.l actor_test_sheet_test_frame_0_subsprite_dimensions_bits	; SpriteSheet_LayoutTable
+	dc.l actor_test_sheet_test_frame_0_subsprite_pos_offsets	; SpriteSheet_PosOffsetTable
+	dc.w (actor_test_sheet_test_width<<8)|actor_test_sheet_test_height	; SpriteSheet_WidthHeightTiles
+	dc.w actor_test_sheet_test_frame_0_size_t	; SpriteSheet_SizeTiles
+	dc.w actor_test_sheet_test_frame_0_size_subsprites	; SpriteSheet_SizeSubsprites
 ;==============================================================
 
 actor_test_sheet_test_width		equ 0x10	; Max width of largest frame in pixels
@@ -54,9 +50,9 @@ actor_test_sheet_test_frame_0_subsprite_dimensions_bits:
 	Even
 
 
-spritesheets_test:
+spritesheets_test_tiledata:
 
-spritesheet_test_test:
+actor_test_sheet_test_tiledata:
 
 actor_test_sheet_test_frame_0:
 	dc.l	0x00000888

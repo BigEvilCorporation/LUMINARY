@@ -18,6 +18,7 @@ namespace luminary
 		{
 			{ "POSITION_X", TagType::PositionX },
 			{ "POSITION_Y", TagType::PositionY },
+			{ "SPRITE_SHEET" , TagType::SpriteSheet },
 			{ "SPRITE_TILES" , TagType::SpriteTileData },
 			{ "SPRITE_SIZE" , TagType::SpriteTileCount },
 			{ "SPRITE_LAYOUT", TagType::SpriteLayout }

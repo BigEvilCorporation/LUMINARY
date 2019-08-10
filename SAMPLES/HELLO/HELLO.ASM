@@ -18,12 +18,14 @@
     include 'samples/hello/data/sprites/test4.asm'
     include 'samples/hello/data/sprites/test5.asm'
     include 'samples/hello/data/sprites/test6.asm'
+    include 'samples/hello/data/sprites/crate.asm'
     include 'samples/hello/data/palettes/test.asm'
     include 'samples/hello/data/palettes/test2.asm'
     include 'samples/hello/data/palettes/test3.asm'
     include 'samples/hello/data/palettes/test4.asm'
     include 'samples/hello/data/palettes/test5.asm'
     include 'samples/hello/data/palettes/test6.asm'
+    include 'samples/hello/data/palettes/crate.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -43,6 +45,20 @@ EPlayer_SpawnPosY                       rs.w 1
     ENT_COMPONENT ECSprite
     ENTITY_END
 
+    ENTITY_SPAWN_DATA_BEGIN ESpriteTest
+    ENTITY_SPAWN_DATA_END
+    
+    ENTITY_BEGIN ESpriteTest
+    ENT_COMPONENT ECSprite
+    ENTITY_END
+
+ESpriteTest_Initialise:
+    rts
+ESpriteTest_Shutdown:
+    rts
+ESpriteTest_Update:
+    rts
+
 EPlayer_Initialise:
     ; ======================================
     ; EPlayer constructor
@@ -57,7 +73,7 @@ EPlayer_Initialise:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #0x0800, ECPhysicsBody_AccelX(a0)
+    ;move.w #0x0800, ECPhysicsBody_AccelX(a0)
 
     rts
 

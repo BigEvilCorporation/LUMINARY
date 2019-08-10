@@ -18,6 +18,7 @@ namespace luminary
 		{
 			PositionX,
 			PositionY,
+			SpriteSheet,
 			SpriteTileData,
 			SpriteTileCount,
 			SpriteLayout
