@@ -269,7 +269,7 @@ VRAMMGR_Free:
     btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a2)
     bne    @NoNext
     move.l a1, a3
-    move.w d1, d5
+    move.w d0, d5
     bsr    VRAMMGR_MergeRightNeighbour
 
     @NoNext:
@@ -438,15 +438,16 @@ VRAMMGR_DrawTable:
     ; ======================================
 
     IF BLDCONF_VRAM_MGR_DEBUG
-    DBG_DRAW_STRING #4,#5,"Owner  Addr   Size/F Prev   Next"
+    DBG_DRAW_STRING #4,#5,"Hndl Ownr Addr Size Prev Next"
     ELSE
-    DBG_DRAW_STRING #4,#5,"Addr   Size/F Prev   Next"
+    DBG_DRAW_STRING #4,#5,"Hndl Hndl Ownr Addr Size Prev Next"
     ENDIF
 
     PUSH.L a0
 
     lea    RAM_VRAM_MANAGER, a0
     lea    VRAMManager_BlockTable(a0), a2
+    moveq  #0x0, d3
 
     move.w #0x07, d1                    ; Y
     move.w #16-1, d2                    ; 16 entries
@@ -455,9 +456,15 @@ VRAMMGR_DrawTable:
 
     STACK_ALLOC 64, a0                  ; Alloc space for string
 
-    PUSHM.L d0-d2/a0-a2
+    PUSHM.L d0-d3/a0-a2
    
     PUSHM.L d0-d1/a0                    ; Backup string start addr
+
+    ; Handle addr
+    move.w d3, d0
+    bsr    STR_ItoA_Hex_w
+    move.l a1, a0
+    move.b #' ', (a0)+
 
     IF BLDCONF_VRAM_MGR_DEBUG
     ; Owner (callee)
@@ -482,7 +489,6 @@ VRAMMGR_DrawTable:
     ; Prev
     moveq  #0x0, d0
     move.w VRAMBlock_Prev(a2), d0
-    divu   #SIZEOF_VRAMBlock, d0
     bsr    STR_ItoA_Hex_w
     move.l a1, a0
     move.b #' ', (a0)+
@@ -490,19 +496,19 @@ VRAMMGR_DrawTable:
     ; Next
     moveq  #0x0, d0
     move.w VRAMBlock_Next(a2), d0
-    divu   #SIZEOF_VRAMBlock, d0
     bsr    STR_ItoA_Hex_w
 
     POPM.L d0-d1/a0                     ; Restore string start addr                         
 
     bsr    DBG_DrawString               ; Draw string
 
-    POPM.L d0-d2/a0-a2
+    POPM.L d0-d3/a0-a2
 
     STACK_FREE 64                       ; Free string
 
     addi.w #0x1, d1
     addi.l #SIZEOF_VRAMBlock, a2
+    addi.w #SIZEOF_VRAMBlock, d3
     dbra   d2, @EntryLp
 
     POP.L  a0
