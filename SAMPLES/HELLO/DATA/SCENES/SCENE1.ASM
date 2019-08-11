@@ -5,6 +5,11 @@ SceneEntitySpawnData_tst1_EPlayer_player1:
 	even
 SceneEntitySpawnData_tst1_EPlayer_player2:
 	; ECSprite
+	dc.l actor_nymn_spritesheet_jump	; SDSprite_Sheet
+	dc.l actor_nymn_sheet_jump_anim_jump	; SDSprite_Animation
+	even
+SceneEntitySpawnData_tst1_EPlayer_ent62:
+	; ECSprite
 	dc.l actor_crate_spritesheet_crate	; SDSprite_Sheet
 	dc.l 0x0	; SDSprite_Animation
 	even
@@ -49,7 +54,7 @@ SceneEntityData_tst1:
 	dc.w 0x00C0	; Position X
 	dc.w 0x00C8	; Position Y
 	dc.l EPlayer_Typedesc	; Entity descriptor
-	dc.l SceneEntitySpawnData_tst1_EPlayer_player2	; Entity spawn data
+	dc.l SceneEntitySpawnData_tst1_EPlayer_ent62	; Entity spawn data
 	dc.w 0x00D0	; Position X
 	dc.w 0x00B0	; Position Y
 	dc.l EPlayer_Typedesc	; Entity descriptor

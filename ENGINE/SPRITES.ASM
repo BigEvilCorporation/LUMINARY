@@ -120,11 +120,8 @@ SPR_DrawFrame:
     subi.w #0x1, d5
     @SubSpriteLp:
 
-    ; Link prev in table to this
-    tst.w   d6
-	beq     @FirstInTable
+    ; Link prev in table to this (-1st sprite is blank sprite)
 	move.b  d6, (-SIZEOF_VDPSprite+VDPSprite_NextId)(a1)
-	@FirstInTable:
 
     ; Next ID
     addq.w #0x1, d6
@@ -140,7 +137,7 @@ SPR_DrawFrame:
     ; Populate next hardware sprite
     move.w d1, (a1)+                    ; Coord Y
     move.b d7, (a1)+                    ; Layout
-    move.b #0x0, (a1)+                  ; Next ID
+    move.b #0, (a1)+                    ; Next ID
     move.w d2, (a1)+                    ; Prio/pal/flip/tileId
     move.w d0, (a1)+                    ; Coord X
     
@@ -174,12 +171,12 @@ SPR_CommitAndClearTable:
 	; DMA the sprite table
 	move.w RAM_SPRITE_NEXT_IDX, d1
 	bne    @SpritesValid
-	moveq  #0x1, d1			            ; If no sprites, still need to DMA "blank" sprite
-	@SpritesValid:
+	moveq  #0x1, d1			            ; If no sprites, still need to DMA first sprite
+	@SpritesValid:                      ; (has been unlinked and moved to border)
 	lea    RAM_SPRITE_TABLE, a0
 	move.w #VRAM_ADDR_SPRITE_TABLE, d0
 	mulu.w #SIZEOF_VDPSprite/SIZE_WORD, d1
-	bsr    VDP_DMATransferVRAM
+	bsr    VDPDMA_TransferImmediateVRAM
 
     ; Reset sprite link counter and table ptr
     move.l #RAM_SPRITE_TABLE, RAM_SPRITE_TABLE_PTR

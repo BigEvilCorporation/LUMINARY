@@ -7,11 +7,21 @@
 ; ============================================================================================
 
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\nymn.ASM'
-	include 'SAMPLES\HELLO\DATA\PALETTES\test3.ASM'
-	include 'SAMPLES\HELLO\DATA\PALETTES\test2.ASM'
-	include 'SAMPLES\HELLO\DATA\PALETTES\crate.ASM'
-	include 'SAMPLES\HELLO\DATA\PALETTES\test5.ASM'
-	include 'SAMPLES\HELLO\DATA\PALETTES\test6.ASM'
-	include 'SAMPLES\HELLO\DATA\PALETTES\test4.ASM'
-	include 'SAMPLES\HELLO\DATA\PALETTES\test.ASM'
+palette_nymn:
+	dc.w	0x0200
+	dc.w	0x0000
+	dc.w	0x0004
+	dc.w	0x000A
+	dc.w	0x0222
+	dc.w	0x022C
+	dc.w	0x0444
+	dc.w	0x0EAA
+	dc.w	0x0AAC
+	dc.w	0x0EEE
+	dc.w	0x0000
+	dc.w	0x0000
+	dc.w	0x0000
+	dc.w	0x0000
+	dc.w	0x0000
+	dc.w	0x0000
+

@@ -63,7 +63,7 @@ EPlayer_Initialise:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #0x1000, ECPhysicsBody_AccelX(a0)
+    ;move.w #0x1000, ECPhysicsBody_AccelX(a0)
 
     rts
 
@@ -155,6 +155,7 @@ Main:
     beq    @VSync
 
     ; DMA
+    bsr    VDPDMA_CommitAndClearQueue
     bsr    SPR_CommitAndClearTable
 
     ; Loop forever

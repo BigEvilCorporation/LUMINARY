@@ -8,7 +8,8 @@
 
 VDP_LoadTiles:
     ; ======================================
-    ; Loads tiles into VRAM
+    ; Loads tiles into VRAM (via immediate
+    ; DMA transfer)
     ; ======================================
     ; a0   Tiles
     ; d0.w VRAM address (tiles)
@@ -17,6 +18,6 @@ VDP_LoadTiles:
 
     lsl.w  #SIZE_TILE_SHIFT_B, d0
     lsl.w  #SIZE_TILE_SHIFT_W, d1
-    bsr    VDP_DMATransferVRAM
+    bsr    VDPDMA_TransferImmediateVRAM
 
     rts

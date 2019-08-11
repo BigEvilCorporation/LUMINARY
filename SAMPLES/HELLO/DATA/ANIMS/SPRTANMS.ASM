@@ -7,6 +7,7 @@
 ; ============================================================================================
 
 
+	include 'SAMPLES\HELLO\DATA\ANIMS\nymn.ASM'
 	include 'SAMPLES\HELLO\DATA\ANIMS\test3.ASM'
 	include 'SAMPLES\HELLO\DATA\ANIMS\test2.ASM'
 	include 'SAMPLES\HELLO\DATA\ANIMS\crate.ASM'

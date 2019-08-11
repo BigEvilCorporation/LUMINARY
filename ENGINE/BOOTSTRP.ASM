@@ -19,6 +19,9 @@ Bootstrap:
     ; Initialise VDP
     bsr    VDP_Initialise
 
+    ; Initialise VDP DMA queue
+    bsr    VDPDMA_Initialise
+
     ; Initialise sprite table
     bsr    SPR_Initialise
 

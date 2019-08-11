@@ -128,68 +128,6 @@ ECSprite_LoadAnimation:
 
     rts
 
-ECSprite_UpdateAnim:
-    ; ======================================
-    ; Ticks a sprite animation, and modifies
-    ; draw data to be passed to SPR_DrawSheet
-    ; ======================================
-    ; In:
-    ; a0   SpriteFrame
-    ; a1   SpriteAnim
-    ; a3   ECSprite component
-    ; d0.w Position X
-    ; d1.w Position Y
-    ; d2.l VRAM hndl
-    ; d3.w Draw flags
-    ; ======================================
-    ; Out:
-    ; a0   SpriteFrame
-    ; a3   ECSprite component
-    ; d0.w Draw position X
-    ; d1.w Draw position Y
-    ; d2.l VRAM hndl
-    ; d3.w Draw flags
-    ; ======================================
-
-    moveq  #0x0, d4
-    move.w ECSprite_AnimSpeed(a3), d4   ; Get speed, bail if 0
-    beq    @NotPlaying
-
-    ext.l  d4                           ; Sign extend speed
-    move.l ECSprite_AnimSubFrame(a3), d5; Advance subframe
-    move.l d5, d6
-    add.l  d4, d5
-    move.l d5, ECSprite_AnimSubFrame(a3)
-
-	move.w #0x0, d5
-    swap   d5                           ; Subframes to frames
-    swap   d6
-    cmp.w  d5, d6                       ; If no change, bail
-    beq    @NoFrameChange
-
-    moveq  #0x0, d6
-    move.w SpriteAnim_Length(a1), d6    ; Wrap frame
-    divs   d6, d5
-    swap   d5
-
-	lsl.w  #0x2, d5                     ; Frame to longs
-    move.l SpriteAnim_KeyframeTrackFrameId(a1), a1 ; Get keyframe track
-    move.l (a1, d5), a1                 ; Get new frame
-    move.l a1, ECSprite_CurrentFrame(a0)
-	
-    ; Load new frame
-    PUSHM.L d0-d3/a0-a3
-    move.l ECSprite_VRAMHndl(a3), d0
-    move.w SpriteFrame_SizeTiles(a1), d1
-    move.l SpriteFrame_TileData(a1), a0 ; Load tiles to VRAM
-    bsr    VDP_LoadTiles
-    POPM.L d0-d3/a0-a3
-
-    @NotPlaying:
-    @NoFrameChange:
-
-    rts
-
 ECSprite_DrawAll:
     ; ======================================
     ; Draws all Sprite entity components
@@ -209,13 +147,62 @@ ECSprite_DrawAll:
     move.w Entity_PosX(a4), d0          ; Get pos
     move.w Entity_PosY(a4), d1
 
-    move.l ECSprite_Animation(a3), a1   ; Tick animation
-    cmp.l  #0x0, a1                     ; (which modifies draw params if necessary)
-    beq    @NoAnim
-    bsr    ECSprite_UpdateAnim
-    @NoAnim:
+    ; Tick animation
+    move.l ECSprite_Animation(a3), a1
+    cmp.l  #0x0, a1
+    beq    @AnimNotPlaying
+    moveq  #0x0, d4
+    move.w ECSprite_AnimSpeed(a3), d4   ; Get speed, bail if 0
+    beq    @AnimNotPlaying
 
-    bsr    SPR_DrawFrame                ; Draw
+    ext.l  d4                           ; Sign extend speed
+    move.l ECSprite_AnimSubFrame(a3), d5; Advance subframe
+    move.l d5, d6
+    add.l  d4, d5
+    move.l d5, ECSprite_AnimSubFrame(a3)
+
+	move.w #0x0, d5
+    swap   d5                           ; Subframes to frames
+    swap   d6
+    cmp.w  d5, d6                       ; If no change, bail
+    beq    @AnimNoFrameChange
+
+    moveq  #0x0, d6
+    move.w SpriteAnim_Length(a1), d6    ; Wrap frame
+    divs   d6, d5
+    swap   d5
+
+	lsl.w  #0x2, d5                     ; Frame to longs
+    move.l SpriteAnim_KeyframeTrackFrameId(a1), a1 ; Get keyframe track
+    move.l (a1, d5), a1                 ; Get new frame
+    move.l a1, ECSprite_CurrentFrame(a3); Store new frame
+    move.l a1, a0                       ; Set frame for drawing
+	
+    ; Load new frame
+    PUSHM.L d0-d3/a0-a3
+    move.l ECSprite_VRAMHndl(a3), d0
+    move.w SpriteFrame_SizeTiles(a1), d1
+    move.l SpriteFrame_TileData(a1), a0 ; Load tiles to VRAM
+    lsl.w  #SIZE_TILE_SHIFT_B, d0
+    lsl.w  #SIZE_TILE_SHIFT_W, d1
+    move.b #VDPDMA_TRANSFER_VRAM, d2
+    move.b #SIZE_WORD, d3
+    ;bsr    VDP_LoadTiles
+
+	; a0   Source addr (68k space)
+	; d0.w Dest addr (VRAM space)
+	; d1.w Data size (words)
+	; d2.b Dest memory (VDPDMA_TRANSFER_VRAM/VDPDMA_TRANSFER_CRAM)
+	; d3.b Data stride (bytes)
+    bsr    VDPDMA_AddJob
+
+    POPM.L d0-d3/a0-a3
+
+    @AnimNotPlaying:
+    @AnimNoFrameChange:
+
+    ; Draw frame
+    bsr    SPR_DrawFrame
     movea.w EntityBlock_Next(a3), a3    ; Next component
     cmp.w  #0x0, a3
     bne    @SpriteLp

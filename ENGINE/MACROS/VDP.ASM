@@ -39,3 +39,13 @@ VRAM_PLANE_COORDS_TO_BYTES: macro x,y,output
     lsl.w  #VDP_PLANE_WIDTH_SHIFT, \output
     add.w  \x, \output
     endm
+
+; Converts tile count to byte offset
+VRAM_TILES_TO_BYTES: macro reg
+	lsl.w  #SIZE_TILE_SHIFT_B, \reg
+	endm
+
+; Converts tile count to word offset
+VRAM_TILES_TO_WORDS: macro reg
+	lsl.w  #SIZE_TILE_SHIFT_W, \reg
+	endm

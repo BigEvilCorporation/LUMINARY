@@ -39,6 +39,7 @@
     include 'engine/strings.asm'
     include 'engine/tiles.asm'
     include 'engine/vdp.asm'
+    include 'engine/vdpdma.asm'
     include 'engine/vdpregs.asm'
     include 'engine/vram.asm'
     include 'engine/vrammgr.asm'
