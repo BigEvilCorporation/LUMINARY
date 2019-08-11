@@ -13,29 +13,9 @@
     include 'samples/hello/system/memmap.asm'
     include 'samples/hello/data/scenes/scene1.asm'
 
-    include 'samples/hello/data/sprites/test.asm'
-    include 'samples/hello/data/sprites/test2.asm'
-    include 'samples/hello/data/sprites/test3.asm'
-    include 'samples/hello/data/sprites/test4.asm'
-    include 'samples/hello/data/sprites/test5.asm'
-    include 'samples/hello/data/sprites/test6.asm'
-    include 'samples/hello/data/sprites/crate.asm'
-
-    include 'samples/hello/data/palettes/test.asm'
-    include 'samples/hello/data/palettes/test2.asm'
-    include 'samples/hello/data/palettes/test3.asm'
-    include 'samples/hello/data/palettes/test4.asm'
-    include 'samples/hello/data/palettes/test5.asm'
-    include 'samples/hello/data/palettes/test6.asm'
-    include 'samples/hello/data/palettes/crate.asm'
-
-    include 'samples/hello/data/anims/test.asm'
-    include 'samples/hello/data/anims/test2.asm'
-    include 'samples/hello/data/anims/test3.asm'
-    include 'samples/hello/data/anims/test4.asm'
-    include 'samples/hello/data/anims/test5.asm'
-    include 'samples/hello/data/anims/test6.asm'
-    include 'samples/hello/data/anims/crate.asm'
+    include 'samples/hello/data/sprites/sprites.asm'
+    include 'samples/hello/data/anims/sprtanms.asm'
+    include 'samples/hello/data/palettes/sprtpals.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -83,7 +63,7 @@ EPlayer_Initialise:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    ;move.w #0x1000, ECPhysicsBody_AccelX(a0)
+    move.w #0x1000, ECPhysicsBody_AccelX(a0)
 
     rts
 
@@ -92,7 +72,7 @@ EPlayer_Shutdown:
 
 EPlayer_Update:
 
-    ; If entity out of bounce
+    ; If entity out of bounds
     cmp.w  #VDP_SCREEN_WIDTH_PX+VDP_SPRITE_BORDER_X, Entity_PosX(a0)
     bgt    @Reset
     cmp.w  #VDP_SCREEN_HEIGHT_PX+VDP_SPRITE_BORDER_Y, Entity_PosY(a0)

@@ -9,4 +9,30 @@
 
 spriteanims_test5:
 
+actor_test5_sheet_test5_anim_test5:
+	dc.l actor_test5_sheet_test5_anim_test5_track_frames	; Frame ID keyframe track
+	dc.w 0x0010	; Num keyframes
+	dc.w 0x3300	; Default speed
+	dc.b 0x1	; Default loop flag
+	even
+
+actor_test5_sheet_test5_anim_test5_track_frames:
+	dc.l actor_test5_sheet_test5_frame_0_header
+	dc.l actor_test5_sheet_test5_frame_1_header
+	dc.l actor_test5_sheet_test5_frame_2_header
+	dc.l actor_test5_sheet_test5_frame_3_header
+	dc.l actor_test5_sheet_test5_frame_4_header
+	dc.l actor_test5_sheet_test5_frame_5_header
+	dc.l actor_test5_sheet_test5_frame_6_header
+	dc.l actor_test5_sheet_test5_frame_7_header
+	dc.l actor_test5_sheet_test5_frame_8_header
+	dc.l actor_test5_sheet_test5_frame_9_header
+	dc.l actor_test5_sheet_test5_frame_10_header
+	dc.l actor_test5_sheet_test5_frame_11_header
+	dc.l actor_test5_sheet_test5_frame_12_header
+	dc.l actor_test5_sheet_test5_frame_13_header
+	dc.l actor_test5_sheet_test5_frame_14_header
+	dc.l actor_test5_sheet_test5_frame_15_header
+
+	even
 
