@@ -55,10 +55,12 @@ ECSprite_Initialise:
     move.l SpriteSheet_FirstFrame(a2), ECSprite_CurrentFrame(a0)
     
     ; Alloc VRAM and load tile data
+    PUSHM.L a0-a1
     bsr    ECSprite_LoadTiles
+    POPM.L  a0-a1
 
     ; Load animation
-    move.l ECSprite_Animation(a0), a1
+    move.l SDSprite_Animation(a1), a1
     cmp.l  #0x0, a1
     beq    @NoAnim
     bsr    ECSprite_LoadAnimation
@@ -114,15 +116,15 @@ ECSprite_LoadAnimation:
     ; a1   SpriteAnim
     ; ======================================
 
-    ;cmp.l  a1, ECSprite_Animation(a0)
-    ;beq    @NoChange
+    cmp.l  ECSprite_Animation(a0), a1
+    beq    @NoChange
 
-    ;move.l a1, ECSprite_Animation(a0)                           ; Set anim
-    ;move.w SpriteAnim_DefaultSpeed(a1), ECSprite_AnimSpeed(a0)  ; Set default speed
-    ;move.b SpriteAnim_DefaultLoop(a1), ECSprite_AnimLoop(a0)    ; Set default loop flag
-    ;move.l #0x0, ECSprite_AnimSubFrame(a0)                      ; Reset subframe
+    move.l a1, ECSprite_Animation(a0)                           ; Set anim
+    move.w SpriteAnim_DefaultSpeed(a1), ECSprite_AnimSpeed(a0)  ; Set default speed
+    move.b SpriteAnim_DefaultLoop(a1), ECSprite_AnimLoop(a0)    ; Set default loop flag
+    move.l #0x0, ECSprite_AnimSubFrame(a0)                      ; Reset subframe
 
-    ;@NoChange:
+    @NoChange:
 
     rts
 
@@ -159,12 +161,29 @@ ECSprite_UpdateAnim:
     add.l  d4, d5
     move.l d5, ECSprite_AnimSubFrame(a3)
 
+	move.w #0x0, d5
     swap   d5                           ; Subframes to frames
     swap   d6
     cmp.w  d5, d6                       ; If no change, bail
     beq    @NoFrameChange
 
+    moveq  #0x0, d6
+    move.w SpriteAnim_Length(a1), d6    ; Wrap frame
+    divs   d6, d5
+    swap   d5
 
+	lsl.w  #0x2, d5                     ; Frame to longs
+    move.l SpriteAnim_KeyframeTrackFrameId(a1), a1 ; Get keyframe track
+    move.l (a1, d5), a1                 ; Get new frame
+    move.l a1, ECSprite_CurrentFrame(a0)
+	
+    ; Load new frame
+    PUSHM.L d0-d3/a0-a3
+    move.l ECSprite_VRAMHndl(a3), d0
+    move.w SpriteFrame_SizeTiles(a1), d1
+    move.l SpriteFrame_TileData(a1), a0 ; Load tiles to VRAM
+    bsr    VDP_LoadTiles
+    POPM.L d0-d3/a0-a3
 
     @NotPlaying:
     @NoFrameChange:
@@ -190,11 +209,11 @@ ECSprite_DrawAll:
     move.w Entity_PosX(a4), d0          ; Get pos
     move.w Entity_PosY(a4), d1
 
-    ;move.l ECSprite_Animation(a3), a1   ; Tick animation
-    ;cmp.l  #0x0, a1                     ; (which modifies draw params if necessary)
-    ;beq    @NoAnim
-    ;bsr    ECSprite_UpdateAnim
-    ;@NoAnim:
+    move.l ECSprite_Animation(a3), a1   ; Tick animation
+    cmp.l  #0x0, a1                     ; (which modifies draw params if necessary)
+    beq    @NoAnim
+    bsr    ECSprite_UpdateAnim
+    @NoAnim:
 
     bsr    SPR_DrawFrame                ; Draw
     movea.w EntityBlock_Next(a3), a3    ; Next component

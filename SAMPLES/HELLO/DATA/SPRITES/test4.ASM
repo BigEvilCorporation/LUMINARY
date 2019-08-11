@@ -79,7 +79,7 @@ actor_test4_sheet_test4_frame_0_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test4_sheet_test4_frame_0_subsprite_dimensions_bits:
 	dc.b 0x5
-	Even
+	even
 
 actor_test4_sheet_test4_frame_1_size_b		equ 0x0080	; Size in bytes
 actor_test4_sheet_test4_frame_1_size_t		equ 0x0004	; Size in tiles
@@ -93,7 +93,7 @@ actor_test4_sheet_test4_frame_1_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test4_sheet_test4_frame_1_subsprite_dimensions_bits:
 	dc.b 0x5
-	Even
+	even
 
 actor_test4_sheet_test4_frame_2_size_b		equ 0x0080	; Size in bytes
 actor_test4_sheet_test4_frame_2_size_t		equ 0x0004	; Size in tiles
@@ -107,7 +107,7 @@ actor_test4_sheet_test4_frame_2_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test4_sheet_test4_frame_2_subsprite_dimensions_bits:
 	dc.b 0x5
-	Even
+	even
 
 actor_test4_sheet_test4_frame_3_size_b		equ 0x0080	; Size in bytes
 actor_test4_sheet_test4_frame_3_size_t		equ 0x0004	; Size in tiles
@@ -121,7 +121,7 @@ actor_test4_sheet_test4_frame_3_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test4_sheet_test4_frame_3_subsprite_dimensions_bits:
 	dc.b 0x5
-	Even
+	even
 
 actor_test4_sheet_test4_frame_4_size_b		equ 0x0080	; Size in bytes
 actor_test4_sheet_test4_frame_4_size_t		equ 0x0004	; Size in tiles
@@ -135,7 +135,7 @@ actor_test4_sheet_test4_frame_4_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test4_sheet_test4_frame_4_subsprite_dimensions_bits:
 	dc.b 0x5
-	Even
+	even
 
 actor_test4_sheet_test4_frame_5_size_b		equ 0x0080	; Size in bytes
 actor_test4_sheet_test4_frame_5_size_t		equ 0x0004	; Size in tiles
@@ -149,7 +149,7 @@ actor_test4_sheet_test4_frame_5_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test4_sheet_test4_frame_5_subsprite_dimensions_bits:
 	dc.b 0x5
-	Even
+	even
 
 actor_test4_sheet_test4_frame_6_size_b		equ 0x0080	; Size in bytes
 actor_test4_sheet_test4_frame_6_size_t		equ 0x0004	; Size in tiles
@@ -163,7 +163,7 @@ actor_test4_sheet_test4_frame_6_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test4_sheet_test4_frame_6_subsprite_dimensions_bits:
 	dc.b 0x5
-	Even
+	even
 
 actor_test4_sheet_test4_frame_7_size_b		equ 0x0080	; Size in bytes
 actor_test4_sheet_test4_frame_7_size_t		equ 0x0004	; Size in tiles
@@ -177,7 +177,7 @@ actor_test4_sheet_test4_frame_7_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test4_sheet_test4_frame_7_subsprite_dimensions_bits:
 	dc.b 0x5
-	Even
+	even
 
 
 spritesheets_test4_tiledata:

@@ -36,7 +36,7 @@ actor_crate_sheet_crate_frame_0_subsprite_dimensions_bits:
 	dc.b 0xC
 	dc.b 0x3
 	dc.b 0x0
-	Even
+	even
 
 
 spritesheets_crate_tiledata:

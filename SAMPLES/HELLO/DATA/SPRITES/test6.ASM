@@ -30,7 +30,7 @@ actor_test6_sheet_test6_frame_0_subsprite_pos_offsets:
 ; Subsprite dimension bits (for sprite descs)
 actor_test6_sheet_test6_frame_0_subsprite_dimensions_bits:
 	dc.b 0x0
-	Even
+	even
 
 
 spritesheets_test6_tiledata:

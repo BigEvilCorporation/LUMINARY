@@ -14,6 +14,7 @@ actor_test4_sheet_test4_anim_test4_anim:
 	dc.w 0x0008	; Num keyframes
 	dc.w 0x3D00	; Default speed
 	dc.b 0x1	; Default loop flag
+	even
 
 actor_test4_sheet_test4_anim_test4_anim_track_frames:
 	dc.l actor_test4_sheet_test4_frame_0_header
@@ -25,5 +26,5 @@ actor_test4_sheet_test4_anim_test4_anim_track_frames:
 	dc.l actor_test4_sheet_test4_frame_6_header
 	dc.l actor_test4_sheet_test4_frame_7_header
 
-	Even
+	even
 
