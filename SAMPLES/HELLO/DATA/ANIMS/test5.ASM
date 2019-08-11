@@ -7,21 +7,6 @@
 ; ============================================================================================
 
 
-palette_test3:
-	dc.w	0x0EEE
-	dc.w	0x0020
-	dc.w	0x0EEE
-	dc.w	0x00AC
-	dc.w	0x02EA
-	dc.w	0x00EE
-	dc.w	0x0008
-	dc.w	0x000C
-	dc.w	0x000A
-	dc.w	0x0400
-	dc.w	0x0844
-	dc.w	0x0820
-	dc.w	0x0080
-	dc.w	0x00A2
-	dc.w	0x00E4
-	dc.w	0x0EEE
+spriteanims_test5:
+
 

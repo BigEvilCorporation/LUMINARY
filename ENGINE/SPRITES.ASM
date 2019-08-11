@@ -6,21 +6,19 @@
 ; SPRITES.ASM - Sprites and sprite table routines
 ; ============================================================================================
 
-    ; Single sprite
-    STRUCT_BEGIN Sprite
-Sprite_VRAMHndl                         rs.l 1 ; VRAM handle
-Sprite_DrawFlags                        rs.w 1 ; Priority/palette/flip flags preformatted for hardware (see SPRITE_SET_* macros)
-Sprite_Layout                           rs.b 1 ; Layout/dimensions
+    ; Sprite sheet
+    STRUCT_BEGIN SpriteSheet
+SpriteSheet_FirstFrame    			    rs.l 1 ; Frame 0
+SpriteSheet_VRAMSizeTiles		        rs.w 1 ; Size of largest frame in tiles
     STRUCT_END
 
-    ; Multi-sprite sheet
-    STRUCT_BEGIN SpriteSheet
-SpriteSheet_TileData    			    rs.l 1 ; Base address of tile data
-SpriteSheet_LayoutTable                 rs.l 1 ; Address of table of VDP layout per subsprite
-SpriteSheet_PosOffsetTable	            rs.l 1 ; Address of table of position offsets per subsprite
-SpriteSheet_WidthHeightTiles		    rs.w 1 ; Sprite object width/height in tiles (0xWWHH)
-SpriteSheet_SizeTiles				    rs.w 1 ; Sprite object single frame size in tiles
-SpriteSheet_SizeSubsprites			    rs.w 1 ; Sprite object single frame size in subsprites
+    ; Sprite animation frame
+    STRUCT_BEGIN SpriteFrame
+SpriteFrame_SizeTiles				    rs.w 1 ; Size of frame in tiles
+SpriteFrame_SizeSubsprites			    rs.w 1 ; Size of frame in subsprites
+SpriteFrame_TileData                    rs.l 1 ; Address of tile data
+SpriteFrame_LayoutTable                 rs.l 1 ; Address of table of VDP layout per subsprite
+SpriteFrame_PosOffsetTable	            rs.l 1 ; Address of table of position offsets per subsprite
     STRUCT_END
 
     ; Hardware sprite
@@ -72,62 +70,11 @@ SPR_Initialise:
 
     rts
 
-SPR_DrawSingle:
+SPR_DrawFrame:
     ; ======================================
-    ; Adds a single sprite for drawing at
-    ; the end of the frame.
+    ; Adds a sprite frame for drawing
     ; ======================================
-	; a0   Sprite
-    ; d0.w X coord
-    ; d1.w Y coord
-    ; d2.l VRAM hndl
-    ; d3.w Draw flags
-    ; ======================================
-
-    ; Get table ptr
-    move.l RAM_SPRITE_TABLE_PTR, a1
-
-    ; Get next sprite index
-    move.w RAM_SPRITE_NEXT_IDX, d6
-
-    ; Link prev in table to this
-	beq     @FirstInTable
-	move.b  d6, (-SIZEOF_VDPSprite+VDPSprite_NextId)(a1)
-	@FirstInTable:
-
-    ; Check if table depleted
-    cmp.w  #VDP_MAX_SPRITES, d6
-    beq    @Err_OutOfSprites
-
-    ; Next ID
-    addi.w #0x1, RAM_SPRITE_NEXT_IDX
-
-    ; Combine tile ID and flags
-    or.w   d3, d2
-
-    ; Populate next hardware sprite
-    move.w d1, (a1)+                    ; Coord Y
-    move.b Sprite_Layout(a0), (a1)+     ; Dimensions
-    move.b #0x0, (a1)+                  ; Next ID
-    move.w d2, (a1)+                    ; Prio/pal/flip/tileId
-    move.w d0, (a1)+                    ; Coord X
-
-    ; Advance ptr
-    move.l a1, RAM_SPRITE_TABLE_PTR
-
-    rts
-
-    @Err_OutOfSprites:
-    DBG_RAISE_ERROR "Out of sprites"
-
-    rts
-
-SPR_DrawSheet:
-    ; ======================================
-    ; Adds a multi sprite from sheet for
-    ; drawing at the end of the frame.
-    ; ======================================
-	; a0   Sprite sheet
+	; a0   SpriteFrame
     ; d0.w X coord
     ; d1.w Y coord
     ; d2.l VRAM handle
@@ -141,7 +88,7 @@ SPR_DrawSheet:
     move.w RAM_SPRITE_NEXT_IDX, d6
 
     ; Get num subsprites
-    move.w SpriteSheet_SizeSubsprites(a0), d5
+    move.w SpriteFrame_SizeSubsprites(a0), d5
 
     ; Check if table depleted
     move.w d6, d4
@@ -150,10 +97,10 @@ SPR_DrawSheet:
     bge    @Err_OutOfSprites
 
     ; Get layout table
-    move.l SpriteSheet_LayoutTable(a0), a2
+    move.l SpriteFrame_LayoutTable(a0), a2
 
     ; Get pos offset table
-    move.l SpriteSheet_PosOffsetTable(a0), a4
+    move.l SpriteFrame_PosOffsetTable(a0), a4
     
     ; Get layout tile count table
     lea    SpriteLayoutTileCountTable, a5

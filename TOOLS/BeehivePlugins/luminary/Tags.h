@@ -21,7 +21,8 @@ namespace luminary
 			SpriteSheet,
 			SpriteTileData,
 			SpriteTileCount,
-			SpriteLayout
+			SpriteLayout,
+			SpriteAnimation
 		};
 
 		struct ParamTag
