@@ -114,7 +114,7 @@ Main:
 
     ; Load scene
     lea    RAM_TESTSCENE1, a0
-    lea    SceneData_tst1, a1
+    lea    SceneData_tst1_tst1, a1
     bsr    SCN_LoadScene
     
     @Lp:

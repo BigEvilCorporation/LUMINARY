@@ -27,4 +27,7 @@ RAM_SPRITE_NEXT_IDX                     rs.w 1
     ; VRAM manager
     STRUCT_ALLOC VRAMManager,RAM_VRAM_MANAGER
 
+    ; Current streaming map
+    STRUCT_ALLOC StreamingMap,RAM_STREAMING_MAP
+
 RAM_FRAMEWORK_START                     rs.b 0

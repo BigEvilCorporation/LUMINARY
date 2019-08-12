@@ -33,6 +33,7 @@
     include 'engine/error.asm'
     include 'engine/gamepad.asm'
     include 'engine/interpts.asm'
+    include 'engine/map.asm'
     include 'engine/palettes.asm'
     include 'engine/ram.asm'
     include 'engine/sprites.asm'

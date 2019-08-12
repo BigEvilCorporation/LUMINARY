@@ -15,6 +15,10 @@ stampset_tst1:
 	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\STAMPSET.BIN'
 	even
 
+map_tst1_tst1:
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\TST1.BIN'
+	even
+
 scene_tst1_tst1:
 	include 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\TST1.ASM'
 	even

@@ -22,7 +22,7 @@ namespace luminary
 
 	}
 
-	bool SceneExporter::ExportScene(const std::string& filename, const std::string& sceneName, const std::vector<Entity>& entities)
+	bool SceneExporter::ExportScene(const std::string& filename, const std::string& sceneName, const std::string& tilesetLabel, const std::string& stampsetLabel, const std::string& mapLabel, const std::vector<Entity>& entities)
 	{
 		ion::io::File file(filename, ion::io::File::eOpenWrite);
 		if (file.IsOpen())
@@ -170,10 +170,12 @@ namespace luminary
 
 			stream << std::endl;
 
-			//Export scene
 			stream << "SceneData_" << sceneName << ":" << std::endl;
-			stream << "\tdc.w " << entities.size() << "\t; Entity count" << std::endl;
-			stream << "\tdc.l " << "SceneEntityData_" << sceneName << "\t; Entity table" << std::endl;
+			stream << "\tdc.l " << tilesetLabel << "\t; SceneData_Tileset" << std::endl;
+			stream << "\tdc.l " << stampsetLabel << "\t; SceneData_Stampset" << std::endl;
+			stream << "\tdc.l " << mapLabel << "\t; SceneData_Map" << std::endl;
+			stream << "\tdc.l " << "SceneEntityData_" << sceneName << "\t; SceneData_Entities" << std::endl;
+			stream << "\tdc.w " << entities.size() << "\t; SceneData_EntityCount" << std::endl;
 
 			file.Write(stream.str().c_str(), stream.str().size());
 			file.Close();

@@ -1,26 +1,20 @@
 // ============================================================================================
 // LUMINARY - a game engine and framework for the SEGA Mega Drive
 // ============================================================================================
-// Matt Phillips - Big Evil Corporation Ltd - 7th August 2019
+// Matt Phillips - Big Evil Corporation Ltd - 13th August 2019
 // ============================================================================================
-// SceneExporter.h - Utilities for exporting Beehive GameObject data to Luminary scene,
-// entity and component spawn data
+// MapExporter.h - Map exporter
 // ============================================================================================
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "Types.h"
+#include <ion/beehive/Map.h>
 
 namespace luminary
 {
-	class SceneExporter
+	class MapExporter
 	{
 	public:
-		SceneExporter();
-
-		bool ExportScene(const std::string& filename, const std::string& sceneName, const std::string& tilesetLabel, const std::string& stampsetLabel, const std::string& mapLabel, const std::vector<Entity>& entities);
+		bool ExportMap(const std::string& binFilename, const Map& map, int stampWidth, int stampHeight);
 	};
 }

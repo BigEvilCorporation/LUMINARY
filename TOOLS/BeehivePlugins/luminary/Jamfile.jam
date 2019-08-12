@@ -6,6 +6,8 @@ ApplyIonIo luminary ;
 local LUMINARY_SRC = 
 	EntityParser.cpp
 	EntityParser.h
+	MapExporter.cpp
+	MapExporter.h
 	SceneExporter.cpp
 	SceneExporter.h
 	SpriteExporter.cpp

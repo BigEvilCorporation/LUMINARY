@@ -12,8 +12,11 @@ Scene_SpawnedEntities                   rs.w SCN_MAX_ENTITIES
     STRUCT_END
 
     STRUCT_BEGIN SceneData
-SceneData_EntityCount                   rs.w 1
+SceneData_Tileset                       rs.l 1
+SceneData_Stampset                      rs.l 1
+SceneData_Map                           rs.l 1
 SceneData_Entities                      rs.l 1
+SceneData_EntityCount                   rs.w 1
     STRUCT_END
 
     STRUCT_BEGIN SceneEntity
