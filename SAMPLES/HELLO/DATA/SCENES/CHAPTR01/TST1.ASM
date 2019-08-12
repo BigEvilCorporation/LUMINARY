@@ -28,16 +28,6 @@ SceneEntitySpawnData_tst1_EPlayer_player14:
 	dc.l actor_test5_spritesheet_test5	; SDSprite_Sheet
 	dc.l actor_test5_sheet_test5_anim_test5	; SDSprite_Animation
 	even
-SceneEntitySpawnData_tst1_EPlayer_player21:
-	; ECSprite
-	dc.l actor_test4_spritesheet_test4	; SDSprite_Sheet
-	dc.l 0x0	; SDSprite_Animation
-	even
-SceneEntitySpawnData_tst1_EPlayer_player25:
-	; ECSprite
-	dc.l actor_test5_spritesheet_test5	; SDSprite_Sheet
-	dc.l 0x0	; SDSprite_Animation
-	even
 SceneEntitySpawnData_tst1_EPlayer_player27:
 	; ECSprite
 	dc.l actor_test3_spritesheet_test3	; SDSprite_Sheet
@@ -126,7 +116,7 @@ SceneEntityData_tst1:
 	dc.w 0x0180	; Position X
 	dc.w 0x00A0	; Position Y
 	dc.l EPlayer_Typedesc	; Entity descriptor
-	dc.l SceneEntitySpawnData_tst1_EPlayer_player21	; Entity spawn data
+	dc.l SceneEntitySpawnData_tst1_EPlayer_player4	; Entity spawn data
 	dc.w 0x0148	; Position X
 	dc.w 0x00D0	; Position Y
 	dc.l EPlayer_Typedesc	; Entity descriptor
@@ -142,7 +132,7 @@ SceneEntityData_tst1:
 	dc.w 0x0100	; Position X
 	dc.w 0x0160	; Position Y
 	dc.l EPlayer_Typedesc	; Entity descriptor
-	dc.l SceneEntitySpawnData_tst1_EPlayer_player25	; Entity spawn data
+	dc.l SceneEntitySpawnData_tst1_EPlayer_player14	; Entity spawn data
 	dc.w 0x0130	; Position X
 	dc.w 0x0120	; Position Y
 	dc.l EPlayer_Typedesc	; Entity descriptor

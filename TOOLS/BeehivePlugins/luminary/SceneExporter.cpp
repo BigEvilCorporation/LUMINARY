@@ -24,44 +24,6 @@ namespace luminary
 
 	bool SceneExporter::ExportScene(const std::string& filename, const std::string& sceneName, const std::vector<Entity>& entities)
 	{
-		//	PlayerSpawnData:
-		//		; SDPlayer
-		//		dc.w   0x000F
-		//
-		//		; SDPhysicsBody
-		//
-		//		; SDSprite
-		//		dc.l   TestSprite
-		//		dc.w   1
-		//		dc.b   VDP_SPRITE_LAYOUT_1x1
-		//
-		//		even
-
-		//	TestScene1_Entities:
-		//		dc.l   EPlayer_TypeDesc; SceneEntity_EntityType
-		//		dc.l   PlayerSpawnData; SceneEntity_SpawnData
-		//		dc.w   0x0088; SceneEntity_PosX
-		//		dc.w   0x0088; SceneEntity_PosY
-		//		; --
-		//		dc.l   EPlayer_TypeDesc; SceneEntity_EntityType
-		//		dc.l   PlayerSpawnData; SceneEntity_SpawnData
-		//		dc.w   0x0030; SceneEntity_PosX
-		//		dc.w   0x0100; SceneEntity_PosY
-		//		; --
-		//		dc.l   EPlayer_TypeDesc; SceneEntity_EntityType
-		//		dc.l   PlayerSpawnData; SceneEntity_SpawnData
-		//		dc.w   0x0090; SceneEntity_PosX
-		//		dc.w   0x0110; SceneEntity_PosY
-		//		; --
-		//		dc.l   EPlayer_TypeDesc; SceneEntity_EntityType
-		//		dc.l   PlayerSpawnData; SceneEntity_SpawnData
-		//		dc.w   0x0100; SceneEntity_PosX
-		//		dc.w   0x0120; SceneEntity_PosY
-		//	
-		//		TestScene1 :
-		//		dc.w 4; SceneData_EntityCount
-		//		dc.l TestScene1_Entities; SceneData_Entities
-
 		ion::io::File file(filename, ion::io::File::eOpenWrite);
 		if (file.IsOpen())
 		{

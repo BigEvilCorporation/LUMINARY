@@ -11,11 +11,6 @@
     include 'samples/hello/system/header.asm'
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
-    include 'samples/hello/data/scenes/scene1.asm'
-
-    include 'samples/hello/data/sprites/sprites.asm'
-    include 'samples/hello/data/anims/sprtanms.asm'
-    include 'samples/hello/data/palettes/sprtpals.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -35,20 +30,6 @@ EPlayer_SpawnPosY                       rs.w 1
     ENT_COMPONENT ECSprite
     ENTITY_END
 
-    ENTITY_SPAWN_DATA_BEGIN ESpriteTest
-    ENTITY_SPAWN_DATA_END
-    
-    ENTITY_BEGIN ESpriteTest
-    ENT_COMPONENT ECSprite
-    ENTITY_END
-
-ESpriteTest_Initialise:
-    rts
-ESpriteTest_Shutdown:
-    rts
-ESpriteTest_Update:
-    rts
-
 EPlayer_Initialise:
     ; ======================================
     ; EPlayer constructor
@@ -63,7 +44,7 @@ EPlayer_Initialise:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    ;move.w #0x1000, ECPhysicsBody_AccelX(a0)
+    move.w #0x1000, ECPhysicsBody_AccelX(a0)
 
     rts
 
@@ -163,3 +144,11 @@ Main:
 
     ; Asset includes
 	include 'engine/assets.asm'
+
+    ; Scene data
+    include 'samples/hello/data/scenes/chaptr01/include.asm'
+
+    ; Sprite data
+    include 'samples/hello/data/sprites/sprites.asm'
+    include 'samples/hello/data/anims/sprtanms.asm'
+    include 'samples/hello/data/palettes/sprtpals.asm'
