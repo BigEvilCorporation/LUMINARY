@@ -25,3 +25,24 @@ VDP_LoadPalette:
     ENDR
 
     rts
+
+VDP_LoadPalettes:
+    ; ======================================
+    ; Loads multiple palettes into CRAM,
+    ; from index 0
+    ; ======================================
+    ; a0   Palettes addr
+    ; d0.w Palette count
+    ; ======================================
+
+    VDP_SET_CRAM_WRITE 0x0000
+
+    ; 32 bytes per palette
+    subi.w #0x1, d0
+    @PalLp:
+    REPT 8
+    move.l (a0)+, PORT_VDP_DATA
+    ENDR
+    dbra   d0, @PalLp
+
+    rts

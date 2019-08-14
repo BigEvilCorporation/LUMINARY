@@ -50,6 +50,12 @@ VDP_SCREEN_HEIGHT_PX                    equ 0x00E0 ; 224 (V28 mode)
 VDP_SPRITE_BORDER_X		                equ 0x0080
 VDP_SPRITE_BORDER_Y		                equ 0x0080
 
+; Map streaming
+MAP_STREAM_STAMP_WIDTH                  equ BLDCONF_MAP_STREAM_STAMP_WIDTH
+MAP_STREAM_STAMP_HEIGHT                 equ BLDCONF_MAP_STREAM_STAMP_HEIGHT
+MAP_STREAM_STAMP_WIDTH_SHIFT            equ BLDCONF_MAP_STREAM_STAMP_WIDTH_SHIFT
+MAP_STREAM_STAMP_HEIGHT_SHIFT           equ BLDCONF_MAP_STREAM_STAMP_HEIGHT_SHIFT
+
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40
 VDP_SPRITE_FLAG_FLIPX                   equ 11
@@ -93,7 +99,7 @@ VDP_SPRITE_LAYOUT_4x4                   equ %1111
 ; Planes
 VDP_PLANE_WIDTH                         equ 0x40
 VDP_PLANE_HEIGHT                        equ 0x20
-VDP_PLANE_WIDTH_SHIFT                   equ 0x07
+VDP_PLANE_WIDTH_SHIFT                   equ 0x06
 
 ; VRAM addresses
 VRAM_ADDR_TILES			                equ 0x0000

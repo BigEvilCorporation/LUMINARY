@@ -21,6 +21,11 @@ VDP_SET_CRAM_WRITE: macro addr
 	move.l  #(VDP_CMD_CRAM_WRITE)|((\addr)&$3FFF)<<16|(\addr)>>14, PORT_VDP_CONTROL
 	endm
 
+; Setup for writing to static VSRAM address
+VDP_SET_VSRAM_WRITE: macro addr
+	move.l  #(VDP_CMD_VSRAM_WRITE)|((\addr)&$3FFF)<<16|(\addr)>>14, PORT_VDP_CONTROL
+	endm
+
 ; Set VDP data address for reading/writing
 VDP_SETADDRESS: macro destreg,baseaddr,optype
 	; Address bit pattern: --DC BA98 7654 3210 ---- ---- ---- --FE
@@ -33,11 +38,12 @@ VDP_SETADDRESS: macro destreg,baseaddr,optype
 	move.l  \destreg, PORT_VDP_CONTROL	; Move dest address to VDP control port
 	endm
 
-; Converts plane X/Y coords to VRAM byte offset
-VRAM_PLANE_COORDS_TO_BYTES: macro x,y,output
+; Converts cell X/Y coords to VRAM plane byte offset
+VRAM_CELL_COORDS_TO_BYTES: macro x,y,output
     move.w \y, \output
-    lsl.w  #VDP_PLANE_WIDTH_SHIFT, \output
-    add.w  \x, \output
+    lsl.w  #(VDP_PLANE_WIDTH_SHIFT+1), \output	; Y to row offset in words
+    add.w  \x, \output							; +X
+	add.w  \x, \output							; ...in words
     endm
 
 ; Converts tile count to byte offset

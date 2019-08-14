@@ -14,8 +14,14 @@ Scene_SpawnedEntities                   rs.w SCN_MAX_ENTITIES
     STRUCT_BEGIN SceneData
 SceneData_Tileset                       rs.l 1
 SceneData_Stampset                      rs.l 1
+SceneData_Palettes                      rs.l 1
 SceneData_Map                           rs.l 1
 SceneData_Entities                      rs.l 1
+SceneData_TileCount                     rs.w 1
+SceneData_StampCount                    rs.w 1
+SceneData_PaletteCount                  rs.w 1
+SceneData_MapWidthStamps                rs.w 1
+SceneData_MapHeightStamps               rs.w 1
 SceneData_EntityCount                   rs.w 1
     STRUCT_END
 
@@ -34,6 +40,25 @@ SCN_LoadScene:
 	; a0   Scene
     ; a1   SceneData
     ; ======================================
+
+    ; Pre-stream map
+    PUSHM.L a0-a1
+    move.w SceneData_TileCount(a1), d0
+    move.w SceneData_StampCount(a1), d1
+    move.w SceneData_MapWidthStamps(a1), d2
+    move.w SceneData_MapHeightStamps(a1), d3
+    move.l SceneData_Tileset(a1), a2
+    move.l SceneData_Map(a1), a0
+    move.l SceneData_Stampset(a1), a1
+    bsr    MAP_PreLoad
+    POPM.L a0-a1
+
+    ; Load palettes
+    PUSHM.L a0-a1
+    move.w SceneData_PaletteCount(a1), d0
+    move.l SceneData_Palettes(a1), a0
+    bsr    VDP_LoadPalettes
+    POPM.L a0-a1
 
     ; Spawn all entities
     move.w SceneData_EntityCount(a1), d2

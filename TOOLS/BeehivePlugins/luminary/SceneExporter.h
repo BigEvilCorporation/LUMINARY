@@ -19,8 +19,24 @@ namespace luminary
 	class SceneExporter
 	{
 	public:
+
+		struct SceneData
+		{
+			std::string tilesetLabel;
+			std::string stampsetLabel;
+			std::string mapLabel;
+			std::string palettesLabel;
+			std::vector<Entity> entities;
+
+			int numTiles;
+			int numStamps;
+			int numPalettes;
+			int mapWidthStamps;
+			int mapHeightStamps;
+		};
+
 		SceneExporter();
 
-		bool ExportScene(const std::string& filename, const std::string& sceneName, const std::string& tilesetLabel, const std::string& stampsetLabel, const std::string& mapLabel, const std::vector<Entity>& entities);
+		bool ExportScene(const std::string& filename, const std::string& sceneName, const SceneData& sceneData);
 	};
 }

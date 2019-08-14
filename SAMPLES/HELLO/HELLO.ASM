@@ -110,7 +110,7 @@ Main:
     ; Load palettes
     lea    palette_test2, a0
     move.b #0x0, d0
-    bsr    VDP_LoadPalette  
+    ;bsr    VDP_LoadPalette  
 
     ; Load scene
     lea    RAM_TESTSCENE1, a0

@@ -19,7 +19,7 @@ DBG_DrawString:
     ; ======================================
 
     ; Coord to plane offset, set address for writing
-    VRAM_PLANE_COORDS_TO_BYTES d0, d1, d3
+    VRAM_CELL_COORDS_TO_BYTES d0, d1, d3
     VDP_SETADDRESS d3, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
 
     ; Get font addr

@@ -22,7 +22,7 @@ namespace luminary
 
 	}
 
-	bool SceneExporter::ExportScene(const std::string& filename, const std::string& sceneName, const std::string& tilesetLabel, const std::string& stampsetLabel, const std::string& mapLabel, const std::vector<Entity>& entities)
+	bool SceneExporter::ExportScene(const std::string& filename, const std::string& sceneName, const SceneData& sceneData)
 	{
 		ion::io::File file(filename, ion::io::File::eOpenWrite);
 		if (file.IsOpen())
@@ -38,9 +38,9 @@ namespace luminary
 			std::map<std::string, ExportedSpawnData> exportedSpawnDatas;
 
 			//Export entity and component spawn data tables
-			for (int i = 0; i < entities.size(); i++)
+			for (int i = 0; i < sceneData.entities.size(); i++)
 			{
-				const Entity& entity = entities[i];
+				const Entity& entity = sceneData.entities[i];
 				std::stringstream spawnDataName;
 				spawnDataName << "SceneEntitySpawnData_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name;
 
@@ -149,9 +149,9 @@ namespace luminary
 			//Export entity spawn tables
 			stream << "SceneEntityData_" << sceneName << ":" << std::endl;
 
-			for (int i = 0; i < entities.size(); i++)
+			for (int i = 0; i < sceneData.entities.size(); i++)
 			{
-				const Entity& entity = entities[i];
+				const Entity& entity = sceneData.entities[i];
 
 				std::stringstream spawnDataName;
 				spawnDataName << "SceneEntity_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << ":" << std::endl;
@@ -171,11 +171,17 @@ namespace luminary
 			stream << std::endl;
 
 			stream << "SceneData_" << sceneName << ":" << std::endl;
-			stream << "\tdc.l " << tilesetLabel << "\t; SceneData_Tileset" << std::endl;
-			stream << "\tdc.l " << stampsetLabel << "\t; SceneData_Stampset" << std::endl;
-			stream << "\tdc.l " << mapLabel << "\t; SceneData_Map" << std::endl;
+			stream << "\tdc.l " << sceneData.tilesetLabel << "\t; SceneData_Tileset" << std::endl;
+			stream << "\tdc.l " << sceneData.stampsetLabel << "\t; SceneData_Stampset" << std::endl;
+			stream << "\tdc.l " << sceneData.palettesLabel << "\t; SceneData_Palettes" << std::endl;
+			stream << "\tdc.l " << sceneData.mapLabel << "\t; SceneData_Map" << std::endl;
 			stream << "\tdc.l " << "SceneEntityData_" << sceneName << "\t; SceneData_Entities" << std::endl;
-			stream << "\tdc.w " << entities.size() << "\t; SceneData_EntityCount" << std::endl;
+			stream << "\tdc.w " << sceneData.numTiles << "\t; SceneData_TileCount" << std::endl;
+			stream << "\tdc.w " << sceneData.numStamps << "\t; SceneData_StampCount" << std::endl;
+			stream << "\tdc.w " << sceneData.numPalettes << "\t; SceneData_PaletteCount" << std::endl;
+			stream << "\tdc.w " << sceneData.mapWidthStamps << "\t; SceneData_MapWidthStamps" << std::endl;
+			stream << "\tdc.w " << sceneData.mapHeightStamps << "\t; SceneData_MapHeightStamps" << std::endl;
+			stream << "\tdc.w " << sceneData.entities.size() << "\t; SceneData_EntityCount" << std::endl;
 
 			file.Write(stream.str().c_str(), stream.str().size());
 			file.Close();

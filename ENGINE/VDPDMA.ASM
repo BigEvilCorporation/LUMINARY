@@ -221,7 +221,64 @@ VDPDMA_CommitAndClearQueue:
 VDPDMA_TransferImmediateVRAM:
     ; ======================================
     ; DMA transfer from 68K space to VRAM
-	; immediately (bypassing queue)
+	; immediately (bypassing queue). Splits
+	; into two blocks if crossing 64kb
+	; boundary.
+    ; ======================================
+	; a0   Source address
+	; d0.w Dest address (VRAM)
+	; d1.w Size in words
+    ; ======================================
+
+	; If block crosses a 128kb boundary, split into two jobs
+	; (but simpler to do with 64kb, can just use carry flag)
+	move.l a0, d2
+	move.w d1, d3
+	lsl.w  #0x1, d3		; Words to bytes
+	add.w  d3, d2		; Add size to lower 16 bits of address
+	bcs    @SplitDMA	; Branch if Carry Set (result overflowed across 16 bit boundary)
+	
+	@SingleDMA:
+	
+	; Single DMA
+	bsr    VDPDMA_TransferImmediateVRAM_NoBoundary
+	
+	rts
+	
+	@SplitDMA:
+	
+	; Edge case: end of data lands precisely on 64kb boundary
+	beq    @SingleDMA
+	
+	; DMA 1
+	moveq  #0x0, d6
+	move.l a0, d2			; Source addr to d2
+	PUSHM.W d0/d1			; Backup original size/dest
+	move.l d2, d3
+	andi.l #0xFFFF0000, d3	; Align source address down to 64kb boundary
+	addi.l #0x00010000, d3	; Align up
+	sub.l  d2, d3			; Get size difference from original address
+	move.w d3, d6			; Backup job 1 size
+	move.w d3, d1			; Size to d1
+	lsr.w  #0x1, d1			; Size diff to words
+    move.l d2, a0           ; Source address
+	bsr    VDPDMA_TransferImmediateVRAM_NoBoundary
+	
+	; DMA 2
+	POPM.W  d0/d1			; Restore original size/dest
+	add.l  d6, d2			; Offset source address (bytes)
+	add.w  d6, d0			; Offset dest address (bytes)
+	lsr.w  #0x1, d6			; Job 1 size to words
+	sub.w  d6, d1			; Subtract job 1 size (words)
+	bsr    VDPDMA_TransferImmediateVRAM_NoBoundary
+	
+	rts
+
+VDPDMA_TransferImmediateVRAM_NoBoundary:
+    ; ======================================
+    ; DMA transfer from 68K space to VRAM
+	; immediately (bypassing queue).
+	; Source data cannot cross 64kb boundary
     ; ======================================
 	; a0   Source address
 	; d0.w Dest address (VRAM)

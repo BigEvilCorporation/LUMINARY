@@ -7,6 +7,10 @@
 ; ============================================================================================
 
 
+palettes_tst1:
+	include 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\PALETTES.ASM'
+	even
+
 tileset_tst1:
 	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\TILESET.BIN'
 	even

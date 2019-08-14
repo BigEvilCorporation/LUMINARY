@@ -20,15 +20,17 @@ StreamingMap_HeightStamps               rs.w 1
 MAP_PreLoad:
     ; ======================================
     ; Loads one screen's worth of map data
-    ; and initialises streaming system
+    ; to plane A, and initialises streaming
+    ; system.
+    ; Assumes autoincrement is 2.
     ; ======================================
-	; a0   Map
+	; a0   Map data
     ; a1   Stampset
     ; a2   Tileset
-    ; d0   Num tiles
-    ; d1   Num stamps
-    ; d2   Map width (stamps)
-    ; d3   Map height (stamps)
+    ; d0.w Num tiles
+    ; d1.w Num stamps
+    ; d2.w Map width (stamps)
+    ; d3.w Map height (stamps)
     ; ======================================
 
     ; Init streaming map
@@ -47,8 +49,130 @@ MAP_PreLoad:
     move.l d1, StreamingMap_VRAMhndl(a3)
 
     ; Load tiles
+    move.l d1, d0
     move.l StreamingMap_Tileset(a3), a0
-    move.w StreamingMap_NumTiles(a3), d0
+    move.w StreamingMap_NumTiles(a3), d1
     bsr    VDP_LoadTiles
+
+    ; Stream initial screen
+    lea    RAM_STREAMING_MAP, a3
+    move.l StreamingMap_StampMap(a3), a0
+    move.l StreamingMap_StampSet(a3), a1
+    moveq  #0x0, d0
+    moveq  #0x0, d1
+    move.w StreamingMap_WidthStamps(a3), d2
+    move.w StreamingMap_HeightStamps(a3), d3
+    move.l StreamingMap_VRAMhndl(a3), d4
+    bsr    MAP_StreamAll
+
+    rts
+
+MAP_StreamAll:
+    ; ======================================
+    ; Streams a whole screen's worth of
+    ; map data at the specified camera
+    ; position, to plane A.
+    ; Assumes autoincrement is 2.
+    ; Does not support maps < 2x2 in size.
+    ; ======================================
+	; a0   Map data
+    ; a1   Stampset
+    ; d0.w Camera position X
+    ; d1.w Camera position Y
+    ; d2.w Map width (stamps)
+    ; d3.w Map height (stamps)
+    ; d4.w Tileset VRAM addr
+    ; ======================================
+
+    ; TODO: Camera offset
+
+    VDP_SET_VRAM_WRITE VRAM_ADDR_PLANE_A
+
+    move.w #(VDP_PLANE_WIDTH/MAP_STREAM_STAMP_WIDTH)-1, d0
+    move.w #(VDP_PLANE_HEIGHT/MAP_STREAM_STAMP_HEIGHT)-1, d1
+
+	move.w d4, d7                       ; Backup VRAM addr
+    move.w d0, d4                       ; Backup X counter
+
+    moveq  #0x0, d5                     ; Reset X stamp coord
+    ;moveq  #0x0, d6                     ; Reset Y stamp coord
+    move.w d2, d6
+
+    @LoopY:
+    move.w d4, d0                       ; Reset X counter
+    @LoopX:
+
+    PUSHM.L d0-d7/a1
+    move.w d7, d4                       ; VRAM addr
+    move.w d5, d7                       ; Calc stamp index offset
+    add.w  d6, d7
+
+    move.b (a0,d7), d7                  ; Get stamp index
+    bsr    MAP_StreamStamp              ; Load
+    POPM.L  d0-d7/a1
+	
+	add.w  #0x1, d5                     ; Next X stamp coord
+    dbra   d0, @LoopX
+    add.w  d2, d6                       ; Next Y stamp coord
+    dbra   d1, @LoopY
+
+    rts
+
+MAP_StreamStamp:
+    ; ======================================
+    ; Streams a single stamp to plane A.
+    ; Assumes autoincrement is 2.
+    ; ======================================
+    ; a1   Stampset
+    ; d4   Tileset VRAM addr
+    ; d5   Stamp coord X
+    ; d6   Stamp coord Y
+    ; d7   Stamp index
+    ; ======================================
+
+    ; Index to stamp data offset
+    andi.l #0xFFFF, d7
+    mulu   #(MAP_STREAM_STAMP_WIDTH*MAP_STREAM_STAMP_HEIGHT*SIZE_WORD), d7
+    adda.l d7, a1
+    
+    ; Wrap coords around plane
+    lsl.w  #MAP_STREAM_STAMP_WIDTH_SHIFT, d5
+    lsl.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT, d6
+    andi.w #(VDP_PLANE_WIDTH-1), d5
+    andi.w #(VDP_PLANE_HEIGHT-1), d6
+
+    ; Coord to plane A offset
+    VRAM_CELL_COORDS_TO_BYTES d5,d6,d7
+    
+    ; Duplicate starting tile ID to upper word, to upload longwords at a time
+    move.w d4, d0
+    swap   d4
+    move.w d0, d4
+
+    ; Stream data
+    ;move.w d5, d0
+   ; move.w d6, d1
+    move.l d7, d2
+
+    ;REPT   MAP_STREAM_STAMP_HEIGHT
+    move.w #MAP_STREAM_STAMP_HEIGHT-1, d0
+    @LpY:
+
+    VDP_SETADDRESS d2,#VRAM_ADDR_PLANE_A,#VDP_CMD_VRAM_WRITE
+    move.w #(MAP_STREAM_STAMP_WIDTH/2)-1, d1
+    @LpX:
+
+    ;REPT   MAP_STREAM_STAMP_WIDTH/2
+    move.l (a1)+, d3
+    add.l  d4, d3
+    move.l d3, PORT_VDP_DATA
+    ;ENDR
+
+    dbra   d1, @LpX
+
+    addi.w #(VDP_PLANE_WIDTH*SIZE_WORD), d7 ; Next Y
+    move.l d7, d2
+    ;ENDR
+    dbra   d0, @LpY
 
     rts

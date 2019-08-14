@@ -187,13 +187,6 @@ ECSprite_DrawAll:
     lsl.w  #SIZE_TILE_SHIFT_W, d1
     move.b #VDPDMA_TRANSFER_VRAM, d2
     move.b #SIZE_WORD, d3
-    ;bsr    VDP_LoadTiles
-
-	; a0   Source addr (68k space)
-	; d0.w Dest addr (VRAM space)
-	; d1.w Data size (words)
-	; d2.b Dest memory (VDPDMA_TRANSFER_VRAM/VDPDMA_TRANSFER_CRAM)
-	; d3.b Data stride (bytes)
     bsr    VDPDMA_AddJob
 
     POPM.L d0-d3/a0-a3

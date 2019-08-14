@@ -243,6 +243,12 @@ SceneEntityData_tst1_tst1:
 SceneData_tst1_tst1:
 	dc.l tileset_tst1	; SceneData_Tileset
 	dc.l stampset_tst1	; SceneData_Stampset
+	dc.l palettes_tst1	; SceneData_Palettes
 	dc.l map_tst1_tst1	; SceneData_Map
 	dc.l SceneEntityData_tst1_tst1	; SceneData_Entities
+	dc.w 678	; SceneData_TileCount
+	dc.w 56	; SceneData_StampCount
+	dc.w 1	; SceneData_PaletteCount
+	dc.w 4	; SceneData_MapWidthStamps
+	dc.w 2	; SceneData_MapHeightStamps
 	dc.w 51	; SceneData_EntityCount
