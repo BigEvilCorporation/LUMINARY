@@ -124,6 +124,7 @@ Main:
     ; Update
     bsr    ENT_UpdateAll
     bsr    ECPhysicsBody_Step
+    bsr    MAP_UpdateStreaming
 
     ; Draw
     bsr    ECSprite_DrawAll
@@ -135,7 +136,8 @@ Main:
     cmp.b  d0, d1
     beq    @VSync
 
-    ; DMA
+    ; DMA and VDP
+    bsr    MAP_ApplyScroll
     bsr    VDPDMA_CommitAndClearQueue
     bsr    SPR_CommitAndClearTable
 

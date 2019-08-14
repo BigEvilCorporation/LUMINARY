@@ -95,8 +95,7 @@ MAP_StreamAll:
     move.w d0, d4                       ; Backup X counter
 
     moveq  #0x0, d5                     ; Reset X stamp coord
-    ;moveq  #0x0, d6                     ; Reset Y stamp coord
-    move.w d2, d6
+    moveq  #0x0, d6                     ; Reset Y stamp coord
 
     @LoopY:
     move.w d4, d0                       ; Reset X counter
@@ -132,7 +131,8 @@ MAP_StreamStamp:
 
     ; Index to stamp data offset
     andi.l #0xFFFF, d7
-    mulu   #(MAP_STREAM_STAMP_WIDTH*MAP_STREAM_STAMP_HEIGHT*SIZE_WORD), d7
+    lsl.l  #MAP_STREAM_STAMP_WIDTH_SHIFT, d7	; * width
+    lsl.l  #MAP_STREAM_STAMP_HEIGHT_SHIFT+1, d7	; * height * words
     adda.l d7, a1
     
     ; Wrap coords around plane
@@ -174,5 +174,114 @@ MAP_StreamStamp:
     move.l d7, d2
     ;ENDR
     dbra   d0, @LpY
+
+    rts
+
+MAP_UpdateStreaming:
+    ; ======================================
+    ; Updates scroll coords from camera,
+    ; and streams in new rows/cols if
+    ; necessary.
+    ; ======================================
+    ; No params
+    ; ======================================
+
+    ; TEST
+    subi.w #0x1, RAM_SCROLL_PLANE_A_X
+    
+    lea    RAM_STREAMING_MAP, a3
+    move.l StreamingMap_StampMap(a3), a0
+    move.l StreamingMap_StampSet(a3), a1
+    move.l StreamingMap_VRAMhndl(a3), a2
+
+    ; Get desired scroll column
+	moveq  #0x0, d0
+    move.w RAM_SCROLL_PLANE_A_X, d0
+    neg.w  d0							; Invert
+    ext.l  d0
+    divs   #0x8, d0						; d0 = target column
+    
+    ; Get last streamed column
+    move.w RAM_MAP_STREAM_X, d1			; d1 = read column (from map data
+    move.w d1, d6						; d6 = currently streaming column
+
+    ; Wrap around plane width to get write column
+    move.w d1, d5
+    ext.l  d5
+    divs   #VDP_PLANE_WIDTH, d5
+    swap   d5							; d5 = write column (on plane)
+
+    ; Determine how many cols to stream, and in which direction
+    cmp.w  d0, d1
+    beq    @NoStreamX
+    blt    @StreamSrcRight
+
+    @StreamSrcLeft:
+    move.w #-1, d7                      ; Stream from left source
+    bra    @StreamX
+
+    @StreamSrcRight:
+    move.w #1, d7                       ; Stream from right source
+    addi.w #VDP_PLANE_WIDTH, d1
+
+    @StreamX:
+
+    ; Source column to stamp X and tile X offset
+    move.w d1, d3
+    move.w d1, d4
+    lsr.w  #MAP_STREAM_STAMP_WIDTH_SHIFT, d3    ; Integer (stamp X)
+    andi.w #(MAP_STREAM_STAMP_WIDTH-1), d4      ; Remainder (tile X)
+    
+    ; Get stamp index
+    moveq  #0x0, d2
+    move.b (a0,d3), d2
+    
+    ; To stamp addr offset
+    lsl.l  #MAP_STREAM_STAMP_WIDTH_SHIFT, d2	; * width
+    lsl.l  #MAP_STREAM_STAMP_HEIGHT_SHIFT+1, d2	; * height * words
+    add.w  d4, d4								; remainder column to words
+    add.w  d4, d2								; add remainder
+    move.l a1, a3
+    adda.l d2, a3
+    
+    ; Load whole column
+    move.w d5, d4   							; Dest addr to words
+    add.w  d4, d4
+    move.w d4, d3
+    
+    ; TODO: Y src/dst offset
+    move.w #MAP_STREAM_STAMP_HEIGHT-1, d2
+    @StreamCol:
+    move.w d3, d4									; Set plane A write address
+    VDP_SETADDRESS d4, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
+    move.w a2, a4									; Get tileset VRAM addr
+    add.w  (a3), a4									; Add tile index+flags
+    move.w a4, PORT_VDP_DATA						; Upload to VDP
+    adda.w #MAP_STREAM_STAMP_WIDTH*SIZE_WORD, a3    ; Next source Y
+    addi.w #VDP_PLANE_WIDTH*SIZE_WORD, d3           ; Next dest Y
+    dbra   d2, @StreamCol
+
+    add.w  d7, d1                       			; Next source X
+    add.w  d7, d5                       			; Next dest X
+    add.w  d7, d6									; Compare with target X
+    cmp.w  d0, d6
+    bne    @StreamX
+    ;dbra   d1, @StreamXLp
+    ;bra @StreamXLp
+
+    move.w d0, RAM_MAP_STREAM_X         			; Done
+    @NoStreamX:
+
+    rts
+
+MAP_ApplyScroll:
+    ; ======================================
+    ; Applies scroll coords to planes
+    ; ======================================
+    ; No params
+    ; ======================================
+
+    VDP_SET_VRAM_WRITE VRAM_ADDR_HSCROLL
+    move.w RAM_SCROLL_PLANE_A_X, PORT_VDP_DATA
 
     rts

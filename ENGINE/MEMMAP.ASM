@@ -30,4 +30,12 @@ RAM_SPRITE_NEXT_IDX                     rs.w 1
     ; Current streaming map
     STRUCT_ALLOC StreamingMap,RAM_STREAMING_MAP
 
+    ; Camera and scrolling
+RAM_SCROLL_PLANE_A_X                    rs.w 1
+RAM_SCROLL_PLANE_A_Y                    rs.w 1
+RAM_SCROLL_PLANE_B_X                    rs.w 1
+RAM_SCROLL_PLANE_B_Y                    rs.w 1
+RAM_MAP_STREAM_X                        rs.w 1
+RAM_MAP_STREAM_Y                        rs.w 1
+
 RAM_FRAMEWORK_START                     rs.b 0
