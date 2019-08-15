@@ -24,6 +24,7 @@ VDP_Initialise:
 
     ; Clear VRAM
     bsr    VRAM_Clear
+    bsr    VSRAM_Clear
 
     ; TODO: CRAM/VSRAM
 

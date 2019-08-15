@@ -55,6 +55,8 @@ MAP_STREAM_STAMP_WIDTH                  equ BLDCONF_MAP_STREAM_STAMP_WIDTH
 MAP_STREAM_STAMP_HEIGHT                 equ BLDCONF_MAP_STREAM_STAMP_HEIGHT
 MAP_STREAM_STAMP_WIDTH_SHIFT            equ BLDCONF_MAP_STREAM_STAMP_WIDTH_SHIFT
 MAP_STREAM_STAMP_HEIGHT_SHIFT           equ BLDCONF_MAP_STREAM_STAMP_HEIGHT_SHIFT
+MAP_STREAM_BUFFER_OFFSET_X              equ (VDP_PLANE_WIDTH/4)  ; Offset streaming window to centre of plane
+MAP_STREAM_BUFFER_OFFSET_Y              equ 1                    ; Only 2 cell buffer on Y axis
 
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40

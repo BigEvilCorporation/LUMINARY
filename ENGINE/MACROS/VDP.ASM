@@ -38,6 +38,24 @@ VDP_SETADDRESS: macro destreg,baseaddr,optype
 	move.l  \destreg, PORT_VDP_CONTROL	; Move dest address to VDP control port
 	endm
 
+; Increments a plane A column on an existing VDP command+address longword
+; (and wraps around width), and writes new address to VDP control port.
+; Assumes plane A at 0xC000.
+VDP_VRAM_ADDR_INCREMENT_PLANE_A_X: macro destreg,vdp_ctrl_reg
+	addi.l #0x00020000, \destreg
+	andi.l #0xFF7FFFFF, \destreg
+	move.l \destreg, (\vdp_ctrl_reg)
+	endm
+
+; Increments a plane A row on an existing VDP command+address longword
+; (and wraps around height), and writes new address to VDP control port.
+; Assumes plane A at 0xC000.
+VDP_VRAM_ADDR_INCREMENT_PLANE_A_Y: macro destreg,vdp_ctrl_reg
+	addi.l #0x00800000, \destreg
+	andi.l #0xCFFFFFFF, \destreg
+	move.l \destreg, (\vdp_ctrl_reg)
+	endm
+
 ; Converts cell X/Y coords to VRAM plane byte offset
 VRAM_CELL_COORDS_TO_BYTES: macro x,y,output
     move.w \y, \output
