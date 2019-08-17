@@ -70,8 +70,8 @@ MAP_PreLoad:
     move.w #0x0000, RAM_SCROLL_PLANE_A_Y
 
     ; Init streaming ptrs, offset one screen to the left so first update fills it
-    move.w #-MAP_STREAM_BUFFER_OFFSET_X-VDP_PLANE_WIDTH, RAM_MAP_STREAM_X
-    move.w #-MAP_STREAM_BUFFER_OFFSET_Y, RAM_MAP_STREAM_Y
+    move.w #-VDP_PLANE_WIDTH, RAM_MAP_STREAM_X
+    move.w #0x0000, RAM_MAP_STREAM_Y
 
     ; Update to fill initial screen
     bsr    MAP_UpdateStreaming
@@ -241,22 +241,37 @@ MAP_UpdateStreaming:
     addi.w #VDP_PLANE_WIDTH, d5
 
     @StreamX:
+
+    ; Get last streamed row
+    moveq  #0x0, d2
+    ;move.w RAM_MAP_STREAM_Y, d2
+    move.w #0x10, d2
+    move.l d2, d4
+    lsr.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT-2, d2     ; Integer (stamp Y) * longwords
+    andi.w #0xFFFC, d2                              ; to nearest longword
+    mulu   StreamingMap_WidthStamps(a3), d2         ; * map width
+    andi.w #(MAP_STREAM_STAMP_HEIGHT-1), d4         ; Remainder (tile Y)
+    lsl.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT+1, d4	    ; to rows, in words
     
     ; TODO: Loop from here
+    PUSHM.W d0/d2/d4
+    PUSH.L  a3
 
     ; Source column to stamp X and tile X offset
-    moveq  #0x0, d2
+    moveq  #0x0, d0
     move.w d1, d3
-    move.w d1, d2
+    move.w d1, d0
     lsr.w  #MAP_STREAM_STAMP_WIDTH_SHIFT-2, d3      ; Integer (stamp X) * longwords
     andi.w #0xFFFC, d3                              ; to nearest longword
-    andi.w #(MAP_STREAM_STAMP_WIDTH-1), d2         	; Remainder (tile X)
-    add.w  d2, d2								    ; * word
+    add.w  d2, d3                                   ; + Y integer
+    andi.w #(MAP_STREAM_STAMP_WIDTH-1), d0         	; Remainder (tile X)
+    add.w  d0, d0								    ; * word
+    add.w  d4, d0                                   ; add Y remainder
     
     ; Get stamp address offset
-    add.l  (a0,d3.w), d2                            ; add offset to remainder
+    add.l  (a0,d3.w), d0                            ; add offset to X remainder
     move.l a1, a3                                   ; get base address
-    adda.l d2, a3                                   ; add offset
+    adda.l d0, a3                                   ; add offset
     
     ; Load whole column
     move.w d5, d4   							    
@@ -267,14 +282,17 @@ MAP_UpdateStreaming:
     VDP_SETADDRESS d4, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
     
     ; TODO: Y src/dst offset
-    move.w #MAP_STREAM_STAMP_HEIGHT-1, d2
+    move.w #MAP_STREAM_STAMP_HEIGHT-1, d0
     @StreamCol:
     move.w a2, a4									; Get tileset VRAM addr
     add.w  (a3), a4									; Add tile index+flags
     move.w a4, (a6)						            ; Upload to VDP
     adda.w #MAP_STREAM_STAMP_WIDTH*SIZE_WORD, a3    ; Next source Y
     VDP_VRAM_ADDR_INCREMENT_PLANE_A_Y d4,a5			; Next dest Y (and wrap height)
-    dbra   d2, @StreamCol
+    dbra   d0, @StreamCol
+
+	POP.L  a3
+    POPM.W d0/d2/d4
 
     add.w  d7, d1                       			; Next source X
     add.w  d7, d5                       			; Next dest X
