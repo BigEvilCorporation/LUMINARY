@@ -126,6 +126,10 @@ Main:
     bsr    ECPhysicsBody_Step
     bsr    MAP_UpdateStreaming
 
+    ; STREAMING TEST
+    subi.w #0x1, RAM_SCROLL_PLANE_A_X
+    ;addi.w #0x1, RAM_SCROLL_PLANE_A_Y
+
     ; Draw
     bsr    ECSprite_DrawAll
 

@@ -38,12 +38,25 @@ VDP_SETADDRESS: macro destreg,baseaddr,optype
 	move.l  \destreg, PORT_VDP_CONTROL	; Move dest address to VDP control port
 	endm
 
+VDP_WRAP_PLANE_X: macro offsetreg
+; Wraps a plane X coord around width.
+	andi.w #VDP_PLANE_WIDTH-1, \offsetreg
+	endm
+
+VDP_WRAP_PLANE_Y: macro offsetreg
+; Wraps a plane Y coord around height.
+	andi.w #VDP_PLANE_HEIGHT-1, \offsetreg
+	endm
+
 ; Increments a plane A column on an existing VDP command+address longword
 ; (and wraps around width), and writes new address to VDP control port.
 ; Assumes plane A at 0xC000.
-VDP_VRAM_ADDR_INCREMENT_PLANE_A_X: macro destreg,vdp_ctrl_reg
-	addi.l #0x00020000, \destreg
-	andi.l #0xFF7FFFFF, \destreg
+VDP_VRAM_ADDR_INCREMENT_PLANE_A_X: macro destreg,tmpreg,vdp_ctrl_reg
+	move.l \destreg, \tmpreg
+	addi.l #0x00020000, \tmpreg
+	andi.l #0x007FFFFF, \tmpreg
+	andi.l #0xFF800000, \destreg
+	or.l   \tmpreg, \destreg
 	move.l \destreg, (\vdp_ctrl_reg)
 	endm
 
