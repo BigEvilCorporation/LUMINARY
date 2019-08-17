@@ -21,6 +21,8 @@
     include 'engine/macros/debug.asm'
     include 'engine/macros/interpts.asm'
     include 'engine/macros/linklist.asm'
+    include 'engine/macros/map.asm'
+    include 'engine/macros/maths.asm'
     include 'engine/macros/memory.asm'
     include 'engine/macros/sprites.asm'
     include 'engine/macros/stack.asm'

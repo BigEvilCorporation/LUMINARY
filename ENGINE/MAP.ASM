@@ -54,22 +54,13 @@ MAP_PreLoad:
     move.w StreamingMap_NumTiles(a3), d1
     bsr    VDP_LoadTiles
 
-    ; Stream initial screen
-    ;lea    RAM_STREAMING_MAP, a3
-    ;move.l StreamingMap_StampMap(a3), a0
-    ;move.l StreamingMap_StampSet(a3), a1
-    ;moveq  #0x0, d0
-    ;moveq  #0x0, d1
-    ;move.w StreamingMap_WidthStamps(a3), d2
-    ;move.w StreamingMap_HeightStamps(a3), d3
-    ;move.l StreamingMap_VRAMhndl(a3), d4
-    ;bsr    MAP_StreamAll
-
     ; Init scroll pos
+    ; TODO: from camera
     move.w #0x0000, RAM_SCROLL_PLANE_A_X
     move.w #0x0000, RAM_SCROLL_PLANE_A_Y
 
     ; Init streaming ptrs, offset one screen to the left so first update fills it
+    ; TODO: from camera
     move.w #-VDP_PLANE_WIDTH, RAM_MAP_STREAM_X
     move.w #0x0000, RAM_MAP_STREAM_Y
 
@@ -77,152 +68,6 @@ MAP_PreLoad:
     bsr    MAP_UpdateStreaming
 
     rts
-
-MAP_StreamAll:
-    ; ======================================
-    ; Streams a whole screen's worth of
-    ; map data at the specified camera
-    ; position, to plane A.
-    ; Assumes autoincrement is 2.
-    ; Does not support maps < 2x2 in size.
-    ; ======================================
-	; a0   Map data
-    ; a1   Stampset
-    ; d0.w Camera position X
-    ; d1.w Camera position Y
-    ; d2.w Map width (stamps)
-    ; d3.w Map height (stamps)
-    ; d4.w Tileset VRAM addr
-    ; ======================================
-
-    ; TODO: Camera offset
-
-    VDP_SET_VRAM_WRITE VRAM_ADDR_PLANE_A
-        
-    add.w  d2, d2						; Width to longwords (stampset data = offsets)
-    add.w  d2, d2
-
-    move.w #(VDP_PLANE_WIDTH/MAP_STREAM_STAMP_WIDTH)-1, d0
-    move.w #(VDP_PLANE_HEIGHT/MAP_STREAM_STAMP_HEIGHT)-1, d1
-
-	move.w d4, d7                       ; Backup VRAM addr
-    move.w d0, d4                       ; Backup X counter
-
-    moveq  #0x0, d6                     ; Reset Y stamp addr
-
-    @LoopY:
-    move.w d4, d0                       ; Reset X counter
-    moveq  #0x0, d5                     ; Reset X stamp addr
-    moveq  #0x0, d3						; Reset dest X addr
-    @LoopX:
-
-    PUSHM.L d0-d7/a1
-    move.w d7, d4                       ; VRAM addr
-    move.w d5, d7                       ; Calc stamp addr offset
-    add.w  d6, d7
-    
-    move.w d3, d4						; Dest X
-
-    move.l (a0,d7.w), d7                ; Get stamp offset
-    bsr    MAP_StreamStamp              ; Load
-    POPM.L  d0-d7/a1
-	
-	addi.w #SIZE_LONG, d5               ; Next X stamp addr
-	addi.w #0x1, d3
-    dbra   d0, @LoopX
-    add.w  d2, d6                       ; Next Y stamp addr
-    dbra   d1, @LoopY
-
-    rts
-
-MAP_StreamStamp:
-    ; ======================================
-    ; Streams a single stamp to plane A.
-    ; Assumes autoincrement is 2.
-    ; ======================================
-    ; a1   Stampset
-    ; d4   Tileset VRAM addr
-    ; d5   Stamp coord X
-    ; d6   Stamp coord Y
-    ; d7   Stamp offset
-    ; ======================================
-
-    ; Offset into stampset
-    adda.l d7, a1
-    
-    ; Wrap coords around plane
-    lsl.w  #MAP_STREAM_STAMP_WIDTH_SHIFT, d5
-    lsl.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT, d6
-    andi.w #(VDP_PLANE_WIDTH-1), d5
-    andi.w #(VDP_PLANE_HEIGHT-1), d6
-
-    ; Coord to plane A offset
-    VRAM_CELL_COORDS_TO_BYTES d5,d6,d7
-    
-    ; Duplicate starting tile ID to upper word, to upload longwords at a time
-    move.w d4, d0
-    swap   d4
-    move.w d0, d4
-
-    ; Stream data
-    ;move.w d5, d0
-   ; move.w d6, d1
-    move.l d7, d2
-
-    ;REPT   MAP_STREAM_STAMP_HEIGHT
-    move.w #MAP_STREAM_STAMP_HEIGHT-1, d0
-    @LpY:
-
-    VDP_SETADDRESS d2,#VRAM_ADDR_PLANE_A,#VDP_CMD_VRAM_WRITE
-    move.w #(MAP_STREAM_STAMP_WIDTH/2)-1, d1
-    @LpX:
-
-    ;REPT   MAP_STREAM_STAMP_WIDTH/2
-    move.l (a1)+, d3
-    add.l  d4, d3
-    move.l d3, PORT_VDP_DATA
-    ;ENDR
-
-    dbra   d1, @LpX
-
-    addi.w #(VDP_PLANE_WIDTH*SIZE_WORD), d7 ; Next Y
-    move.l d7, d2
-    ;ENDR
-    dbra   d0, @LpY
-
-    rts
-
-MAP_GET_STAMP_OFFSET: macro coordx,coordy,mapwidth,stampoffset,remainder,tmpreg
-    ; Given arbitrary map coordinates, returns the offset to the stamp data,
-    ; and remainder x/y offset within it
-
-    moveq  #0x0, \stampoffset
-    moveq  #0x0, \remainder
-
-    ; Y integer
-    move.w \coordy, \stampoffset
-    lsr.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT-2, \stampoffset   ; Integer (stamp Y) * longwords
-    andi.w #0xFFFC, \stampoffset                            ; to nearest longword
-    mulu   \mapwidth, \stampoffset                          ; * map width
-
-    ; Y remainder
-    move.w \coordy, \remainder
-    andi.w #(MAP_STREAM_STAMP_HEIGHT-1), \remainder         ; Remainder (tile Y)
-    lsl.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT+1, \remainder     ; to rows, in words
-
-    ; X integer
-    move.w \coordx, \tmpreg
-    lsr.w  #MAP_STREAM_STAMP_WIDTH_SHIFT-2, \tmpreg         ; Integer (stamp X) * longwords
-    andi.w #0xFFFC, \tmpreg                                 ; to nearest longword
-    add.w  \tmpreg, \stampoffset                            ; add to Y offset
-    
-    ; X remainder
-    move.w \coordx, \tmpreg
-    andi.w #(MAP_STREAM_STAMP_WIDTH-1), \tmpreg             ; Remainder (tile X)
-    add.w  \tmpreg, \tmpreg						            ; * word
-    add.w  \tmpreg, \remainder                              ; add to Y remainder
-
-    endm
 
 MAP_UpdateStreaming:
     ; ======================================
@@ -248,10 +93,13 @@ MAP_UpdateStreaming:
 
     ; Get desired scroll column
     move.w RAM_SCROLL_PLANE_A_X, d0
-    neg.w  d0								; Invert
-    asr.w  #0x3, d0							; d0 = target column
+    neg.w  d0							; Invert
+    asr.w  #0x3, d0						; d0 = target column
     ext.l  d0							
-    subi.w #MAP_STREAM_BUFFER_OFFSET_X, d0	; Offset write head to within invisible plane area
+    subi.w #MAP_STREAM_BUFFER_OFFSET_X, d0 ; Offset write head to within invisible plane area
+    bge    @WithinBoundsX				; Clamp to 0
+    move.w #0x0, d0
+    @WithinBoundsX:
     
     ; Get last streamed column
     move.w RAM_MAP_STREAM_X, d1			; d1 = read column (in map space)
@@ -283,13 +131,13 @@ MAP_UpdateStreaming:
     move.w StreamingMap_WidthStamps(a3), d3
     
 	; Set intial VRAM write address
-    move.w d5, d7   							    ; Get destination col
-    VDP_WRAP_PLANE_X d7                             ; Wrap around plane width
-    move.w d2, d6									; Get destination row
-    VDP_WRAP_PLANE_Y d6								; Wrap around plane height
-    lsl.w  #VDP_PLANE_WIDTH_SHIFT, d6				; To Y
-    add.w  d6, d7									; Add to X
-    add.w  d7, d7                                   ; Dest offset to words
+    move.w d5, d7   					; Get destination col
+    VDP_WRAP_PLANE_X d7                 ; Wrap around plane width
+    move.w d2, d6						; Get destination row
+    VDP_WRAP_PLANE_Y d6					; Wrap around plane height
+    lsl.w  #VDP_PLANE_WIDTH_SHIFT, d6	; To Y
+    add.w  d6, d7						; Add to X
+    add.w  d7, d7                       ; Dest offset to words
     VDP_SETADDRESS d7, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
     
     ; Column loop
@@ -305,62 +153,47 @@ MAP_UpdateStreaming:
     MAP_GET_STAMP_OFFSET d1,d2,d3,d0,d4,d5
 
     ; Get stamp address
-    add.l  (a0,d0.w), d4                            ; Add stamp start offset to remainder
-    move.l a1, a3                                   ; Get stamp data base addr
-    adda.l d4, a3                                   ; Add offset
+    add.l  (a0,d0.w), d4                ; Add stamp start offset to remainder
+    move.l a1, a3                       ; Get stamp data base addr
+    adda.l d4, a3                       ; Add offset
     
     ; Write to VRAM
-    move.w a2, a4									; Get tileset VRAM addr
-    add.w  (a3), a4									; Add tile index+flags
-    move.w a4, (a6)						            ; Upload to VDP
-    addi.w #0x1, d2                                 ; Next map Y
-    VDP_VRAM_ADDR_INCREMENT_PLANE_A_Y d7,a5			; Next plane Y (and wrap height)
+    move.w a2, a4						; Get tileset VRAM addr
+    add.w  (a3), a4						; Add tile index+flags
+    move.w a4, (a6)						; Upload to VDP
+    addi.w #0x1, d2                     ; Next map Y
+    VDP_VRAM_ADDR_INCREMENT_PLANE_A_Y d7,a5 ; Next plane Y (and wrap height)
     dbra   d6, @StreamCol
 
 	POP.L  a3
     POPM.W d0/d2/d4-d6/d7
 
-    add.w  d7, d1                       			; Next map X
-    add.w  d7, d5                       			; Next plane X
-    add.w  d7, d6									; Compare with target X
+    add.w  d7, d1                       ; Next map X
+    add.w  d7, d5                       ; Next plane X
+    add.w  d7, d6						; Compare with target X
     cmp.w  d0, d6
     bne    @StreamX
 
-    move.w d0, RAM_MAP_STREAM_X         			; Done
+    move.w d0, RAM_MAP_STREAM_X         ; Done
     @NoStreamX:
 
     ; ==================================================================================
     ; Stream rows
     ; ==================================================================================
-    
-    rts
-
-    ; Get scroll X
-    ;move.w RAM_SCROLL_PLANE_A_X, a4
-    move.w #0x0, a4
 
     ; Get desired scroll row
-	moveq  #0x0, d0
     move.w RAM_SCROLL_PLANE_A_Y, d0
-    ext.l  d0
-    divs   #0x8, d0						; d0 = target row
+    asr.w  #0x3, d0						; d0 = target row
+    ext.l  d0							
     subi.w #MAP_STREAM_BUFFER_OFFSET_Y, d0 ; Offset write head to within invisible plane area
+    bge    @WithinBoundsY				; Clamp to 0
+    move.w #0x0, d0
+    @WithinBoundsY:
     
     ; Get last streamed row
-    moveq  #0x0, d1
-    move.w RAM_MAP_STREAM_Y, d1			; d1 = read row (from map data)
-    move.w d1, d6						; d6 = currently streaming row
-
-    ; Wrap around plane height to get write row
-    move.w d1, d5
-    ext.l  d5
-    divs   #VDP_PLANE_HEIGHT, d5
-    swap   d5							; d5 = write row (on plane)
-    tst.w  d5
-    bge    @InRangeY                    ; If < 0, bring back into range
-    addi.w #VDP_PLANE_HEIGHT, d5         ; (will go -ve at far top, accounting for buffer)
-    @InRangeY:
-    mulu   #VDP_PLANE_WIDTH, d5			; To word offset
+    move.w RAM_MAP_STREAM_Y, d1			; d1 = read row (in map space)
+    move.w d1, d5                       ; d5 = write rowcolumn (in plane space)
+    move.w d1, d6						; d6 = currently streaming row (in map space)
 
     ; Determine how many rows to stream, and in which direction
     cmp.w  d0, d1
@@ -368,88 +201,103 @@ MAP_UpdateStreaming:
     blt    @StreamSrcBottom
 
     @StreamSrcTop:
-    move.w #-1, d7                      ; Stream from top source
+    move.w #-1, d7                      ; Streaming top of window
     bra    @StreamY
 
     @StreamSrcBottom:
-    move.w #1, d7                       ; Stream from bottom source
+    move.w #1, d7                       ; Streaming bottom of window
     addi.w #VDP_PLANE_HEIGHT, d1
+    addi.w #VDP_PLANE_HEIGHT, d5
 
     @StreamY:
 
-    ; Loading whole row, start from left-hand side
-    move.w d5, d4   					; Dest addr to words
-    add.w  d4, d4
-    VDP_SETADDRESS d4, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
-    
-    ; TODO: Loop from here
-    PUSHM.W d0-d1/d5/d7/a4
+    PUSHM.W d0/d2/d4-d6/d7
+    PUSH.L  a3
 
-    ; TODO: X src/dst offset
-    move.w #VDP_PLANE_WIDTH-1, d2
+	; Get X stream coord and map height
+    move.w RAM_MAP_STREAM_X, d2
+	moveq  #0x0, d3
+    move.w StreamingMap_WidthStamps(a3), d3
+    
+	; Set intial VRAM write address
+    move.w d2, d7   					; Get destination col
+    VDP_WRAP_PLANE_X d7                 ; Wrap around plane width
+    move.w d5, d6						; Get destination row
+    VDP_WRAP_PLANE_Y d6					; Wrap around plane height
+    lsl.w  #VDP_PLANE_WIDTH_SHIFT, d6	; To Y
+    add.w  d6, d7						; Add to X
+    add.w  d7, d7                       ; Dest offset to words
+    VDP_SETADDRESS d7, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
+    
+    ; Row loop
+    move.w #VDP_PLANE_WIDTH-1, d6
     @StreamRow:
-    
-    ; Source row to stamp Y and tile Y offset
-    move.w d1, d0
-    move.w d1, d3
-    lsr.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT, d3    ; Integer (stamp Y)
-    ;mulu   StreamingMap_WidthStamps(a3), d3      ; * map width
-    andi.w #(MAP_STREAM_STAMP_HEIGHT-1), d0      ; Remainder (tile Y)
 
-    ; Source col to stamp X and tile X offset
-    move.w a4, d4
-    ;move.w d2, d3
-    ;lsr.w  #MAP_STREAM_STAMP_WIDTH_SHIFT, d3    ; Integer (stamp X)
-    ;andi.w #(MAP_STREAM_STAMP_WIDTH-1), d2      ; Remainder (tile X)
-    
-    ; Get stamp index
-    moveq  #0x0, d5
-    move.b (a0,d3.w), d5
-    
-    ; To stamp addr offset
-    lsl.l  #MAP_STREAM_STAMP_WIDTH_SHIFT, d5	; stamp index * width
-    lsl.l  #MAP_STREAM_STAMP_HEIGHT_SHIFT+1, d5	; stamp index * height * words
-    lsl.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT+1, d0	; remainder Y to row in words
-    add.w  d4, d4								; remainder X to col in words
-    add.w  d0, d5								; add remainder Y
-    add.w  d4, d5								; add remainder X
-    move.l a1, a3
-    adda.l d5, a3
-    
-    ; Write tile id
-    move.w a2, d5									; Get tileset VRAM addr
-    add.w  (a3)+, d5								; Add tile index+flags
-    move.w d5, (a6)						            ; Upload to VDP
+    ; d2 = x coord
+    ; d1 = y coord
+    ; d3 = map width
+    ; d0 = out: offset
+    ; d4 = out: remainder
+    ; d5 = temp reg
+    MAP_GET_STAMP_OFFSET d2,d1,d3,d0,d4,d5
 
-    VDP_VRAM_ADDR_INCREMENT_PLANE_A_X d4,d3,a5		; Next dest X (and wrap width)
-    addi.w #0x1, a4									; Next source X
-    dbra   d2, @StreamRow
+    ; Get stamp address
+    add.l  (a0,d0.w), d4                ; Add stamp start offset to remainder
+    move.l a1, a3                       ; Get stamp data base addr
+    adda.l d4, a3                       ; Add offset
+    
+    ; Write to VRAM
+    move.w a2, a4						; Get tileset VRAM addr
+    add.w  (a3), a4						; Add tile index+flags
+    move.w a4, (a6)						; Upload to VDP
+    addi.w #0x1, d2                     ; Next map X
+    VDP_VRAM_ADDR_INCREMENT_PLANE_A_X d7,d4,a5 ; Next plane X (and wrap height)
+    dbra   d6, @StreamRow
 
-    POPM.W  d0-d1/d5/d7/a4
+	POP.L  a3
+    POPM.W d0/d2/d4-d6/d7
 
-    add.w  d7, d1                       			; Next source Y
-    add.w  d7, d5                       			; Next dest Y
-    add.w  d7, d6									; Compare with target Y
+    add.w  d7, d1                       ; Next map Y
+    add.w  d7, d5                       ; Next plane Y
+    add.w  d7, d6						; Compare with target Y
     cmp.w  d0, d6
     bne    @StreamY
 
-    move.w d0, RAM_MAP_STREAM_Y         			; Done
+    move.w d0, RAM_MAP_STREAM_Y         ; Done
     @NoStreamY:
 
     rts
 
 MAP_ApplyScroll:
     ; ======================================
-    ; Applies scroll coords to planes
+    ; Applies scroll coords to planes,
+    ; and clamps to map bounds.
     ; ======================================
     ; No params
     ; ======================================
 
+    ; Clamp X scroll to map width and apply to VRAM
+    lea    RAM_STREAMING_MAP, a0
+    move.w RAM_SCROLL_PLANE_A_X, d0
+    neg.w  d0
+    move.w StreamingMap_WidthStamps(a0), d1
+    MAP_STAMPS_TO_PIXELS_X d1
+    subi.w #VDP_SCREEN_WIDTH_PX, d1
+    CLAMP.W d0,#0x0,d1
+    neg.w  d0
+    move.w d0, RAM_SCROLL_PLANE_A_X
     VDP_SET_VRAM_WRITE VRAM_ADDR_HSCROLL
-    move.w RAM_SCROLL_PLANE_A_X, PORT_VDP_DATA
+    move.w d0, PORT_VDP_DATA
 
+    ; Clamp Y scroll to map height and apply to VSRAM
+    move.w RAM_SCROLL_PLANE_A_Y, d0
+    move.w StreamingMap_HeightStamps(a0), d1
+    MAP_STAMPS_TO_PIXELS_Y d1
+    subi.w #VDP_SCREEN_HEIGHT_PX, d1
+    CLAMP.W d0,#0x0,d1
+    move.w d0, RAM_SCROLL_PLANE_A_Y
     VDP_SET_VSRAM_WRITE 0x0000
-    move.w RAM_SCROLL_PLANE_A_Y, PORT_VDP_DATA
+    move.w d0, PORT_VDP_DATA
 
     
 
