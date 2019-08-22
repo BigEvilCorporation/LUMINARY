@@ -12,15 +12,27 @@ palettes_tst1:
 	even
 
 tileset_tst1:
-	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\TILESET.BIN'
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\GTILES.BIN'
 	even
 
 stampset_tst1:
-	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\STAMPSET.BIN'
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\GSTAMPS.BIN'
 	even
 
 map_tst1_tst1:
-	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\TST1.BIN'
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\GTST1.BIN'
+	even
+
+collision_tileset_tst1:
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\CTILES.BIN'
+	even
+
+collision_stampset_tst1:
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\CSTAMPS.BIN'
+	even
+
+collision_map_tst1_tst1:
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\CTST1.BIN'
 	even
 
 scene_tst1_tst1:

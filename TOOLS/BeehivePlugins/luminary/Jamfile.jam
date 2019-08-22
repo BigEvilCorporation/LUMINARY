@@ -14,6 +14,8 @@ local LUMINARY_SRC =
 	SceneExporter.h
 	SpriteExporter.cpp
 	SpriteExporter.h
+	TerrainExporter.cpp
+	TerrainExporter.h
 	TilesetExporter.cpp
 	TilesetExporter.h
 	Tags.cpp
