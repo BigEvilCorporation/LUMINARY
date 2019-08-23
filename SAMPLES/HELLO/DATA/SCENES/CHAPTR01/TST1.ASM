@@ -7,8 +7,8 @@ SceneEntitySpawnData_tst1_tst1_EPlayer_ent62:
 SceneEntityData_tst1_tst1:
 	dc.l EPlayer_Typedesc	; Entity descriptor
 	dc.l SceneEntitySpawnData_tst1_tst1_EPlayer_ent62	; Entity spawn data
-	dc.w 0x0126	; Position X
-	dc.w 0x0345	; Position Y
+	dc.w 0x012A	; Position X
+	dc.w 0x027D	; Position Y
 
 SceneData_tst1_tst1:
 	dc.l tileset_tst1	; SceneData_GfxTileset
@@ -23,7 +23,7 @@ SceneData_tst1_tst1:
 	dc.w 57	; SceneData_GfxStampCount
 	dc.w 8	; SceneData_GfxMapWidthStamps
 	dc.w 4	; SceneData_GfxMapHeightStamps
-	dc.w 96	; SceneData_ColTileCount
+	dc.w 87	; SceneData_ColTileCount
 	dc.w 3	; SceneData_ColStampCount
 	dc.w 8	; SceneData_ColMapWidthStamps
 	dc.w 4	; SceneData_ColMapHeightStamps

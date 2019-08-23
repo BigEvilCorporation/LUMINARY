@@ -55,8 +55,8 @@ namespace luminary
 					{
 						for (int x = 0; x < stampWidth; x++)
 						{
-							u16 flags = stamps[i].GetTerrainTile(x, y);
-							u16 tileId = stamps[i].GetCollisionTileFlags(x, y);
+							u16 tileId = stamps[i].GetTerrainTile(x, y);
+							u16 flags = stamps[i].GetCollisionTileFlags(x, y);
 							u8 angle = 0;	// TODO
 							flags = (flags << 8) | angle;
 
@@ -87,11 +87,14 @@ namespace luminary
 						u16 tileId = m_uniqueStamps[i][j].first;
 						u16 flags = m_uniqueStamps[i][j].second;
 
-						ion::memory::EndianSwap(tileId);
-						ion::memory::EndianSwap(flags);
+						if (tileId == InvalidTerrainTileId)
+							tileId = defaultTileId;
 
-						file.Write(&flags, sizeof(u16));
-						file.Write(&tileId, sizeof(u16));
+						u32 longword = (flags << 16) | tileId;
+
+						ion::memory::EndianSwap(longword);
+
+						file.Write(&longword, sizeof(u32));
 					}
 				}
 
