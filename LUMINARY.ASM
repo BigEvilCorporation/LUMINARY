@@ -19,6 +19,7 @@
     ; Engine macros
     include 'engine/macros/assets.asm'
     include 'engine/macros/debug.asm'
+    include 'engine/macros/collisn.asm'
     include 'engine/macros/interpts.asm'
     include 'engine/macros/linklist.asm'
     include 'engine/macros/map.asm'
@@ -31,6 +32,7 @@
 
     ; Engine
     include 'engine/bootstrp.asm'
+    include 'engine/collisn.asm'
     include 'engine/dbgdraw.asm'
     include 'engine/error.asm'
     include 'engine/gamepad.asm'
@@ -52,6 +54,7 @@
     include 'framewk/macros/entmgr.asm'
 
     ; Game framework
+    include 'framewk/camera.asm'
     include 'framewk/entity.asm'
     include 'framewk/entmgr.asm'
     include 'framewk/scene.asm'

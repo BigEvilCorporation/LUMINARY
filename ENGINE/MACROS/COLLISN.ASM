@@ -1,26 +1,24 @@
 ; ============================================================================================
 ; LUMINARY - a game engine and framework for the SEGA Mega Drive
 ; ============================================================================================
-; Matt Phillips - Big Evil Corporation Ltd - 17th August 2019
+; Matt Phillips - Big Evil Corporation Ltd - 22nd August 2019
 ; ============================================================================================
-; MAP.ASM - Macros for map loading and streaming
+; COLLISN.ASM - Macros for collision map reading
 ; ============================================================================================
 
-    ; Converts stamp X coord to pixels
-MAP_STAMPS_TO_PIXELS_X: macro valuereg
-    lsl.l  #MAP_STREAM_STAMP_WIDTH_SHIFT, \valuereg
-    lsl.l  #0x3, \valuereg
+COL_TILEID_TO_ADDR: macro index
+    ; Converts a collision tile index to address offset
+    lsl.w  #COLLISION_TILE_TO_BYTE_SHIFT, \index
     endm
 
-    ; Converts stamp Y coord to pixels
-MAP_STAMPS_TO_PIXELS_Y: macro valuereg
-    lsl.l  #MAP_STREAM_STAMP_HEIGHT_SHIFT, \valuereg
-    lsl.l  #0x3, \valuereg
+COL_MAP_X_TO_TILE_X: macro xpos
+    ; Wraps a map space X position to tile space
+    andi.w #COLLISION_TILE_SIZE_BYTES-1, \xpos
     endm
 
-MAP_GET_STAMP_OFFSET: macro coordx,coordy,mapwidth,stampoffset,remainder,tmpreg
+COL_GET_STAMP_OFFSET: macro coordx,coordy,mapwidth,stampoffset,remainder,tmpreg
     ; =================================================
-    ; Given arbitrary map coordinates, returns
+    ; Given arbitrary collision map coordinates, returns
     ; the offset to the stamp data, and remainder
     ; x/y offset within it.
     ; =================================================
@@ -38,25 +36,26 @@ MAP_GET_STAMP_OFFSET: macro coordx,coordy,mapwidth,stampoffset,remainder,tmpreg
 
     ; Y integer
     move.w \coordy, \stampoffset
-    lsr.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT-2, \stampoffset   ; Integer (stamp Y) * longwords
+    lsr.w  #COLLISION_STAMP_HEIGHT_SHIFT-2, \stampoffset    ; Integer (stamp Y) * longwords
     andi.w #0xFFFC, \stampoffset                            ; to nearest longword
     mulu   \mapwidth, \stampoffset                          ; * map width
 
     ; Y remainder
     move.w \coordy, \remainder
-    andi.w #(MAP_STREAM_STAMP_HEIGHT-1), \remainder         ; Remainder (tile Y)
-    lsl.w  #MAP_STREAM_STAMP_HEIGHT_SHIFT+1, \remainder     ; to rows, in words
+    andi.w #(COLLISION_STAMP_HEIGHT-1), \remainder          ; Remainder (tile Y)
+    lsl.w  #COLLISION_STAMP_HEIGHT_SHIFT+2, \remainder      ; to rows, in longwords
 
     ; X integer
     move.w \coordx, \tmpreg
-    lsr.w  #MAP_STREAM_STAMP_WIDTH_SHIFT-2, \tmpreg         ; Integer (stamp X) * longwords
+    lsr.w  #COLLISION_STAMP_WIDTH_SHIFT-2, \tmpreg          ; Integer (stamp X) * longwords
     andi.w #0xFFFC, \tmpreg                                 ; to nearest longword
     add.w  \tmpreg, \stampoffset                            ; add to Y offset
     
     ; X remainder
     move.w \coordx, \tmpreg
-    andi.w #(MAP_STREAM_STAMP_WIDTH-1), \tmpreg             ; Remainder (tile X)
-    add.w  \tmpreg, \tmpreg						            ; * word
+    andi.w #(COLLISION_STAMP_WIDTH-1), \tmpreg              ; Remainder (tile X)
+    add.w  \tmpreg, \tmpreg						            ; * longword
+    add.w  \tmpreg, \tmpreg
     add.w  \tmpreg, \remainder                              ; add to Y remainder
 
     endm

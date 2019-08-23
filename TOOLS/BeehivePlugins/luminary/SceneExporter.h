@@ -25,14 +25,22 @@ namespace luminary
 			std::string tilesetLabel;
 			std::string stampsetLabel;
 			std::string mapLabel;
+			std::string collisionTilesetLabel;
+			std::string collisionStampsetLabel;
+			std::string collisionMapLabel;
 			std::string palettesLabel;
 			std::vector<Entity> entities;
 
 			int numTiles;
 			int numStamps;
-			int numPalettes;
 			int mapWidthStamps;
 			int mapHeightStamps;
+			int numCollisionTiles;
+			int numCollisionStamps;
+			int collisionMapWidthStamps;
+			int collisionMapHeightStamps;
+
+			int numPalettes;
 		};
 
 		SceneExporter();

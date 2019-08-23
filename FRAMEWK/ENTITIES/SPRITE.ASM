@@ -135,17 +135,28 @@ ECSprite_DrawAll:
 	; No params
     ; ======================================
 
+    ; Get scroll
+    moveq  #0x0, d6
+    moveq  #0x0, d7
+    move.w RAM_SCROLL_PLANE_A_X, d6
+    move.w RAM_SCROLL_PLANE_A_Y, d7
+
     ENT_COMPONENT_GET_LIST_HEAD ECSprite, a3
     cmp.w  #0x0, a3
     beq    @NoSprites
 
     @SpriteLp:
+    PUSHM.W d6-d7
+
     movea.w Component_Owner(a3), a4     ; Get owning entity
     move.l ECSprite_CurrentFrame(a3), a0; Get sprite frame
     move.l ECSprite_VRAMHndl(a3), d2    ; Get VRAM handle
     move.w ECSprite_DrawFlags(a3), d3   ; Get draw flags
     move.w Entity_PosX(a4), d0          ; Get pos
     move.w Entity_PosY(a4), d1
+
+    add.w  d6, d0                       ; Scroll space to sprite space
+    sub.w  d7, d1
 
     ; Tick animation
     move.l ECSprite_Animation(a3), a1
@@ -198,6 +209,7 @@ ECSprite_DrawAll:
     bsr    SPR_DrawFrame
     movea.w EntityBlock_Next(a3), a3    ; Next component
     cmp.w  #0x0, a3
+    POPM.W d6-d7
     bne    @SpriteLp
 
     @NoSprites:

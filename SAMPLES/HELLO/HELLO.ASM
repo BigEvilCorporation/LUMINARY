@@ -41,10 +41,17 @@ EPlayer_Initialise:
     move.w Entity_PosX(a0), EPlayer_SpawnPosX(a0)
     move.w Entity_PosY(a0), EPlayer_SpawnPosY(a0)
     move.l a1, EPlayer_SpawnData(a0)
+    
+    ; Set as camera target
+    move.l RAM_CAMERA_CURRENT, a2
+    cmpa.l #0x0, a2
+    beq    @NoCam
+    move.l a0, Camera_TargetEntity(a2)
+    @NoCam:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #0x1000, ECPhysicsBody_AccelX(a0)
+    ;move.w #0x0800, ECPhysicsBody_AccelX(a0)
 
     rts
 
@@ -52,6 +59,7 @@ EPlayer_Shutdown:
     rts
 
 EPlayer_Update:
+    rts
 
     ; If entity out of bounds
     cmp.w  #VDP_SCREEN_WIDTH_PX+VDP_SPRITE_BORDER_X, Entity_PosX(a0)
@@ -105,7 +113,12 @@ Main:
     ; ======================================
 
     ; Initialise entity manager
+    ; TODO: LuminaryInit
     bsr    ENT_Initialise
+
+    ; Initialise camera
+    ; TODO: LuminaryInit
+    bsr    CAM_Initialise
 
     ; Load palettes
     lea    palette_test2, a0
@@ -122,8 +135,10 @@ Main:
     ;DRAW_VRAM
 
     ; Update
+    bsr    CAM_UpdateAll
     bsr    ENT_UpdateAll
     bsr    ECPhysicsBody_Step
+    bsr    MAP_ClampScroll
     bsr    MAP_UpdateStreaming
 
     ; STREAMING TEST
@@ -169,8 +184,9 @@ Main:
     asl.l  #0x1, d2
     @NoC:
 
-    add.w  d1, RAM_SCROLL_PLANE_A_X
-    add.w  d2, RAM_SCROLL_PLANE_A_Y
+    move.l RAM_CAMERA_CURRENT, a0
+    add.w  d1, Camera_PosX(a0)
+    add.w  d2, Camera_PosY(a0)
 
     ; Draw
     bsr    ECSprite_DrawAll

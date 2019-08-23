@@ -13,3 +13,6 @@ ENT_MGR_BLOCK_FLAG_ALLOCATED            equ 0x1
 
 ; Scene manager
 SCN_MAX_ENTITIES                        equ BLDCONF_SCN_MAX_ENTITIES
+
+; Physics
+PHYS_GRAVITY                            equ BLDCONF_PHYS_GRAVITY

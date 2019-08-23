@@ -15,4 +15,7 @@ BLDCONF_ENT_MGR_BLOCK_MAX_BLOCKS        equ 256
 ; Scene config
 BLDCONF_SCN_MAX_ENTITIES                equ 64
 
+; Physics
+BLDCONF_PHYS_GRAVITY                    equ 0x00000800 ;    0x00003800
+
     ENDIF

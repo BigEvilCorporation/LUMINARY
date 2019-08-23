@@ -58,6 +58,20 @@ MAP_STREAM_STAMP_HEIGHT_SHIFT           equ BLDCONF_MAP_STREAM_STAMP_HEIGHT_SHIF
 MAP_STREAM_BUFFER_OFFSET_X              equ (VDP_PLANE_WIDTH/4)  ; Offset streaming window to centre of plane
 MAP_STREAM_BUFFER_OFFSET_Y              equ 2                    ; Only 2 cell buffer on Y axis
 
+; Terrain and collision
+COLLISION_STAMP_WIDTH                   equ BLDCONF_COLLISION_STAMP_WIDTH       
+COLLISION_STAMP_HEIGHT                  equ BLDCONF_COLLISION_STAMP_HEIGHT      
+COLLISION_STAMP_WIDTH_SHIFT             equ BLDCONF_COLLISION_STAMP_WIDTH_SHIFT 
+COLLISION_STAMP_HEIGHT_SHIFT            equ BLDCONF_COLLISION_STAMP_HEIGHT_SHIFT
+COLLISION_TILE_SIZE_BYTES               equ 0x8
+COLLISION_TILE_TO_BYTE_SHIFT            equ 0x3
+
+; Collision flags
+COLLISION_FLAG_WATER                    equ 12
+COLLISION_FLAG_SOLID                    equ 13
+COLLISION_FLAG_HOLE                     equ 14
+COLLISION_FLAG_SPECIAL                  equ 15
+
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40
 VDP_SPRITE_FLAG_FLIPX                   equ 11

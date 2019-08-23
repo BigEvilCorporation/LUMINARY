@@ -64,10 +64,8 @@ ENT_SpawnEntity:
     POPM.W  d0-d1
     move.l a0, a3
 
-    ; Set position and type desc
-    move.w d0, Entity_PosX(a0)
-    move.w d1, Entity_PosY(a0)
-    move.l a5, Entity_TypeDesc(a0)
+    ; Call base constructor
+    bsr    Entity_Initialise
     
     PUSH.L a0
 

@@ -22,6 +22,8 @@ namespace luminary
 		bool ExportTerrainStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, const TerrainTileset& tileset, u32 defaultTileId);
 		bool ExportTerrainMap(const std::string& binFilename, const Map& map, int stampWidth, int stampHeight);
 
+		int GetNumUniqueTerrainStamps() const { return m_uniqueStamps.size(); }
+
 	private:
 		typedef std::vector<std::pair<TerrainTileId, u16>> TerrainStamp;
 		std::vector<TerrainStamp> m_uniqueStamps;

@@ -268,15 +268,15 @@ MAP_UpdateStreaming:
 
     rts
 
-MAP_ApplyScroll:
+MAP_ClampScroll:
     ; ======================================
-    ; Applies scroll coords to planes,
-    ; and clamps to map bounds.
+    ; Clamps current scroll values to map
+    ; bounds.
     ; ======================================
     ; No params
     ; ======================================
-
-    ; Clamp X scroll to map width and apply to VRAM
+    
+    ; Clamp X scroll to map width
     lea    RAM_STREAMING_MAP, a0
     move.w RAM_SCROLL_PLANE_A_X, d0
     neg.w  d0
@@ -286,16 +286,31 @@ MAP_ApplyScroll:
     CLAMP.W d0,#0x0,d1
     neg.w  d0
     move.w d0, RAM_SCROLL_PLANE_A_X
-    VDP_SET_VRAM_WRITE VRAM_ADDR_HSCROLL
-    move.w d0, PORT_VDP_DATA
 
-    ; Clamp Y scroll to map height and apply to VSRAM
+    ; Clamp Y scroll to map height
     move.w RAM_SCROLL_PLANE_A_Y, d0
     move.w StreamingMap_HeightStamps(a0), d1
     MAP_STAMPS_TO_PIXELS_Y d1
     subi.w #VDP_SCREEN_HEIGHT_PX, d1
     CLAMP.W d0,#0x0,d1
     move.w d0, RAM_SCROLL_PLANE_A_Y
+
+    rts
+
+MAP_ApplyScroll:
+    ; ======================================
+    ; Applies scroll coords to planes
+    ; ======================================
+    ; No params
+    ; ======================================
+
+    ; Load X scroll to VRAM
+    move.w RAM_SCROLL_PLANE_A_X, d0
+    VDP_SET_VRAM_WRITE VRAM_ADDR_HSCROLL
+    move.w d0, PORT_VDP_DATA
+
+    ; Load Y scroll to VSRAM
+    move.w RAM_SCROLL_PLANE_A_Y, d0
     VDP_SET_VSRAM_WRITE 0x0000
     move.w d0, PORT_VDP_DATA
 

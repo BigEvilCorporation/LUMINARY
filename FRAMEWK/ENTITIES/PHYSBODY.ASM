@@ -52,6 +52,12 @@ ECPhysicsBody_Step:
     cmp.w  #0x0, a3
     beq    @NoBodies
 
+    move.l RAM_SCENE_DATA, a5           ; Get physics world
+    move.l SceneData_ColMap(a5), a0
+    move.l SceneData_ColStampset(a5), a1
+    move.l SceneData_ColTileset(a5), a2
+    move.w SceneData_ColMapWidthStamps(a5), d7
+
     moveq  #0x0, d4                     ; Clear for accel
     moveq  #0x0, d5
 
@@ -75,11 +81,40 @@ ECPhysicsBody_Step:
     ; ======================================
     ; Step
     ; ======================================
+    addi.l #PHYS_GRAVITY, d5            ; Apply gravity to accel
+
     add.l  d4, d2                       ; Apply accel to vel
     add.l  d5, d3
 
     add.l  d2, d0                       ; Apply vel to pos
     add.l  d3, d1
+
+    ; ======================================
+    ; Terrain detection
+    ; ======================================
+    PUSHALL
+    swap   d0
+    swap   d1
+    subi.w #VDP_SPRITE_BORDER_X, d0
+    subi.w #VDP_SPRITE_BORDER_Y, d1
+    move.w d7, d2
+    ; In:
+    ; a0   Terrain stamp map data
+	; a1   Terrain stampset data
+    ; a2   Terrain tileset data
+    ; d0.w Position X (map space)
+    ; d1.w Position Y (map space)
+    ; d2.w Map width (stamps)
+    ; Out:
+    ; d0.w Terrain height (map space)
+    ; d1.b Terrain angle
+    ; d2.b Collision flags
+    bsr    COL_ProbeCollision
+    tst.w  d0
+    beq    @NoTerrain
+    DBG_RAISE_ERROR "Found terrain!"
+    @NoTerrain:
+    POPALL
 
     ; ======================================
     ; Store output

@@ -12,16 +12,23 @@ Scene_SpawnedEntities                   rs.w SCN_MAX_ENTITIES
     STRUCT_END
 
     STRUCT_BEGIN SceneData
-SceneData_Tileset                       rs.l 1
-SceneData_Stampset                      rs.l 1
+SceneData_GfxTileset                    rs.l 1
+SceneData_GfxStampset                   rs.l 1
+SceneData_GfxMap                        rs.l 1
+SceneData_ColTileset                    rs.l 1
+SceneData_ColStampset                   rs.l 1
+SceneData_ColMap                        rs.l 1
 SceneData_Palettes                      rs.l 1
-SceneData_Map                           rs.l 1
 SceneData_Entities                      rs.l 1
-SceneData_TileCount                     rs.w 1
-SceneData_StampCount                    rs.w 1
+SceneData_GfxTileCount                  rs.w 1
+SceneData_GfxStampCount                 rs.w 1
+SceneData_GfxMapWidthStamps             rs.w 1
+SceneData_GfxMapHeightStamps            rs.w 1
+SceneData_ColTileCount                  rs.w 1
+SceneData_ColStampCount                 rs.w 1
+SceneData_ColMapWidthStamps             rs.w 1
+SceneData_ColMapHeightStamps            rs.w 1
 SceneData_PaletteCount                  rs.w 1
-SceneData_MapWidthStamps                rs.w 1
-SceneData_MapHeightStamps               rs.w 1
 SceneData_EntityCount                   rs.w 1
     STRUCT_END
 
@@ -41,15 +48,19 @@ SCN_LoadScene:
     ; a1   SceneData
     ; ======================================
 
+    ; Set as current scene
+    move.l a0, RAM_SCENE_CURRENT
+    move.l a1, RAM_SCENE_DATA
+
     ; Pre-stream map
     PUSHM.L a0-a1
-    move.w SceneData_TileCount(a1), d0
-    move.w SceneData_StampCount(a1), d1
-    move.w SceneData_MapWidthStamps(a1), d2
-    move.w SceneData_MapHeightStamps(a1), d3
-    move.l SceneData_Tileset(a1), a2
-    move.l SceneData_Map(a1), a0
-    move.l SceneData_Stampset(a1), a1
+    move.w SceneData_GfxTileCount(a1), d0
+    move.w SceneData_GfxStampCount(a1), d1
+    move.w SceneData_GfxMapWidthStamps(a1), d2
+    move.w SceneData_GfxMapHeightStamps(a1), d3
+    move.l SceneData_GfxTileset(a1), a2
+    move.l SceneData_GfxMap(a1), a0
+    move.l SceneData_GfxStampset(a1), a1
     bsr    MAP_PreLoad
     POPM.L a0-a1
 

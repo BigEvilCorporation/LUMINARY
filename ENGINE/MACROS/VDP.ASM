@@ -86,3 +86,8 @@ VRAM_TILES_TO_BYTES: macro reg
 VRAM_TILES_TO_WORDS: macro reg
 	lsl.w  #SIZE_TILE_SHIFT_W, \reg
 	endm
+
+; Converts pixels to tile count
+VDP_PIXELS_TO_TILES: macro reg
+	lsr.w  #0x3, \reg
+	endm

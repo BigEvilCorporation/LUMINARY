@@ -18,6 +18,14 @@
     ENT_COMPONENT_LIST ECSprite
     ENT_COMPONENT_LIST ECPhysicsBody
 
+    ; Scene
+RAM_SCENE_CURRENT                       rs.l 1
+RAM_SCENE_DATA                          rs.l 1
+
+    ; Camera
+RAM_CAMERA_CURRENT                  	rs.l 1
+    STRUCT_ALLOC Camera,RAM_CAMERA_DEFAULT
+
 RAM_GAME_START                          rs.b 0
 
     ; Keep entity table in upper 32kb, so movea.w
