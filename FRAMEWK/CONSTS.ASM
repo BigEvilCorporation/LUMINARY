@@ -16,3 +16,4 @@ SCN_MAX_ENTITIES                        equ BLDCONF_SCN_MAX_ENTITIES
 
 ; Physics
 PHYS_GRAVITY                            equ BLDCONF_PHYS_GRAVITY
+PHYS_STEP_HEIGHT                        equ 0x04

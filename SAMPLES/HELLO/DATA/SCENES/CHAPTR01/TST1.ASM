@@ -1,14 +1,14 @@
 SceneEntitySpawnData_tst1_tst1_EPlayer_ent62:
 	; ECSprite
-	dc.l actor_crate_spritesheet_crate	; SDSprite_Sheet
+	dc.l actor_test2_spritesheet_test2	; SDSprite_Sheet
 	dc.l 0x0	; SDSprite_Animation
 	even
 
 SceneEntityData_tst1_tst1:
 	dc.l EPlayer_Typedesc	; Entity descriptor
 	dc.l SceneEntitySpawnData_tst1_tst1_EPlayer_ent62	; Entity spawn data
-	dc.w 0x012A	; Position X
-	dc.w 0x027D	; Position Y
+	dc.w 0x0088	; Position X
+	dc.w 0x02F9	; Position Y
 
 SceneData_tst1_tst1:
 	dc.l tileset_tst1	; SceneData_GfxTileset
@@ -23,7 +23,7 @@ SceneData_tst1_tst1:
 	dc.w 57	; SceneData_GfxStampCount
 	dc.w 8	; SceneData_GfxMapWidthStamps
 	dc.w 4	; SceneData_GfxMapHeightStamps
-	dc.w 87	; SceneData_ColTileCount
+	dc.w 105	; SceneData_ColTileCount
 	dc.w 3	; SceneData_ColStampCount
 	dc.w 8	; SceneData_ColMapWidthStamps
 	dc.w 4	; SceneData_ColMapHeightStamps

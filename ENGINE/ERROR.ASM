@@ -25,6 +25,12 @@ ERR_ResetForError:
     lea    default_vdp_regs, a0
     bsr    VDP_LoadRegisters
 
+    ; Reset scroll
+    VDP_SET_VRAM_WRITE VRAM_ADDR_HSCROLL
+    move.w #0x0000, PORT_VDP_DATA
+    VDP_SET_VSRAM_WRITE 0x0000
+    move.w #0x0000, PORT_VDP_DATA
+
     ; Load debug font
     lea    debug_font, a0
     move.w #0x0, d0

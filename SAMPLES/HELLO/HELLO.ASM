@@ -59,6 +59,35 @@ EPlayer_Shutdown:
     rts
 
 EPlayer_Update:
+
+    move.l #0x0, d1
+    move.l #0x0, d2
+
+    bsr    PAD_ReadPortA
+    btst   #PAD_BUTTON_UP, d0
+    beq    @NoUp
+    move.l #-500, d2
+    @NoUp:
+
+    btst   #PAD_BUTTON_DOWN, d0
+    beq    @NoDn
+    move.l #500, d2
+    @NoDn:
+
+    btst   #PAD_BUTTON_LEFT, d0
+    beq    @NoLft
+    move.l #-500, d1
+    @NoLft:
+
+    btst   #PAD_BUTTON_RIGHT, d0
+    beq    @NoRt
+    move.l #500, d1
+    @NoRt:
+
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
+    move.w d1, ECPhysicsBody_AccelX(a1)
+    move.w d2, ECPhysicsBody_AccelY(a1)
+
     rts
 
     ; If entity out of bounds
@@ -140,53 +169,6 @@ Main:
     bsr    ECPhysicsBody_Step
     bsr    MAP_ClampScroll
     bsr    MAP_UpdateStreaming
-
-    ; STREAMING TEST
-    move.l #0x0, d1
-    move.l #0x0, d2
-
-    bsr    PAD_ReadPortA
-    btst   #PAD_BUTTON_UP, d0
-    beq    @NoUp
-    move.l #-1, d2
-    @NoUp:
-
-    btst   #PAD_BUTTON_DOWN, d0
-    beq    @NoDn
-    move.l #1, d2
-    @NoDn:
-
-    btst   #PAD_BUTTON_LEFT, d0
-    beq    @NoLft
-    move.l #1, d1
-    @NoLft:
-
-    btst   #PAD_BUTTON_RIGHT, d0
-    beq    @NoRt
-    move.l #-1, d1
-    @NoRt:
-
-    btst   #PAD_BUTTON_A, d0
-    beq    @NoA
-    asl.l  #0x1, d1
-    asl.l  #0x1, d2
-    @NoA:
-
-    btst   #PAD_BUTTON_B, d0
-    beq    @NoB
-    asl.l  #0x1, d1
-    asl.l  #0x1, d2
-    @NoB:
-
-    btst   #PAD_BUTTON_C, d0
-    beq    @NoC
-    asl.l  #0x1, d1
-    asl.l  #0x1, d2
-    @NoC:
-
-    move.l RAM_CAMERA_CURRENT, a0
-    add.w  d1, Camera_PosX(a0)
-    add.w  d2, Camera_PosY(a0)
 
     ; Draw
     bsr    ECSprite_DrawAll

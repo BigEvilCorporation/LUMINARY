@@ -92,29 +92,26 @@ ECPhysicsBody_Step:
     ; ======================================
     ; Terrain detection
     ; ======================================
-    PUSHALL
-    swap   d0
+    PUSHM.L d0-d3/a0-a5
+    swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_X, d0
-    subi.w #VDP_SPRITE_BORDER_Y, d1
+    subi.w #VDP_SPRITE_BORDER_X, d0     ; To map space
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
     move.w d7, d2
-    ; In:
-    ; a0   Terrain stamp map data
-	; a1   Terrain stampset data
-    ; a2   Terrain tileset data
-    ; d0.w Position X (map space)
-    ; d1.w Position Y (map space)
-    ; d2.w Map width (stamps)
-    ; Out:
-    ; d0.w Terrain height (map space)
-    ; d1.b Terrain angle
-    ; d2.b Collision flags
-    bsr    COL_ProbeCollision
-    tst.w  d0
+    bsr    COL_ProbeCollision           ; Probe collision map
+    POPM.L d0-d3/a0-a5
+
+    cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @NoTerrain
-    DBG_RAISE_ERROR "Found terrain!"
+    addi.w #VDP_SPRITE_BORDER_Y, d7     ; Y back to sprite space
+    swap   d7                           ; To 16.16, cap fraction
+    move.w #0x0, d7
+    cmp.l  d7, d1                       ; Check if on or under terrain
+    blt    @AboveTerrain
+    move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
+    move.l #0x0, d3
     @NoTerrain:
-    POPALL
+    @AboveTerrain:
 
     ; ======================================
     ; Store output

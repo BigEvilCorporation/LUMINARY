@@ -91,3 +91,8 @@ VRAM_TILES_TO_WORDS: macro reg
 VDP_PIXELS_TO_TILES: macro reg
 	lsr.w  #0x3, \reg
 	endm
+
+; Converts tile count to pixels
+VDP_TILES_TO_PIXELS: macro reg
+	lsl.w  #0x3, \reg
+	endm
