@@ -57,8 +57,8 @@ namespace luminary
 						{
 							u16 tileId = stamps[i].GetTerrainTile(x, y);
 							u16 flags = stamps[i].GetCollisionTileFlags(x, y);
-							u8 angle = 0;	// TODO
-							flags = (flags << 8) | angle;
+							u8 angle = 0;	//TODO
+							flags |= angle;	//Flags start at bit 12
 
 							currStamp[(y * stampWidth) + x].first = tileId;
 							currStamp[(y * stampWidth) + x].second = flags;

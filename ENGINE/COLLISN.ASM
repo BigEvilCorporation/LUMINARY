@@ -56,8 +56,9 @@ COL_ProbeCollision:
     move.l (a3), d3                     ; flags (b) + angle (b) in upper word, tileIdx in lower word
     beq    @ZeroHeight                  ; Tile 0 is blank
 
-    ; If tile solid, -1 tile and loop
-    ; TODO
+    ; If tile solid, success
+    btst   #COLLISION_FLAG_SOLID, d3
+    beq    @SolidTile
 
     ; Get tile
     moveq  #0x0, d4
@@ -87,5 +88,11 @@ COL_ProbeCollision:
     dbra   d0, @NextTile
 
     move.w #-1, d7                      ; Terrain not found within search distance
+
+    rts
+
+    @SolidTile:
+    move.w d1, d7
+    VDP_TILES_TO_PIXELS d7              ; Tile Y back to pixels
 
     rts

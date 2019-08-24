@@ -70,10 +70,7 @@ COLLISION_TILE_TO_BYTE_SHIFT            equ 0x3
 COLLISION_MAX_TERRAIN_SEARCH_TILES      equ 2
 
 ; Collision flags
-COLLISION_FLAG_WATER                    equ 12
 COLLISION_FLAG_SOLID                    equ 13
-COLLISION_FLAG_HOLE                     equ 14
-COLLISION_FLAG_SPECIAL                  equ 15
 
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40
