@@ -24,7 +24,7 @@ VDP_LoadTiles:
 	; (but simpler to do with 64kb, can just use carry flag)
 	move.l a0, d2
 	move.w d1, d3
-	lsl.w  #0x1, d3		; Words to bytes
+	add.w  d3, d3		; Words to bytes
 	add.w  d3, d2		; Add size to lower 16 bits of address
 	bcs    @SplitDMA	; Branch if Carry Set (result overflowed across 16 bit boundary)
 	

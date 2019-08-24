@@ -71,6 +71,9 @@ COL_ProbeCollision:
     move.b (a3,d7.w), d3
     beq    @ZeroHeight
 
+    ; If height==8, +1 tile and loop
+    ; TODO
+
     ; If valid height, subtract from total height (map space is -ve, heightmap is +ve)
     move.w d1, d7
     addi.w #0x1, d7                     ; Tile Y + 1
@@ -84,8 +87,5 @@ COL_ProbeCollision:
     dbra   d0, @NextTile
 
     move.w #-1, d7                      ; Terrain not found within search distance
-
-    ; If height==8, +1 tile and loop
-    ; TODO
 
     rts
