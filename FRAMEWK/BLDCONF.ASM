@@ -16,6 +16,8 @@ BLDCONF_ENT_MGR_BLOCK_MAX_BLOCKS        equ 256
 BLDCONF_SCN_MAX_ENTITIES                equ 64
 
 ; Physics
-BLDCONF_PHYS_GRAVITY                    equ 0x00003800
+BLDCONF_PHYS_GRAVITY                    equ 0x00083800
+BLDCONF_COLLISION_TILE_WIDTH            equ 8
+BLDCONF_COLLISION_TILE_HEIGHT           equ 8
 
     ENDIF

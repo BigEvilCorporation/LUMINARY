@@ -86,42 +86,66 @@ ECPhysicsBody_Step:
     add.l  d4, d2                       ; Apply accel to vel
     add.l  d5, d3
 
-    add.l  d2, d0                       ; Apply vel to pos
-    add.l  d3, d1
+    move.l d2, a5                       ; Backup vel
+    move.l d3, a6
+
+    @VelLp:
+
+    move.l d2, d6                       ; If vel is zero, skip terrain detection
+    or.l   d3, d6
+    beq    @ZeroVel
+
+    ; Apply velocity in tile width/height steps
+    move.l d2, d4                       ; Clamp X/Y vel to tile width/height
+    move.l d3, d5
+    CLAMP.L d4, #0x0, #(COLLISION_TILE_WIDTH<<16)
+    CLAMP.L d5, #0x0, #(COLLISION_TILE_HEIGHT<<16)
+
+    sub.l  d4, d2                       ; Subtract from total vel
+    sub.l  d5, d3
+
+    add.l  d4, d0                       ; Apply vel to pos
+    add.l  d5, d1
 
     ; ======================================
     ; Terrain detection
     ; ======================================
-    PUSHM.L d0-d3/a0-a5
+    PUSHM.L d0-d5/d7/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
     subi.w #VDP_SPRITE_BORDER_X, d0     ; To map space
     subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
     move.w d7, d2
     bsr    COL_ProbeCollision           ; Probe collision map
-    POPM.L d0-d3/a0-a5
+    move.w d7, d6
+    POPM.L d0-d5/d7/a0-a6
 
-    cmp.w  #-1, d7                      ; d7 = terrain height, or -1
+    cmp.w  #-1, d6                      ; d7 = terrain height, or -1
     beq    @NoTerrain
-    addi.w #VDP_SPRITE_BORDER_Y, d7     ; Y back to sprite space
-    swap   d7                           ; To 16.16, cap fraction
-    move.w #0x0, d7
-    cmp.l  d7, d1                       ; Check if on or under terrain
+    addi.w #VDP_SPRITE_BORDER_Y, d6     ; Y back to sprite space
+    swap   d6                           ; To 16.16, cap fraction
+    move.w #0x0, d6
+    cmp.l  d6, d1                       ; Check if on or under terrain
     blt    @AboveTerrain
-    move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
+    move.l d6, d1                       ; Hit terrain, cap Y and zero velocity
     move.l #0x0, d3
+    move.l #0x0, a6
     @NoTerrain:
     @AboveTerrain:
+
+    bra    @VelLp                       ; Next velocity step
 
     ; ======================================
     ; Store output
     ; ======================================
 
+    @ZeroVel:
+
     move.l d0, Entity_PosX(a4)          ; Store pos
     move.l d1, Entity_PosY(a4)
 
-    move.l d2, ECPhysicsBody_VelX(a3)   ; Store vel
-    move.l d3, ECPhysicsBody_VelY(a3)
+    move.l a5, ECPhysicsBody_VelX(a3)   ; Store vel
+    move.l a6, ECPhysicsBody_VelY(a3)
 
     ; ======================================
 
