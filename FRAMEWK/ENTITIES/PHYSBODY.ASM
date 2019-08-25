@@ -98,8 +98,8 @@ ECPhysicsBody_Step:
     ; Apply velocity in tile width/height steps
     move.l d2, d4                       ; Clamp X/Y vel to tile width/height
     move.l d3, d5
-    CLAMP.L d4, #0x0, #(COLLISION_TILE_WIDTH<<16)
-    CLAMP.L d5, #0x0, #(COLLISION_TILE_HEIGHT<<16)
+    CLAMP.L d4, #-(COLLISION_TILE_WIDTH<<16), #(COLLISION_TILE_WIDTH<<16)
+    CLAMP.L d5, #-(COLLISION_TILE_HEIGHT<<16), #(COLLISION_TILE_HEIGHT<<16)
 
     sub.l  d4, d2                       ; Subtract from total vel
     sub.l  d5, d3
@@ -113,31 +113,48 @@ ECPhysicsBody_Step:
     PUSHM.L d0-d5/d7/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_X, d0     ; To map space
-    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
+    subi.w #VDP_SPRITE_BORDER_X, d0     ; X to map space
     move.w d7, d2
-    ;tst.l  d5
-    ;blt    @SearchUp
+    tst.l  d5
+    blt    @SearchUp
+
+    ; Probe for floor
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
     bsr    COL_ProbeCollisionDown       ; Probe collision map (search downwards)
-    ;bra    @EndSearch
-    ;@SearchUp:
-    ;bsr    COL_ProbeCollisionUp         ; Probe collision map (search upwards)
-    ;@EndSearch:
     move.w d7, d6
     POPM.L d0-d5/d7/a0-a6
 
     cmp.w  #-1, d6                      ; d7 = terrain height, or -1
-    beq    @NoTerrainY
+    beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_Y, d6     ; Y back to sprite space
     swap   d6                           ; To 16.16, cap fraction
     move.w #0x0, d6
-    cmp.l  d6, d1                       ; Check if on or under terrain
-    blt    @AboveTerrainY
+    cmp.l  d6, d1                       ; Check if on or under floor
+    blt    @EndTerrain
     move.l d6, d1                       ; Hit terrain, cap Y and zero velocity
     move.l #0x0, d3
     move.l #0x0, a6
-    @NoTerrainY:
-    @AboveTerrainY:
+    bra    @EndTerrain
+
+    ; Probe for ceiling
+    @SearchUp:
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1 ; Y + step height
+    bsr    COL_ProbeCollisionUp         ; Probe collision map (search upwards)
+    move.w d7, d6
+    POPM.L d0-d5/d7/a0-a6
+
+    cmp.w  #-1, d6                      ; d7 = terrain height, or -1
+    beq    @EndTerrain
+    addi.w #VDP_SPRITE_BORDER_Y, d6     ; Y back to sprite space
+    swap   d6                           ; To 16.16, cap fraction
+    move.w #0x0, d6
+    cmp.l  d6, d1                       ; Check if on or above ceiling
+    bgt    @EndTerrain
+    move.l d6, d1                       ; Hit terrain, cap Y and zero velocity
+    move.l #0x0, d3
+    move.l #0x0, a6
+
+    @EndTerrain:
 
     ; ======================================
     ; Terrain detection on X axis
