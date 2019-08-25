@@ -14,6 +14,7 @@ ECPhysicsBody_VelX                      rs.l 1
 ECPhysicsBody_VelY                      rs.l 1
 ECPhysicsBody_AccelX                    rs.w 1
 ECPhysicsBody_AccelY                    rs.w 1
+ECPhysicsBody_TerrainMode               rs.b 1 ; PHYS_TERRAIN_MODE_X/Y
     ENTITY_COMPONENT_END
 
 ECPhysicsBody_Initialise:
@@ -28,6 +29,7 @@ ECPhysicsBody_Initialise:
     move.l #0x0, ECPhysicsBody_VelY(a0)
     move.w #0x0, ECPhysicsBody_AccelX(a0)
     move.w #0x0, ECPhysicsBody_AccelY(a0)
+    move.b #PHYS_TERRAIN_MODE_Y, ECPhysicsBody_TerrainMode(a0)
 
     rts
 
@@ -81,7 +83,13 @@ ECPhysicsBody_Step:
     ; ======================================
     ; Step
     ; ======================================
-    addi.l #PHYS_GRAVITY, d5            ; Apply gravity to accel
+    IF PHYS_GRAVITY_X                   ; Apply gravity to accel
+    addi.l #PHYS_GRAVITY_X, d4
+    ENDIF
+
+    IF PHYS_GRAVITY_Y
+    addi.l #PHYS_GRAVITY_Y, d5
+    ENDIF
 
     add.l  d4, d2                       ; Apply accel to vel
     add.l  d5, d3
@@ -107,9 +115,16 @@ ECPhysicsBody_Step:
     add.l  d4, d0                       ; Apply vel to pos
     add.l  d5, d1
 
+    ; Determine terrain mode
+    cmp.b  #PHYS_TERRAIN_MODE_X, ECPhysicsBody_TerrainMode(a3)
+    beq    @TerrainModeX
+
     ; ======================================
     ; Terrain detection on Y axis
     ; ======================================
+    @TerrainModeY:
+    tst.l  d5                           ; Bail if no Y vel
+    beq    @EndTerrain
     PUSHM.L d0-d5/d7/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
@@ -120,7 +135,7 @@ ECPhysicsBody_Step:
 
     ; Probe for floor
     subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
-    bsr    COL_ProbeCollisionDown       ; Probe collision map (search downwards)
+    bsr    COL_ProbeTerrainDown         ; Probe terrain map (search downwards)
     move.w d7, d6
     POPM.L d0-d5/d7/a0-a6
 
@@ -139,7 +154,7 @@ ECPhysicsBody_Step:
     ; Probe for ceiling
     @SearchUp:
     subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1 ; Y + step height
-    bsr    COL_ProbeCollisionUp         ; Probe collision map (search upwards)
+    bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
     move.w d7, d6
     POPM.L d0-d5/d7/a0-a6
 
@@ -154,11 +169,57 @@ ECPhysicsBody_Step:
     move.l #0x0, d3
     move.l #0x0, a6
 
-    @EndTerrain:
-
     ; ======================================
     ; Terrain detection on X axis
     ; ======================================
+    @TerrainModeX:
+    tst.l  d4                           ; Bail if no X vel
+    beq    @EndTerrain
+    PUSHM.L d0-d5/d7/a0-a6
+    swap   d0                           ; 16.16 to integer
+    swap   d1
+    subi.w #VDP_SPRITE_BORDER_Y, d1     ; Y to map space
+    move.w d7, d2
+    tst.l  d4
+    blt    @SearchLeft
+
+    ; Probe for right-hand wall
+    subi.w #VDP_SPRITE_BORDER_X+PHYS_STEP_HEIGHT, d0 ; X - step height
+    bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
+    move.w d7, d6
+    POPM.L d0-d5/d7/a0-a6
+
+    cmp.w  #-1, d6                      ; d7 = terrain width, or -1
+    beq    @EndTerrain
+    addi.w #VDP_SPRITE_BORDER_X, d6     ; X back to sprite space
+    swap   d6                           ; To 16.16, cap fraction
+    move.w #0x0, d6
+    cmp.l  d6, d0                       ; Check if left of wall
+    blt    @EndTerrain
+    move.l d6, d0                       ; Hit terrain, cap X and zero velocity
+    move.l #0x0, d2
+    move.l #0x0, a5
+    bra    @EndTerrain
+
+    ; Probe for left-hand wall
+    @SearchLeft:
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0 ; X - step height
+    bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
+    move.w d7, d6
+    POPM.L d0-d5/d7/a0-a6
+
+    cmp.w  #-1, d6                      ; d7 = terrain height, or -1
+    beq    @EndTerrain
+    addi.w #VDP_SPRITE_BORDER_X, d6     ; X back to sprite space
+    swap   d6                           ; To 16.16, cap fraction
+    move.w #0x0, d6
+    cmp.l  d6, d0                       ; Check if right of wall
+    bgt    @EndTerrain
+    move.l d6, d0                       ; Hit terrain, cap X and zero velocity
+    move.l #0x0, d2
+    move.l #0x0, a5
+
+    @EndTerrain:
 
     bra    @VelLp                       ; Next velocity step
 

@@ -15,5 +15,8 @@ ENT_MGR_BLOCK_FLAG_ALLOCATED            equ 0x1
 SCN_MAX_ENTITIES                        equ BLDCONF_SCN_MAX_ENTITIES
 
 ; Physics
-PHYS_GRAVITY                            equ BLDCONF_PHYS_GRAVITY
+PHYS_GRAVITY_X                          equ BLDCONF_PHYS_GRAVITY_X
+PHYS_GRAVITY_Y                          equ BLDCONF_PHYS_GRAVITY_Y
 PHYS_STEP_HEIGHT                        equ 0x04
+PHYS_TERRAIN_MODE_X                     equ 0
+PHYS_TERRAIN_MODE_Y                     equ 1

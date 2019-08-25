@@ -16,6 +16,11 @@ COL_MAP_X_TO_TILE_X: macro xpos
     andi.w #COLLISION_TILE_WIDTH-1, \xpos
     endm
 
+COL_MAP_Y_TO_TILE_Y: macro xpos
+    ; Wraps a map space Y position to tile space
+    andi.w #COLLISION_TILE_HEIGHT-1, \xpos
+    endm
+
 COL_GET_STAMP_OFFSET: macro coordx,coordy,mapwidth,stampoffset,remainder,tmpreg
     ; =================================================
     ; Given arbitrary collision map coordinates, returns
