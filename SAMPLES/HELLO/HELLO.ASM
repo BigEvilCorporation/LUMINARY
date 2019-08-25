@@ -164,9 +164,9 @@ Main:
     ;DRAW_VRAM
 
     ; Update
-    bsr    CAM_UpdateAll
     bsr    ENT_UpdateAll
     bsr    ECPhysicsBody_Step
+    bsr    CAM_UpdateAll
     bsr    MAP_ClampScroll
     bsr    MAP_UpdateStreaming
 
