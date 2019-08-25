@@ -13,7 +13,7 @@ COL_TILEID_TO_ADDR: macro index
 
 COL_MAP_X_TO_TILE_X: macro xpos
     ; Wraps a map space X position to tile space
-    andi.w #COLLISION_TILE_SIZE_BYTES-1, \xpos
+    andi.w #COLLISION_TILE_WIDTH-1, \xpos
     endm
 
 COL_GET_STAMP_OFFSET: macro coordx,coordy,mapwidth,stampoffset,remainder,tmpreg

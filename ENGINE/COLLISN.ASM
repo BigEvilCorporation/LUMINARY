@@ -6,11 +6,13 @@
 ; COLLISN.ASM - Collision map reading
 ; ============================================================================================
 
-COL_ProbeCollision:
+COL_ProbeCollisionDown:
     ; ======================================
-    ; Looks up collision at specified x/y
-    ; coordinate. Returns terrain height,
-    ; angle, and collision flags.
+    ; Collision map lookup at specified
+    ; x/y coordinate. Searches downwards
+    ; for floor terrain and solid tiles.
+    ; Returns terrain height, angle, and
+    ; collision flags.
     ; ======================================
     ; In:
     ; a0   Terrain stamp map data
@@ -57,8 +59,8 @@ COL_ProbeCollision:
     beq    @ZeroHeight                  ; Tile 0 is blank
 
     ; If tile solid, success
-    btst   #COLLISION_FLAG_SOLID, d3
-    beq    @SolidTile
+    btst   #COLLISION_FLAG_SOLID_B+24, d3   ; Flags in upper byte
+    bne    @SolidTile
 
     ; Get tile
     moveq  #0x0, d4

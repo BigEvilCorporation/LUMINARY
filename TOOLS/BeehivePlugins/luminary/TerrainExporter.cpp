@@ -22,8 +22,11 @@ namespace luminary
 				if (const TerrainTile* tile = tileset.GetTerrainTile(i))
 				{
 					std::vector<s8> heights;
+					std::vector<s8> widths;
 					tile->GetHeights(heights);
+					tile->GetWidths(widths);
 					file.Write(heights.data(), heights.size());
+					file.Write(widths.data(), widths.size());
 				}
 			}
 
