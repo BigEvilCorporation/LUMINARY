@@ -114,25 +114,20 @@ ECPhysicsBody_Step:
     add.l  d4, d5                       ; Apply X accel to ground speed
     beq    @NoGroundSpeed
     move.l d5, ECPhysicsBody_GroundSpeed(a3) ; Store updated ground speed
-    move.l #0x400, d5
     move.l d5, d2						; x vel
     move.l d5, d3						; y vel
     andi.w #0xFF, d6					; Extract angle from flags
     add.w  d6, d6
 
     PUSH.L a4
-    lea    testsin, a4                 ; Ground speed to y vel
+    lea    sinetable, a4                ; Ground speed to y vel
     moveq  #0x0, d4
     move.w (a4,d6.w), d4
-    ;ext.w  d4
-    ;ext.l  d4
     muls.w d4, d3
             
     addi.w #0x80, d6					; Ground speed to x vel
     moveq  #0x0, d4
     move.w (a4,d6.w), d4
-    ;ext.w  d4
-    ;ext.l  d4
     muls.w d4, d2
     POP.L  a4
 
@@ -162,7 +157,7 @@ ECPhysicsBody_Step:
     add.l  d5, d1
     
     ; Clear last terrain flags
-    ;move.w #0x0, ECPhysicsBody_LastTerrainFlags(a3)
+    move.w #0x0, ECPhysicsBody_LastTerrainFlags(a3)
 
     ; Terrain lookup
     move.b ECPhysicsBody_TerrainQuadrant(a3), d6
@@ -362,7 +357,3 @@ ECPhysicsBody_TerrainSearch_Left:
     @EndTerrain:
 
     rts
-
-testsin:
-    incbin 'engine/sinewave.bin'
-    even
