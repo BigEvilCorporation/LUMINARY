@@ -13,7 +13,7 @@
 ECPhysicsBody_VelX                      rs.l 1
 ECPhysicsBody_VelY                      rs.l 1
 ECPhysicsBody_GroundSpeed               rs.l 1
-ECPhysicsBody_MaxGroundSpeed            rs.w 1
+ECPhysicsBody_MaxGroundSpeed            rs.l 1
 ECPhysicsBody_MaxVelY                   rs.w 1
 ECPhysicsBody_AccelX                    rs.w 1
 ECPhysicsBody_AccelY                    rs.w 1
@@ -32,7 +32,7 @@ ECPhysicsBody_Initialise:
     move.l #0x0, ECPhysicsBody_VelX(a0)
     move.l #0x0, ECPhysicsBody_VelY(a0)
     move.l #0x0, ECPhysicsBody_GroundSpeed(a0)
-    move.w #PHYS_DEFAULT_MAX_VEL_X, ECPhysicsBody_MaxGroundSpeed(a0)
+    move.l #PHYS_DEFAULT_MAX_GROUND_SPEED, ECPhysicsBody_MaxGroundSpeed(a0)
     move.w #PHYS_DEFAULT_MAX_VEL_Y, ECPhysicsBody_MaxVelY(a0)
     move.w #0x0, ECPhysicsBody_AccelX(a0)
     move.w #0x0, ECPhysicsBody_AccelY(a0)
@@ -107,9 +107,7 @@ ECPhysicsBody_Step:
     beq    @NoGroundSpeed
     
     PUSH.L d7
-    moveq  #0x0, d4
-    move.w ECPhysicsBody_MaxGroundSpeed(a3), d4	    ; Clamp ground speed to max
-    swap   d4
+    move.l ECPhysicsBody_MaxGroundSpeed(a3), d4	    ; Clamp ground speed to max
     move.l d4, d7
     neg.l  d7
     CLAMP.L d5,d7,d4
