@@ -36,6 +36,8 @@ namespace luminary
 	{
 		u32 positionX;
 		u32 positionY;
+		u32 width;
+		u32 height;
 		std::string name;
 		std::vector<Param> params;
 	};

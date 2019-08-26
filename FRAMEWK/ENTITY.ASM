@@ -47,6 +47,8 @@ EntityTypeDesc_Update                   rs.l 1
 Entity_TypeDesc                         rs.l 1  ; Entity type
 Entity_PosX                             rs.l 1  ; World pos X (16.16)
 Entity_PosY                             rs.l 1  ; World pos Y (16.16)
+Entity_Width                            rs.w 1  ; Width in pixels
+Entity_Height                           rs.w 1  ; Height in pixels
     STRUCT_END
 
     ; ======================================
@@ -67,15 +69,21 @@ Entity_Initialise:
     ; a5   Entity type desc
     ; d0.w Position X
     ; d1.w Position Y
+    ; d2.w Width
+    ; d3.w Height
     ; ======================================
+
+    ; Set type desc
+    move.l a5, Entity_TypeDesc(a0)
 
     ; Clear position fraction
     move.l #0x0, Entity_PosX(a0)
     move.l #0x0, Entity_PosY(a0)
 
-    ; Set position and type desc
+    ; Set params
     move.w d0, Entity_PosX(a0)
     move.w d1, Entity_PosY(a0)
-    move.l a5, Entity_TypeDesc(a0)
+    move.w d2, Entity_Width(a0)
+    move.w d3, Entity_Height(a0)
 
     rts
