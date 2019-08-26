@@ -79,30 +79,32 @@ EPlayer_Update:
 
     move.l #0x0, d1
     move.l #0x0, d2
+    
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
 
     bsr    PAD_ReadPortA
     btst   #PAD_BUTTON_UP, d0
     beq    @NoUp
-    move.l #-500, d2
+    ;move.w #-500, d2
     @NoUp:
 
     btst   #PAD_BUTTON_DOWN, d0
     beq    @NoDn
-    move.l #500, d2
+    ;move.w #500, d2
     @NoDn:
 
     btst   #PAD_BUTTON_LEFT, d0
     beq    @NoLft
-    move.l #-500, d1
+    subi.w #0x10, ECPhysicsBody_AccelX(a1)
     @NoLft:
 
     btst   #PAD_BUTTON_RIGHT, d0
     beq    @NoRt
-    move.l #500, d1
+    addi.w #0x10, ECPhysicsBody_AccelX(a1)
     @NoRt:
 
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
-    move.w d1, ECPhysicsBody_AccelX(a1)
+    
+    ;move.w d1, ECPhysicsBody_AccelX(a1)
     ;move.w d2, ECPhysicsBody_AccelY(a1)
 
     rts
@@ -191,11 +193,7 @@ Main:
     bsr    ECSprite_DrawAll
 
     ; Wait vsync
-    move.l RAM_VBLANK_COUNTER, d0
-    @VSync:
-    move.l RAM_VBLANK_COUNTER, d1
-    cmp.b  d0, d1
-    beq    @VSync
+    bsr    VDP_WaitVSync
 
     ; DMA and VDP
     bsr    MAP_ApplyScroll

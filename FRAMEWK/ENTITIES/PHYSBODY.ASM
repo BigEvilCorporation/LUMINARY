@@ -10,20 +10,16 @@
     COMPONENT_SPAWN_DATA_END
     
     ENTITY_COMPONENT_BEGIN ECPhysicsBody
-ECPhysicsBody_GroundSpeed               rs.l 1
 ECPhysicsBody_VelX                      rs.l 1
 ECPhysicsBody_VelY                      rs.l 1
+ECPhysicsBody_GroundSpeed               rs.l 1
+ECPhysicsBody_MaxGroundSpeed            rs.w 1
+ECPhysicsBody_MaxVelY                   rs.w 1
 ECPhysicsBody_AccelX                    rs.w 1
 ECPhysicsBody_AccelY                    rs.w 1
 ECPhysicsBody_LastTerrainFlags          rs.w 1
 ECPhysicsBody_TerrainQuadrant           rs.b 1 ; PHYS_TERRAIN_SEARCH_QUADRANT_*
     ENTITY_COMPONENT_END
-
-ECPhysicsBody_TerrainSearches:
-    dc.l ECPhysicsBody_TerrainSearch_Down
-    dc.l ECPhysicsBody_TerrainSearch_Right
-    dc.l ECPhysicsBody_TerrainSearch_Up
-    dc.l ECPhysicsBody_TerrainSearch_Left
 
 ECPhysicsBody_Initialise:
     ; ======================================
@@ -33,9 +29,11 @@ ECPhysicsBody_Initialise:
     ; a1   Component spawn data
     ; ======================================
 
-    move.l #0x0, ECPhysicsBody_GroundSpeed(a0)
     move.l #0x0, ECPhysicsBody_VelX(a0)
     move.l #0x0, ECPhysicsBody_VelY(a0)
+    move.l #0x0, ECPhysicsBody_GroundSpeed(a0)
+    move.w #PHYS_DEFAULT_MAX_VEL_X, ECPhysicsBody_MaxGroundSpeed(a0)
+    move.w #PHYS_DEFAULT_MAX_VEL_Y, ECPhysicsBody_MaxVelY(a0)
     move.w #0x0, ECPhysicsBody_AccelX(a0)
     move.w #0x0, ECPhysicsBody_AccelY(a0)
     move.w #0x0, ECPhysicsBody_LastTerrainFlags(a0)
@@ -70,9 +68,6 @@ ECPhysicsBody_Step:
     move.l SceneData_ColTileset(a5), a2
     move.w SceneData_ColMapWidthStamps(a5), d7
 
-    moveq  #0x0, d4                     ; Clear for accel
-    moveq  #0x0, d5
-
     @BodyLp:
     movea.w Component_Owner(a3), a4     ; Get owning entity
 
@@ -103,20 +98,30 @@ ECPhysicsBody_Step:
     addi.l #PHYS_GRAVITY_Y, d5
     ENDIF
 
-    add.l  d4, d2                       ; Apply accel to vel
-    add.l  d5, d3
-
     ; If on floor, convert X ground speed to x/y vel using sin/cos of angle
-    move.w ECPhysicsBody_LastTerrainFlags(a3), d6
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
+    move.w ECPhysicsBody_LastTerrainFlags(a3), d6	; Get flags and angle
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6		; Check on terrain
     beq    @NoGroundSpeed
-    move.l ECPhysicsBody_GroundSpeed(a3), d5
-    add.l  d4, d5                       ; Apply X accel to ground speed
+    move.l ECPhysicsBody_GroundSpeed(a3), d5		; Get ground speed
+    add.l  d4, d5                       			; Apply X accel to ground speed
     beq    @NoGroundSpeed
-    move.l d5, ECPhysicsBody_GroundSpeed(a3) ; Store updated ground speed
+    
+    PUSH.L d7
+    moveq  #0x0, d4
+    move.w ECPhysicsBody_MaxGroundSpeed(a3), d4	    ; Clamp ground speed to max
+    swap   d4
+    move.l d4, d7
+    neg.l  d7
+    CLAMP.L d5,d7,d4
+    POP.L  d7
+    
+    move.l d5, ECPhysicsBody_GroundSpeed(a3); Store updated ground speed
+
     move.l d5, d2						; x vel
     move.l d5, d3						; y vel
     andi.w #0xFF, d6					; Extract angle from flags
+    addi.b #0x2, d6
+
     add.w  d6, d6
 
     PUSH.L a4
@@ -131,8 +136,23 @@ ECPhysicsBody_Step:
     muls.w d4, d2
     POP.L  a4
 
-    @NoGroundSpeed:
+    bra    @EndGroundSpeed
 
+    @NoGroundSpeed:
+    
+    add.l  d4, d2                       ; Apply accel to vel
+    add.l  d5, d3
+
+    @EndGroundSpeed:
+
+    ; Clamp Y velocity to max
+    moveq  #0x0, d4
+    move.w ECPhysicsBody_MaxVelY(a3), d4
+    swap   d4
+    move.l d4, d5
+    neg.l  d5
+    CLAMP.L d3,d5,d4
+    
     move.l d2, a5                       ; Backup vel
     move.l d3, a6
 
@@ -144,11 +164,11 @@ ECPhysicsBody_Step:
 
     PUSH.W d7                           ; Backup map width
 
-    ; Apply velocity in tile width/height steps
+    ; Apply velocity in tile*2 steps
     move.l d2, d4                       ; Clamp X/Y vel to tile width/height
     move.l d3, d5
-    CLAMP.L d4, #-(COLLISION_TILE_WIDTH<<16), #(COLLISION_TILE_WIDTH<<16)
-    CLAMP.L d5, #-(COLLISION_TILE_HEIGHT<<16), #(COLLISION_TILE_HEIGHT<<16)
+    CLAMP.L d4, #-((COLLISION_TILE_WIDTH*2)<<16), #((COLLISION_TILE_WIDTH*2)<<16)
+    CLAMP.L d5, #-((COLLISION_TILE_HEIGHT*2)<<16), #((COLLISION_TILE_HEIGHT*2)<<16)
 
     sub.l  d4, d2                       ; Subtract from total vel
     sub.l  d5, d3
@@ -344,7 +364,7 @@ ECPhysicsBody_TerrainSearch_Left:
     addi.w #VDP_SPRITE_BORDER_X, d7     ; X back to sprite space
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
-    cmp.l  d7, d0                       ; Check if right of wall
+    cmp.l  d7, d0                       ; Check if left of wall
     bgt    @EndTerrain
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     move.l #0x0, d2

@@ -69,3 +69,18 @@ VDP_LoadRegisters:
 	INT_RESTORE
 
     rts
+
+VDP_WaitVSync:
+    ; ======================================
+    ; Spins until next vsync
+    ; ======================================
+    ; No param
+    ; ======================================
+
+    move.l RAM_VBLANK_COUNTER, d0
+    @VSync:
+    move.l RAM_VBLANK_COUNTER, d1
+    cmp.b  d0, d1
+    beq    @VSync
+
+    rts

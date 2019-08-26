@@ -56,3 +56,72 @@ DBG_DRAW_STRING: macro x,y,string
     @string_end\@:
     POPM.L d0-d3/a0
     endm
+
+    ; ======================================
+    ; Draws a byte to plane A
+    ; ======================================
+    ; x    Cell pos X
+    ; y    Cell pos Y
+    ; byte - byte to draw
+    ; ======================================
+    ; Expects debug font and palette to be
+    ; loaded.
+    ; Does not account for scrolling.
+    ; ======================================
+DBG_DRAW_BYTE: macro x,y,byte
+    PUSHM.L d0-d3/a0-a1
+    STACK_ALLOC 4, a0                   ; Alloc space for string
+    move.l \byte, d0
+    bsr    STR_ItoA_Hex_b
+    move.w \x, d0
+    move.w \y, d1
+    bsr    DBG_DrawString
+    STACK_FREE 4                        ; Free string
+    POPM.L d0-d3/a0-a1
+    endm
+
+    ; ======================================
+    ; Draws a word to plane A
+    ; ======================================
+    ; x    Cell pos X
+    ; y    Cell pos Y
+    ; word - word to draw
+    ; ======================================
+    ; Expects debug font and palette to be
+    ; loaded.
+    ; Does not account for scrolling.
+    ; ======================================
+DBG_DRAW_WORD: macro x,y,word
+    PUSHM.L d0-d3/a0-a1
+    STACK_ALLOC 6, a0                   ; Alloc space for string
+    move.l \word, d0
+    bsr    STR_ItoA_Hex_w
+    move.w \x, d0
+    move.w \y, d1
+    bsr    DBG_DrawString
+    STACK_FREE 6                        ; Free string
+    POPM.L d0-d3/a0-a1
+    endm
+
+    ; ======================================
+    ; Draws a longword to plane A
+    ; ======================================
+    ; x    Cell pos X
+    ; y    Cell pos Y
+    ; long - Longword to draw
+    ; ======================================
+    ; Expects debug font and palette to be
+    ; loaded.
+    ; Does not account for scrolling.
+    ; ======================================
+DBG_DRAW_LONG: macro x,y,long
+    PUSHM.L d0-d3/a0-a1
+    STACK_ALLOC 10, a0                  ; Alloc space for string
+    move.l \long, d0
+    bsr    STR_ItoA_Hex_l
+    move.w \x, d0
+    move.w \y, d1
+    bsr    DBG_DrawString
+    STACK_FREE 10                       ; Free string
+    POPM.L d0-d3/a0-a1
+    endm

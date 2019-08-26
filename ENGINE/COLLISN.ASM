@@ -30,6 +30,7 @@ COL_ProbeTerrainDown:
     move.w d0, d6
     VDP_PIXELS_TO_TILES d6
     VDP_PIXELS_TO_TILES d1
+    subi.w #0x1, d1                     ; Start one tile up
 
     ; Wrap X around tile width to get column offset
     move.w d0, d7
@@ -126,6 +127,7 @@ COL_ProbeTerrainUp:
     move.w d0, d6
     VDP_PIXELS_TO_TILES d6
     VDP_PIXELS_TO_TILES d1
+    addi.w #0x1, d1                     ; Start one tile down
 
     ; Wrap X around tile width to get column offset
     move.w d0, d7
@@ -231,6 +233,7 @@ COL_ProbeTerrainLeft:
     move.w d0, d6
     VDP_PIXELS_TO_TILES d6
     VDP_PIXELS_TO_TILES d1
+    addi.w #0x1, d6                     ; Start one tile to the right
 
     ; Loop until terrain found or max search width reached
     move.w #COLLISION_MAX_TERRAIN_SEARCH_TILES-1, d0
@@ -331,6 +334,7 @@ COL_ProbeTerrainRight:
     move.w d0, d6
     VDP_PIXELS_TO_TILES d6
     VDP_PIXELS_TO_TILES d1
+    subi.w #0x1, d6                     ; Start one tile to the left
 
     ; Loop until terrain found or max search width reached
     move.w #COLLISION_MAX_TERRAIN_SEARCH_TILES-1, d0
