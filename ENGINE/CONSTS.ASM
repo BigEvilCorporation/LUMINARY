@@ -70,7 +70,10 @@ COLLISION_TILE_TO_BYTE_SHIFT            equ 0x4
 COLLISION_MAX_TERRAIN_SEARCH_TILES      equ 2
 
 ; Collision flags
-COLLISION_FLAG_SOLID_B                  equ 0x05
+COLLISION_FLAG_BIT_TERRAIN_B            equ 3
+COLLISION_FLAG_BIT_TERRAIN_W            equ COLLISION_FLAG_BIT_TERRAIN_B+8
+COLLISION_FLAG_BIT_SOLID_B              equ 5
+COLLISION_FLAG_BIT_SOLID_W              equ COLLISION_FLAG_BIT_SOLID_B+8
 
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40

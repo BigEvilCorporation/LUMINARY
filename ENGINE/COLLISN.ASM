@@ -22,8 +22,7 @@ COL_ProbeTerrainDown:
     ; d1.w Position Y (map space)
     ; d2.w Map width (stamps)
     ; Out:
-    ; d5.b Collision flags
-    ; d6.b Terrain angle
+    ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain height (map space, -1 if not found)
     ; ======================================
     
@@ -59,7 +58,7 @@ COL_ProbeTerrainDown:
     beq    @ZeroHeightOrCeiling         ; Tile 0 is blank
 
     ; If tile solid, success
-    btst   #COLLISION_FLAG_SOLID_B+24, d3   ; Flags in upper byte
+    btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3 ; Flags in upper byte
     bne    @SolidTile
 
     ; Get tile
@@ -83,6 +82,7 @@ COL_ProbeTerrainDown:
     addi.w #0x1, d7                     ; Tile Y + 1
     VDP_TILES_TO_PIXELS d7              ; Tile Y back to pixels
     sub.w  d3, d7
+    swap   d3                           ; Return flags/angle/quadrant
 
     rts
 
@@ -91,12 +91,14 @@ COL_ProbeTerrainDown:
     dbra   d0, @NextTile
 
     move.w #-1, d7                      ; Terrain not found within search distance
+    moveq  #0x0, d3
 
     rts
 
     @SolidTile:
     move.w d1, d7
     VDP_TILES_TO_PIXELS d7              ; Tile Y back to pixels
+    swap   d3                           ; Return flags/angle/quadrant
 
     rts
 
@@ -116,8 +118,7 @@ COL_ProbeTerrainUp:
     ; d1.w Position Y (map space)
     ; d2.w Map width (stamps)
     ; Out:
-    ; d5.b Collision flags
-    ; d6.b Terrain angle
+    ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain height (map space, -1 if not found)
     ; ======================================
 
@@ -153,7 +154,7 @@ COL_ProbeTerrainUp:
     beq    @ZeroHeightOrFloor           ; Tile 0 is blank
 
     ; If tile solid, success
-    btst   #COLLISION_FLAG_SOLID_B+24, d3   ; Flags in upper byte
+    btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3 ; Flags in upper byte
     bne    @SolidTile
 
     ; Get tile
@@ -177,6 +178,7 @@ COL_ProbeTerrainUp:
     VDP_TILES_TO_PIXELS d7              ; Tile Y back to pixels
     ext.w  d3                           ; Height tile is -ve
     sub.w  d3, d7
+    swap   d3                           ; Return flags/angle/quadrant
 
     rts
 
@@ -185,12 +187,14 @@ COL_ProbeTerrainUp:
     dbra   d0, @NextTile
 
     move.w #-1, d7                      ; Terrain not found within search distance
+    moveq  #0x0, d3
 
     rts
 
     @SolidTile:
     move.w d1, d7
     VDP_TILES_TO_PIXELS d7              ; Tile Y back to pixels
+    swap   d3                           ; Return flags/angle/quadrant
 
     rts
 
@@ -210,8 +214,7 @@ COL_ProbeTerrainLeft:
     ; d1.w Position Y (map space)
     ; d2.w Map width (stamps)
     ; Out:
-    ; d5.b Collision flags
-    ; d6.b Terrain angle
+    ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain width (map space, -1 if not found)
     ; ======================================
 
@@ -252,7 +255,7 @@ COL_ProbeTerrainLeft:
     beq    @ZeroWidthOrRightWall        ; Tile 0 is blank
 
     ; If tile solid, success
-    btst   #COLLISION_FLAG_SOLID_B+24, d3   ; Flags in upper byte
+    btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3 ; Flags in upper byte
     bne    @SolidTile
 
     ; Get tile
@@ -275,6 +278,7 @@ COL_ProbeTerrainLeft:
     move.w d6, d7
     VDP_TILES_TO_PIXELS d7              ; Tile X back to pixels
     add.w  d3, d7
+    swap   d3                           ; Return flags/angle/quadrant
 
     rts
 
@@ -283,12 +287,14 @@ COL_ProbeTerrainLeft:
     dbra   d0, @NextTile
 
     move.w #-1, d7                      ; Terrain not found within search distance
+    moveq  #0x0, d3
 
     rts
 
     @SolidTile:
     move.w d6, d7
     VDP_TILES_TO_PIXELS d7              ; Tile X back to pixels
+    swap   d3                           ; Return flags/angle/quadrant
 
     rts
 
@@ -308,8 +314,7 @@ COL_ProbeTerrainRight:
     ; d1.w Position Y (map space)
     ; d2.w Map width (stamps)
     ; Out:
-    ; d5.b Collision flags
-    ; d6.b Terrain angle
+    ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain width (map space, -1 if not found)
     ; ======================================
 
@@ -350,7 +355,7 @@ COL_ProbeTerrainRight:
     beq    @ZeroWidthOrLeftWall         ; Tile 0 is blank
 
     ; If tile solid, success
-    btst   #COLLISION_FLAG_SOLID_B+24, d3   ; Flags in upper byte
+    btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3 ; Flags in upper byte
     bne    @SolidTile
 
     ; Get tile
@@ -375,6 +380,7 @@ COL_ProbeTerrainRight:
     VDP_TILES_TO_PIXELS d7              ; Tile X back to pixels
     ext.w  d3                           ; Width tile is -ve
     add.w  d3, d7
+    swap   d3                           ; Return flags/angle/quadrant
 
     rts
 
@@ -383,11 +389,13 @@ COL_ProbeTerrainRight:
     dbra   d0, @NextTile
 
     move.w #-1, d7                      ; Terrain not found within search distance
+    moveq  #0x0, d3
 
     rts
 
     @SolidTile:
     move.w d6, d7
     VDP_TILES_TO_PIXELS d7              ; Tile X back to pixels
+    swap   d3                           ; Return flags/angle/quadrant
 
     rts
