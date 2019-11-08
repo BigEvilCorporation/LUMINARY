@@ -183,7 +183,7 @@ namespace luminary
 
 			//Extract lines
 			std::vector<std::string> lines;
-			ion::string::Tokenise(contents, lines, '\r');
+			ion::string::Tokenise(contents, lines, "\r");
 
 			bool inEntitySpawnBlock = false;
 			bool inComponentSpawnBlock = false;
@@ -434,7 +434,7 @@ namespace luminary
 			tags = tags.substr(0, tagEnd);
 
 			//Tokenise all tags
-			ion::string::Tokenise(tags, param.tags, s_tagDelim[0]);
+			ion::string::Tokenise(tags, param.tags, s_tagDelim);
 		}
 	}
 
