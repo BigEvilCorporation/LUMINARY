@@ -41,7 +41,7 @@ Main:
     bsr    SCN_LoadScene
 
     ; Load palettes
-    lea    palette_fuzzl, a0
+    lea    palette_sonic, a0
     move.b #0x3, d0
     bsr    VDP_LoadPalette
     
@@ -80,21 +80,3 @@ Main:
     include 'samples/hello/data/sprites/sprites.asm'
     include 'samples/hello/data/anims/sprtanms.asm'
     include 'samples/hello/data/palettes/sprtpals.asm'
-
-palette_fuzzl:
-	dc.w	0x0EEE
-	dc.w	0x0020
-	dc.w	0x0CCC
-	dc.w	0x00AC
-	dc.w	0x02EA
-	dc.w	0x00EE
-	dc.w	0x0008
-	dc.w	0x000C
-	dc.w	0x000A
-	dc.w	0x0400
-	dc.w	0x0844
-	dc.w	0x0820
-	dc.w	0x0080
-	dc.w	0x00A2
-	dc.w	0x00E4
-	dc.w	0x0EEE

@@ -266,10 +266,7 @@ ECPhysicsBody_TerrainSearch_Down:
     swap   d0                           ; 16.16 to integer
     swap   d1
     subi.w #VDP_SPRITE_BORDER_X, d0     ; X to map space
-    move.w Entity_Width(a4), d2         ; Top-left to probe offset
-    lsr.w  #0x1, d2
-    add.w  d2, d0
-    add.w  Entity_Height(a4), d1
+    add.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
     move.w d7, d2
 
     ; Probe for floor
@@ -281,7 +278,7 @@ ECPhysicsBody_TerrainSearch_Down:
     cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_Y, d7     ; Y back to sprite space
-    sub.w  Entity_Height(a4), d7        ; Probe offset to top
+    sub.w  Entity_ExtentsY(a4), d7        ; Probe offset to top
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
     cmp.l  d7, d1                       ; Check if on or under floor
@@ -305,10 +302,7 @@ ECPhysicsBody_TerrainSearch_Right:
     swap   d0                           ; 16.16 to integer
     swap   d1
     subi.w #VDP_SPRITE_BORDER_Y, d1     ; Y to map space
-    move.w Entity_Height(a4), d2        ; Top-left to probe offset
-    lsr.w  #0x1, d2
-    add.w  d2, d1
-    add.w  Entity_Width(a4), d0
+    add.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
     move.w d7, d2
 
     ; Probe for right-hand wall
@@ -320,7 +314,7 @@ ECPhysicsBody_TerrainSearch_Right:
     cmp.w  #-1, d7                      ; d7 = terrain width, or -1
     beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_X, d7     ; X back to sprite space
-    sub.w  Entity_Width(a4), d7         ; Probe offset to top
+    sub.w  Entity_ExtentsX(a4), d7         ; Probe offset to top
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
     cmp.l  d7, d0                       ; Check if left of wall
@@ -344,13 +338,10 @@ ECPhysicsBody_TerrainSearch_Up:
     swap   d0                           ; 16.16 to integer
     swap   d1
     subi.w #VDP_SPRITE_BORDER_X, d0     ; X to map space
-    move.w Entity_Width(a4), d2         ; Top-left to probe offset
-    lsr.w  #0x1, d2
-    add.w  d2, d0
+    sub.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
     move.w d7, d2
 
     ; Probe for ceiling
-    @SearchUp:
     subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1 ; Y + step height
     bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
@@ -382,13 +373,10 @@ ECPhysicsBody_TerrainSearch_Left:
     swap   d0                           ; 16.16 to integer
     swap   d1
     subi.w #VDP_SPRITE_BORDER_Y, d1     ; Y to map space
-    move.w Entity_Height(a4), d2        ; Top-left to probe offset
-    lsr.w  #0x1, d2
-    add.w  d2, d1
+    sub.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
     move.w d7, d2
 
     ; Probe for left-hand wall
-    @SearchLeft:
     subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant

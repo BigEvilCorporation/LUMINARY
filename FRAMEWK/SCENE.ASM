@@ -37,8 +37,8 @@ SceneEntity_EntityType                  rs.l 1
 SceneEntity_SpawnData                   rs.l 1
 SceneEntity_PosX                        rs.w 1
 SceneEntity_PosY                        rs.w 1
-SceneEntity_Width                       rs.w 1
-SceneEntity_Height                      rs.w 1
+SceneEntity_ExtentsX                       rs.w 1
+SceneEntity_ExtentsY                      rs.w 1
     STRUCT_END
 
 SCN_LoadScene:
@@ -88,8 +88,8 @@ SCN_LoadScene:
     move.l SceneEntity_SpawnData(a2), a1
     move.w SceneEntity_PosX(a2), d0
     move.w SceneEntity_PosY(a2), d1
-    move.w SceneEntity_Width(a2), d2
-    move.w SceneEntity_Height(a2), d3
+    move.w SceneEntity_ExtentsX(a2), d2
+    move.w SceneEntity_ExtentsY(a2), d3
     bsr    ENT_SpawnEntity                  ; Spawn entity
     move.l a0, a4
     
