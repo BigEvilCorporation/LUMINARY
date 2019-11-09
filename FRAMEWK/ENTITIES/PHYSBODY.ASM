@@ -1,4 +1,4 @@
-; ============================================================================================
+ ; ============================================================================================
 ; LUMINARY - a game engine and framework for the SEGA Mega Drive
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 5th August 2019
@@ -190,8 +190,10 @@ ECPhysicsBody_Step:
     add.l  d4, d0                       ; Apply vel to pos
     add.l  d5, d1
     
-    ; Clear last terrain flags
+    ; Backup and clear last terrain flags
+    move.w ECPhysicsBody_LastTerrainFlags(a3), d6
     move.w #0x0, ECPhysicsBody_LastTerrainFlags(a3)
+    PUSH.W d6
 
     ; Terrain lookup
     move.b ECPhysicsBody_TerrainQuadrant(a3), d6
@@ -213,6 +215,16 @@ ECPhysicsBody_Step:
     @Left:
     bsr    ECPhysicsBody_TerrainSearch_Left
     @EndTerrain:
+
+    POP.W  d6
+
+    ; Check if landed on ground this frame
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    beq    @NotLanded
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
+    bne    @NotLanded
+    bsr    ECPhysicsBody_Landed
+    @NotLanded:
 
     POP.W  d7                           ; Restore map width
 
@@ -242,6 +254,12 @@ ECPhysicsBody_Step:
 
     rts
 
+ECPhysicsBody_Landed:
+    move.l ECPhysicsBody_VelX(a3), d6
+    divs   #PHYS_GROUND_SPEED_TO_VEL, d6
+    move.w d6, ECPhysicsBody_GroundSpeed(a3)
+    rts
+
 ECPhysicsBody_TerrainSearch_Down:
 
     PUSHM.L d0-d5/a0-a6
@@ -269,6 +287,7 @@ ECPhysicsBody_TerrainSearch_Down:
     cmp.l  d7, d1                       ; Check if on or under floor
     blt    @EndTerrain
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
+    subi.w #PHYS_STEP_HEIGHT, d1        ; - step height
     move.l #0x0, d3
     move.l #0x0, a6
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
@@ -307,6 +326,7 @@ ECPhysicsBody_TerrainSearch_Right:
     cmp.l  d7, d0                       ; Check if left of wall
     blt    @EndTerrain
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
+    subi.w #PHYS_STEP_HEIGHT, d0        ; - step height
     move.l #0x0, d2
     move.l #0x0, a5
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
@@ -344,6 +364,7 @@ ECPhysicsBody_TerrainSearch_Up:
     cmp.l  d7, d1                       ; Check if on or above ceiling
     bgt    @EndTerrain
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
+    addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
     move.l #0x0, d3
     move.l #0x0, a6
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
@@ -381,6 +402,7 @@ ECPhysicsBody_TerrainSearch_Left:
     cmp.l  d7, d0                       ; Check if left of wall
     bgt    @EndTerrain
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
+    addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
     move.l #0x0, d2
     move.l #0x0, a5
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags

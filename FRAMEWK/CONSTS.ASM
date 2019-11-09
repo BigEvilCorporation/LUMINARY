@@ -17,6 +17,7 @@ SCN_MAX_ENTITIES                        equ BLDCONF_SCN_MAX_ENTITIES
 ; Physics
 PHYS_GRAVITY_Y                          equ BLDCONF_PHYS_GRAVITY_Y
 PHYS_STEP_HEIGHT                        equ 0x04
+PHYS_GROUND_SPEED_TO_VEL                equ 0x0100
 PHYS_TERRAIN_ANGLE_90                   equ 0x40
 PHYS_TERRAIN_SEARCH_QUADRANT_DOWN       equ 0
 PHYS_TERRAIN_SEARCH_QUADRANT_RIGHT      equ 1
