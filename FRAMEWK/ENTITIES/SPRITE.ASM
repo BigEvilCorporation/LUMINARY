@@ -23,6 +23,7 @@ ECSprite_AnimSubFrame                   rs.l 1  ; Current subframe
 ECSprite_AnimSpeed                      rs.w 1  ; Animation speed
 ECSprite_DrawFlags                      rs.w 1  ; Prio/pal/flip flags
 ECSprite_AnimLoop                       rs.b 1  ; Animation loop flag
+ECSprite_Dirty                          rs.b 1  ; Anim changed, forcefully load frame
     ENTITY_COMPONENT_END
 
     ; ======================================
@@ -44,27 +45,21 @@ ECSprite_Initialise:
     ; ======================================
 
     ; Initialise from spawn params
-    move.l SDSprite_Sheet(a1), a2
-    move.l a2, ECSprite_Sheet(a0)
     move.w #0x0, ECSprite_DrawFlags(a0)
     move.l #0x0, ECSprite_VRAMHndl(a0)
     move.l #0x0, ECSprite_AnimSubFrame(a0)
     move.l #0x0, ECSprite_Animation(a0)
+    move.b #0x0, ECSprite_Dirty(a0)
 
-    ; Set first animation frame
-    move.l SpriteSheet_FirstFrame(a2), ECSprite_CurrentFrame(a0)
-    
+    ; Load animation
+    move.l SDSprite_Animation(a1), a2
+    move.l SDSprite_Sheet(a1), a1
+    bsr    ECSprite_LoadAnimation
+
     ; Alloc VRAM and load tile data
     PUSHM.L a0-a1
     bsr    ECSprite_LoadTiles
     POPM.L  a0-a1
-
-    ; Load animation
-    move.l SDSprite_Animation(a1), a1
-    cmp.l  #0x0, a1
-    beq    @NoAnim
-    bsr    ECSprite_LoadAnimation
-    @NoAnim:
 
     rts
 
@@ -107,24 +102,70 @@ ECSprite_LoadTiles:
 
     rts
 
-ECSprite_LoadAnimation:
+ECSprite_LoadSheet:
     ; ======================================
-    ; Loads a sprite animation and begins
-    ; playing with default parameters
+    ; Loads a sprite sheet with no animation
     ; ======================================
 	; a0   ECSprite component
-    ; a1   SpriteAnim
+    ; a1   SpriteSheet
     ; ======================================
 
-    cmp.l  ECSprite_Animation(a0), a1
-    beq    @NoChange
+    cmp.l  ECSprite_Sheet(a0), a1
+    beq    @NoSheetChange
 
-    move.l a1, ECSprite_Animation(a0)                           ; Set anim
-    move.w SpriteAnim_DefaultSpeed(a1), ECSprite_AnimSpeed(a0)  ; Set default speed
-    move.b SpriteAnim_DefaultLoop(a1), ECSprite_AnimLoop(a0)    ; Set default loop flag
+    ; Set sheet and first frame
+    move.l a1, ECSprite_Sheet(a0)
+    move.l SpriteSheet_FirstFrame(a1), ECSprite_CurrentFrame(a0)
+
+    ; Clear animation
+    move.l #0x0, ECSprite_Animation(a0)
+    move.w #0x0, ECSprite_AnimSpeed(a0)
+    move.b #0x0, ECSprite_AnimLoop(a0)
+
+    @NoSheetChange:
+
+    rts
+
+ECSprite_LoadAnimation:
+    ; ======================================
+    ; Loads a sprite sheet and animation,
+    ; and begins playing with default parameters
+    ; ======================================
+	; a0   ECSprite component
+    ; a1   SpriteSheet
+    ; a2   SpriteAnim
+    ; ======================================
+
+    ; Set sheet and first frame
+    cmp.l  ECSprite_Sheet(a0), a1
+    beq    @NoSheetChange
+    move.l a1, ECSprite_Sheet(a0)
+    move.l SpriteSheet_FirstFrame(a1), ECSprite_CurrentFrame(a0)
+    @NoSheetChange:
+
+    ; Set animation
+    cmp.l  ECSprite_Animation(a0), a2
+    beq    @NoAnimChange
+
+    move.l a2, ECSprite_Animation(a0)                           ; Set anim
     move.l #0x0, ECSprite_AnimSubFrame(a0)                      ; Reset subframe
+    move.b #0x1, ECSprite_Dirty(a0)                             ; Load frame on next render
 
-    @NoChange:
+    cmpa.w #0x0, a2
+    beq    @NoAnim
+
+    move.w SpriteAnim_DefaultSpeed(a2), ECSprite_AnimSpeed(a0)  ; Set default speed
+    move.b SpriteAnim_DefaultLoop(a2), ECSprite_AnimLoop(a0)    ; Set default loop flag
+
+    rts
+
+    @NoAnim:
+
+    move.w #0x0, ECSprite_AnimSpeed(a0)                         ; Clear speed
+    move.b #0x0, ECSprite_AnimLoop(a0)                          ; Clear loop flag
+
+    @NoAnimChange:
+    
 
     rts
 
@@ -158,9 +199,12 @@ ECSprite_DrawAll:
     add.w  d6, d0                       ; Scroll space to sprite space
     sub.w  d7, d1
 
+    tst.b  ECSprite_Dirty(a3)           ; If dirty, skip straight to loading current frame
+    bne    @ForceLoadFrame
+
     ; Tick animation
     move.l ECSprite_Animation(a3), a1
-    cmp.l  #0x0, a1
+    cmpa.w #0x0, a1                     ; If no anim, don't fetch frame from keyframe track
     beq    @AnimNotPlaying
     moveq  #0x0, d4
     move.w ECSprite_AnimSpeed(a3), d4   ; Get speed, bail if 0
@@ -178,19 +222,24 @@ ECSprite_DrawAll:
     cmp.w  d5, d6                       ; If no change, bail
     beq    @AnimNoFrameChange
 
+    ; Wrap frame idx and get next frame ptr from keyframe track
     moveq  #0x0, d6
     move.w SpriteAnim_Length(a1), d6    ; Wrap frame
     divs   d6, d5
     swap   d5
-
 	lsl.w  #0x2, d5                     ; Frame to longs
-    move.l SpriteAnim_KeyframeTrackFrameId(a1), a1 ; Get keyframe track
-    move.l (a1, d5), a1                 ; Get new frame
-    move.l a1, ECSprite_CurrentFrame(a3); Store new frame
-    move.l a1, a0                       ; Set frame for drawing
+    move.l SpriteAnim_KeyframeTrackFrameId(a1), a0 ; Get keyframe track
+    move.l (a0, d5), a0                 ; Get new frame
+    move.l a0, ECSprite_CurrentFrame(a3); Store new frame
+
+    @ForceLoadFrame:
+    @NoAnim:
+
+    move.l a0, a1                       ; Set frame for loading
 	
     ; Load new frame
     PUSHM.L d0-d3/a0-a3
+    move.b #0x0, ECSprite_Dirty(a3)     ; Clear dirty flag
     move.l ECSprite_VRAMHndl(a3), d0
     move.w SpriteFrame_SizeTiles(a1), d1
     move.l SpriteFrame_TileData(a1), a0 ; Load tiles to VRAM
@@ -199,7 +248,6 @@ ECSprite_DrawAll:
     move.b #VDPDMA_TRANSFER_VRAM, d2
     move.b #SIZE_WORD, d3
     bsr    VDPDMA_AddJob
-
     POPM.L d0-d3/a0-a3
 
     @AnimNotPlaying:

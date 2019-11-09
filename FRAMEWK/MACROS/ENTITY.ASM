@@ -101,6 +101,7 @@ ENT_COMPONENT: macro component_name
     ; ======================================
     ; Name - Component name
     ; ======================================
+    STRUCT_ALIGN
     dc.w   __RS                                         ; Fill in ComponentSlotDesc data
     dc.w   __COMPONENT_SPAWN_DATA_OFFSET
     dc.l   EntityBlockList_\component_name

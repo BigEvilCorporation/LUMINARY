@@ -105,13 +105,21 @@ ECPhysicsBody_Step:
     bra    @Accelerate
     @Decelerate:
     move.w ECPhysicsBody_DecelX(a3), d4             ; Apply X decel to ground speed
+    tst.l  d5                                       ; Reverse sign if vel < 0
+    bge    @PositiveVel
+    neg.w  d4
     ext.l  d4
     sub.l  d4, d5
-    bvc    @NotFullStop
+    blt    @NotFullStop
+    bra    @DecelDone
+    @PositiveVel:
+    ext.l  d4
+    sub.l  d4, d5
+    bgt    @NotFullStop
     moveq  #0x0, d5                                 ; Fully decelerated, stop
     @NotFullStop:
+    @DecelDone:
     @Accelerate:
-    ;beq    @NoGroundSpeed
     
     PUSH.L d7
     move.w ECPhysicsBody_MaxGroundSpeed(a3), d4	    ; Clamp ground speed to max
@@ -126,7 +134,6 @@ ECPhysicsBody_Step:
     move.l d5, d2						; x vel
     move.l d5, d3						; y vel
     andi.w #0xFF, d6					; Extract angle from flags
-    addi.b #0x2, d6
 
     add.w  d6, d6
 
@@ -136,7 +143,7 @@ ECPhysicsBody_Step:
     move.w (a4,d6.w), d4
     muls.w d4, d3
             
-    addi.w #0x80, d6					; Ground speed to x vel
+    addi.w #SINE_TBL_COS_OFFS, d6		; Ground speed to x vel
     moveq  #0x0, d4
     move.w (a4,d6.w), d4
     muls.w d4, d2
@@ -146,18 +153,18 @@ ECPhysicsBody_Step:
 
     @NoGroundSpeed:
     
-    ;add.l  d4, d2                       ; Apply accel to vel
+    add.l  d4, d2                       ; Apply accel to vel
     add.l  d5, d3
 
     @EndGroundSpeed:
 
     ; Clamp Y velocity to max
-    moveq  #0x0, d4
-    move.w ECPhysicsBody_MaxVelY(a3), d4
-    swap   d4
-    move.l d4, d5
-    neg.l  d5
-    CLAMP.L d3,d5,d4
+    ;moveq  #0x0, d4
+    ;move.w ECPhysicsBody_MaxVelY(a3), d4
+    ;swap   d4
+    ;move.l d4, d5
+    ;neg.l  d5
+    ;CLAMP.L d3,d5,d4
     
     move.l d2, a5                       ; Backup vel
     move.l d3, a6

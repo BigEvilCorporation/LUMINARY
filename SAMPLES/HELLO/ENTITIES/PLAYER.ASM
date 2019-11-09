@@ -1,0 +1,208 @@
+; ============================================================================================
+; LUMINARY - a game engine and framework for the SEGA Mega Drive
+; ============================================================================================
+; Matt Phillips - Big Evil Corporation Ltd - 9th November 2019
+; ============================================================================================
+; PLAYER.ASM - Player entity component
+; ============================================================================================
+
+PLAYER_ANIM_IDLE                        equ 0
+PLAYER_ANIM_WALK                        equ 1
+PLAYER_ANIM_RUN                         equ 2
+PLAYER_ANIM_JUMP                        equ 3
+PLAYER_ANIM_COUNT                       equ 4
+
+PLAYER_FLAG_JUMPING                     equ 0
+
+PLAYER_WALK_TO_RUN_VEL                  equ 0x00030000
+
+PlayerSpriteAnimTable:
+    dc.l   actor_sonic_spritesheet_idle, 0x0
+    dc.l   actor_sonic_spritesheet_walk, actor_sonic_sheet_walk_anim_walk
+    dc.l   actor_sonic_spritesheet_run,  actor_sonic_sheet_run_anim_run
+    dc.l   0x0,                          0x0
+
+SPRITE_ANIM_FROM_TABLE: macro table,index,sheet_addr,anim_addr
+    ; =================================================
+    ; Retrives sprite sheet and animation addresses
+    ; from an animation table, given a table and index
+    ; =================================================
+    ;  table      - Const address of animation table
+    ;  index      - Const animation index
+    ; Out:
+    ;  sheet_addr - Sprite sheet address reg
+    ;  anim_addr  - Animation address reg
+    ; =================================================
+    move.l \table+(\index*SIZE_LONG*2), \sheet_addr
+    move.l \table+(\index*SIZE_LONG*2)+SIZE_LONG, \anim_addr
+    endm
+
+    ENTITY_SPAWN_DATA_BEGIN EPlayer
+;SDPlayer_SomeArbitrarySpawnData         rs.l 1
+    ENTITY_SPAWN_DATA_END
+
+    ENTITY_BEGIN EPlayer
+EPlayer_StateFlags                      rs.b 1
+	ENT_COMPONENT ECPhysicsBody
+    ENT_COMPONENT ECSprite
+    ENTITY_END
+
+EPlayer_Initialise:
+    ; ======================================
+    ; EPlayer constructor
+    ; ======================================
+	; a0   Entity
+    ; a1   Entity spawn data
+    ; ======================================
+
+    ; Initialise
+    move.b #0x0, EPlayer_StateFlags(a0)
+
+    ; Set as camera target
+    move.l RAM_CAMERA_CURRENT, a2
+    cmpa.l #0x0, a2
+    beq    @NoCam
+    move.l a0, Camera_TargetEntity(a2)
+    @NoCam:
+
+    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a2
+    move.w #0x3, d0
+    SPRITE_COMPONENT_SETPALETTE_REG a2,d0
+
+    ; Init player's physics component
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
+    move.w #0x0600, ECPhysicsBody_MaxGroundSpeed(a0)
+    move.w #0x0080, ECPhysicsBody_DecelX(a0)
+
+    rts
+
+EPlayer_Shutdown:
+    rts
+
+EPlayer_Update:
+
+    move.l #0x0, d1
+    move.l #0x0, d2
+    
+    ; Get physics component
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
+
+    ; Read input
+    bsr    PAD_ReadPortA
+
+    ; Apply acceleration
+    btst   #PAD_BUTTON_LEFT, d0
+    beq    @NoLft
+    move.w #-0x0C, d1
+    @NoLft:
+
+    btst   #PAD_BUTTON_RIGHT, d0
+    beq    @NoRt
+    move.w #0x0C, d1
+    @NoRt:
+
+    move.w d1, ECPhysicsBody_AccelX(a1)
+
+    ; Get player state and current terrain flags
+    move.b EPlayer_StateFlags(a0), d5
+    move.w ECPhysicsBody_LastTerrainFlags(a1), d6
+
+    ; If in jump state and on floor, clear jump flag
+    btst   #PLAYER_FLAG_JUMPING, d5
+    beq    @EndJumpClear
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
+    beq    @EndJumpClear
+    bclr   #PLAYER_FLAG_JUMPING, d5
+    @EndJumpClear:
+
+    ; Jump
+    btst   #PAD_BUTTON_B, d0
+    beq    @NoB
+    bsr    EPlayer_Jump
+    @NoB:
+
+    ; Store flags
+    move.b d5, EPlayer_StateFlags(a0)
+
+    ; Debug draw
+    move.w ECPhysicsBody_LastTerrainFlags(a1), d6
+    DBG_DRAW_WORD #8,#8,d6
+    move.b ECPhysicsBody_TerrainQuadrant(a1), d6
+    DBG_DRAW_BYTE #8,#9,d6
+
+    ; Determine animation
+    moveq  #0x0, d1                     ; Flip X
+    move.l ECPhysicsBody_VelX(a1), d0
+    tst.l  d0
+    bne    @Moving
+
+    ; Idle
+    SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_IDLE, a1, a2
+    bra    @SetAnim
+
+    @Moving:
+
+    move.l d0, d2
+    ABS.L  d2
+    cmp.l  #PLAYER_WALK_TO_RUN_VEL, d2
+    bgt    @Running
+
+    ; Walking
+    SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_WALK, a1, a2
+    bra    @SetFlipFlag
+
+    @Running:
+
+    ; Running
+    SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_RUN, a1, a2
+
+    ; Velocity sign to flip flag
+    @SetFlipFlag:
+    move.l d0, d1
+    rol.l  #0x1, d1
+
+    ; Load animation
+    @SetAnim:
+    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0 ; Get sprite component
+    SPRITE_COMPONENT_SETFLIPX_REG a0,d1     ; Set flip X flag
+    bsr    ECSprite_LoadAnimation           ; Load animation
+
+    rts
+
+EPlayer_Jump:
+    ; a0   Entity
+    ; a1   ECPhysicsBody
+    ; d5.b PLAYER_FLAG_*
+    ; d6.b COLLISION_FLAG_*
+
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6 ; Check on terrain
+    beq    @NotOnFloor
+
+    moveq  #0x0, d7
+    move.b d6, d7                       ; Extract angle from flags
+    subi.b #PHYS_TERRAIN_ANGLE_90, d7   ; -90 degrees
+    add.w  d7, d7
+
+    lea    sinetable, a4                ; Jump angle to y vel
+    moveq  #0x0, d3
+    move.w (a4,d7.w), d3
+    muls   #0x680, d3
+    sub.l  d3, ECPhysicsBody_VelY(a1)
+            
+    addi.w #SINE_TBL_COS_OFFS, d7		; Jump angle to x vel
+    moveq  #0x0, d3
+    move.w (a4,d7.w), d3
+    muls   #0x680, d3
+    sub.l  d3, ECPhysicsBody_VelX(a1)
+    
+
+    ; Set jump flag
+    bset   #PLAYER_FLAG_JUMPING, d5
+
+    ; Clear terrain floor flag
+    bclr   #COLLISION_FLAG_BIT_TERRAIN_W, d6
+    move.w d6, ECPhysicsBody_LastTerrainFlags(a1)
+
+    @NotOnFloor:
+
+    rts

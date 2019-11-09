@@ -24,3 +24,15 @@ CLAMP: macro valuereg,min,max
 	move.\0 \max,\valuereg
 	@WITHIN_MAX\@:
 	endm
+
+ABS: macro valuereg
+    ; ======================================
+    ; Get positive absolute
+    ; ======================================
+    ; valuereg   - In/out: value to abs
+	; ======================================
+	cmp.\0 #0x0, \valuereg
+	bge   @Pos\@
+	neg.\0 \valuereg
+	@Pos\@:
+	endm

@@ -11,6 +11,7 @@
     include 'samples/hello/system/header.asm'
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
+    include 'samples/hello/entities/player.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -18,139 +19,6 @@ DRAW_VRAM: macro
     bsr    VRAMMGR_DrawTable
     POP.L  a0
     endm
-
-SPRITE_COMPONENT_SETPALETTE_REG: macro sprite,pal_idx
-    ; ======================================
-    ; Set a sprite's palette idx from a reg
-    ; ======================================
-    ; sprite   - Address reg of sprite
-    ; pal_idx  - Reg containing index (0-3)
-    ; ======================================
-    andi.w #0x3, \pal_idx
-    ror.w  #VDP_SPRITE_FLAG_ROR_PAL, \pal_idx
-    andi.w #VDP_SPRITE_FLAG_NMASK_PAL, ECSprite_DrawFlags(\sprite)
-    or.w   \pal_idx, ECSprite_DrawFlags(\sprite)
-    endm
-
-    ENTITY_SPAWN_DATA_BEGIN EPlayer
-    ENTITY_SPAWN_DATA_END
-
-    ENTITY_BEGIN EPlayer
-EPlayer_SpawnData                       rs.l 1
-EPlayer_SpawnPosX                       rs.w 1
-EPlayer_SpawnPosY                       rs.w 1
-	ENT_COMPONENT ECPhysicsBody
-    ENT_COMPONENT ECSprite
-    ENTITY_END
-
-EPlayer_Initialise:
-    ; ======================================
-    ; EPlayer constructor
-    ; ======================================
-	; a0   Entity
-    ; a1   Entity spawn data
-    ; ======================================
-
-    move.w Entity_PosX(a0), EPlayer_SpawnPosX(a0)
-    move.w Entity_PosY(a0), EPlayer_SpawnPosY(a0)
-    move.l a1, EPlayer_SpawnData(a0)
-    
-    ; Set as camera target
-    move.l RAM_CAMERA_CURRENT, a2
-    cmpa.l #0x0, a2
-    beq    @NoCam
-    move.l a0, Camera_TargetEntity(a2)
-    @NoCam:
-
-    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a2
-    move.w #0x3, d0
-    SPRITE_COMPONENT_SETPALETTE_REG a2,d0
-
-    ; Init player's physics component
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #0x0008, ECPhysicsBody_DecelX(a0)
-
-    rts
-
-EPlayer_Shutdown:
-    rts
-
-EPlayer_Update:
-
-    move.l #0x0, d1
-    move.l #0x0, d2
-    
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
-
-    bsr    PAD_ReadPortA
-    btst   #PAD_BUTTON_UP, d0
-    beq    @NoUp
-    ;move.w #-500, d2
-    @NoUp:
-
-    btst   #PAD_BUTTON_DOWN, d0
-    beq    @NoDn
-    ;move.w #500, d2
-    @NoDn:
-
-    btst   #PAD_BUTTON_LEFT, d0
-    beq    @NoLft
-    move.w #-0x10, d1
-    @NoLft:
-
-    btst   #PAD_BUTTON_RIGHT, d0
-    beq    @NoRt
-    move.w #0x10, d1
-    @NoRt:
-
-    move.w d1, ECPhysicsBody_AccelX(a1)
-    ;move.w d2, ECPhysicsBody_AccelY(a1)
-
-    rts
-
-    ; If entity out of bounds
-    cmp.w  #VDP_SCREEN_WIDTH_PX+VDP_SPRITE_BORDER_X, Entity_PosX(a0)
-    bgt    @Reset
-    cmp.w  #VDP_SCREEN_HEIGHT_PX+VDP_SPRITE_BORDER_Y, Entity_PosY(a0)
-    bgt    @Reset
-    cmp.w  #VDP_SPRITE_BORDER_X, Entity_PosX(a0)
-    blt    @Reset
-    cmp.w  #VDP_SPRITE_BORDER_Y, Entity_PosY(a0)
-    bge    @End
-
-    @Reset:
-
-    ; Fetch state
-    move.w EPlayer_SpawnPosX(a0), d0
-    move.w EPlayer_SpawnPosY(a0), d1
-    move.l EPlayer_SpawnData(a0), d2
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
-    move.w ECPhysicsBody_AccelX(a1), d3
-    move.w ECPhysicsBody_AccelY(a1), d4
-
-    PUSHM.W d3-d4
-    PUSHM.L d0-d2
-
-    ; Remove this entity
-    bsr    ENT_DespawnEntity
-
-    ; Spawn a new one
-    POPM.L d0-d2
-    lea    EPlayer_TypeDesc, a0
-    move.l d2, a1
-    bsr    ENT_SpawnEntity
-
-    ; Restore state
-    POPM.W d3-d4
-
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
-    neg.w  d3
-    move.w d4, ECPhysicsBody_AccelX(a1)
-    move.w d3, ECPhysicsBody_AccelY(a1)
-    
-    @End:
-
-    rts
 
 Main:
     ; ======================================

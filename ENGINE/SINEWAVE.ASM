@@ -11,6 +11,7 @@
 SINE_TBL_SIZE		equ 256
 SINE_MIN			equ -256
 SINE_MAX			equ 256
+SINE_TBL_COS_OFFS	equ 0x80
 
 sinetable:
 	REPT 2
