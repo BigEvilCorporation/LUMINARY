@@ -14,13 +14,18 @@ PLAYER_ANIM_COUNT                       equ 4
 
 PLAYER_FLAG_JUMPING                     equ 0
 
+PLAYER_ACCEL                            equ 0x000C
+PLAYER_DECEL                            equ 0x000C
+PLAYER_DECEL_FORCED                     equ 0x0080
+PLAYER_JUMP_VEL                         equ 0x0680
 PLAYER_WALK_TO_RUN_VEL                  equ 0x00030000
+PLAYER_MAX_GROUND_SPEED                 equ 0x0600
 
 PlayerSpriteAnimTable:
     dc.l   actor_sonic_spritesheet_idle, 0x0
     dc.l   actor_sonic_spritesheet_walk, actor_sonic_sheet_walk_anim_walk
     dc.l   actor_sonic_spritesheet_run,  actor_sonic_sheet_run_anim_run
-    dc.l   0x0,                          0x0
+    dc.l   actor_sonic_spritesheet_jump, actor_sonic_sheet_jump_anim_jump
 
 SPRITE_ANIM_FROM_TABLE: macro table,index,sheet_addr,anim_addr
     ; =================================================
@@ -71,8 +76,8 @@ EPlayer_Initialise:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #0x0600, ECPhysicsBody_MaxGroundSpeed(a0)
-    move.w #0x0080, ECPhysicsBody_DecelX(a0)
+    move.w #PLAYER_MAX_GROUND_SPEED, ECPhysicsBody_MaxGroundSpeed(a0)
+    move.w #PLAYER_DECEL, ECPhysicsBody_DecelX(a0)
 
     rts
 
@@ -80,6 +85,11 @@ EPlayer_Shutdown:
     rts
 
 EPlayer_Update:
+    ; ======================================
+    ; EPlayer update
+    ; ======================================
+	; a0   Entity
+    ; ======================================
 
     move.l #0x0, d1
     move.l #0x0, d2
@@ -87,19 +97,32 @@ EPlayer_Update:
     ; Get physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
 
+    ; Get ground speed
+    move.w ECPhysicsBody_GroundSpeed(a1), d2
+
     ; Read input
     bsr    PAD_ReadPortA
 
-    ; Apply acceleration
+    ; Apply acceleration/forced deceleration
     btst   #PAD_BUTTON_LEFT, d0
-    beq    @NoLft
-    move.w #-0x0C, d1
-    @NoLft:
+    beq    @EndLeft
+    tst.w  d2
+    ble    @AccelLeft
+    move.w #-PLAYER_DECEL_FORCED, d1
+    bra    @EndLeft
+    @AccelLeft:
+    move.w #-PLAYER_ACCEL, d1
+    @EndLeft:
 
     btst   #PAD_BUTTON_RIGHT, d0
-    beq    @NoRt
-    move.w #0x0C, d1
-    @NoRt:
+    beq    @EndRight
+    tst.w  d2
+    bge    @AccelRight
+    move.w #PLAYER_DECEL_FORCED, d1
+    bra    @EndRight
+    @AccelRight:
+    move.w #PLAYER_ACCEL, d1
+    @EndRight:
 
     move.w d1, ECPhysicsBody_AccelX(a1)
 
@@ -123,21 +146,32 @@ EPlayer_Update:
 
     ; Store flags
     move.b d5, EPlayer_StateFlags(a0)
+    move.w d6, ECPhysicsBody_LastTerrainFlags(a1)
 
     ; Debug draw
-    move.w ECPhysicsBody_LastTerrainFlags(a1), d6
-    DBG_DRAW_WORD #8,#8,d6
-    move.b ECPhysicsBody_TerrainQuadrant(a1), d6
-    DBG_DRAW_BYTE #8,#9,d6
+    move.w ECPhysicsBody_LastTerrainFlags(a1), d7
+    DBG_DRAW_WORD #8,#8,d7
+    move.b ECPhysicsBody_TerrainQuadrant(a1), d7
+    DBG_DRAW_BYTE #8,#9,d7
+
+    ; Backup physics component
+    move.l a1, a3
 
     ; Determine animation
-    moveq  #0x0, d1                     ; Flip X
+    btst   #PLAYER_FLAG_JUMPING, d5
+    bne    @Jumping
+
     move.l ECPhysicsBody_VelX(a1), d0
     tst.l  d0
     bne    @Moving
 
     ; Idle
     SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_IDLE, a1, a2
+    bra    @SetAnim
+
+    ; Jumping
+    @Jumping:
+    SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_JUMP, a1, a2
     bra    @SetAnim
 
     @Moving:
@@ -149,31 +183,43 @@ EPlayer_Update:
 
     ; Walking
     SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_WALK, a1, a2
-    bra    @SetFlipFlag
+    bra    @SetAnim
 
     @Running:
 
     ; Running
     SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_RUN, a1, a2
-
-    ; Velocity sign to flip flag
-    @SetFlipFlag:
-    move.l d0, d1
-    rol.l  #0x1, d1
+    bra    @SetAnim
 
     ; Load animation
     @SetAnim:
     ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0 ; Get sprite component
-    SPRITE_COMPONENT_SETFLIPX_REG a0,d1     ; Set flip X flag
     bsr    ECSprite_LoadAnimation           ; Load animation
+
+    ; Set X flip flag
+    move.b #0x0, d1
+    move.l ECPhysicsBody_VelX(a3), d2
+    tst.l  ECPhysicsBody_VelX(a3)
+    beq    @NoFlipChange
+    bgt    @FaceRight
+    move.b #0x1, d1
+    @FaceRight:
+    SPRITE_COMPONENT_SETFLIPX_REG a0,d1     ; Set flip X flag
+    @NoFlipChange:
 
     rts
 
 EPlayer_Jump:
-    ; a0   Entity
-    ; a1   ECPhysicsBody
-    ; d5.b PLAYER_FLAG_*
-    ; d6.b COLLISION_FLAG_*
+    ; ======================================
+    ; EPlayer jump
+    ; ======================================
+    ; In:
+    ;  a0   Entity
+    ;  a1   ECPhysicsBody
+    ; In/out:
+    ;  d5.b PLAYER_FLAG_*
+    ;  d6.b COLLISION_FLAG_*
+    ; ======================================
 
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6 ; Check on terrain
     beq    @NotOnFloor
@@ -186,22 +232,20 @@ EPlayer_Jump:
     lea    sinetable, a4                ; Jump angle to y vel
     moveq  #0x0, d3
     move.w (a4,d7.w), d3
-    muls   #0x680, d3
-    sub.l  d3, ECPhysicsBody_VelY(a1)
+    muls   #PLAYER_JUMP_VEL, d3
+    add.l  d3, ECPhysicsBody_VelY(a1)
             
     addi.w #SINE_TBL_COS_OFFS, d7		; Jump angle to x vel
     moveq  #0x0, d3
     move.w (a4,d7.w), d3
-    muls   #0x680, d3
-    sub.l  d3, ECPhysicsBody_VelX(a1)
-    
+    muls   #PLAYER_JUMP_VEL, d3
+    add.l  d3, ECPhysicsBody_VelX(a1)
 
     ; Set jump flag
     bset   #PLAYER_FLAG_JUMPING, d5
 
     ; Clear terrain floor flag
     bclr   #COLLISION_FLAG_BIT_TERRAIN_W, d6
-    move.w d6, ECPhysicsBody_LastTerrainFlags(a1)
 
     @NotOnFloor:
 

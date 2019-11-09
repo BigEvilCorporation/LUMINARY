@@ -106,16 +106,17 @@ ECPhysicsBody_Step:
     @Decelerate:
     move.w ECPhysicsBody_DecelX(a3), d4             ; Apply X decel to ground speed
     tst.l  d5                                       ; Reverse sign if vel < 0
+    beq    @DecelDone
     bge    @PositiveVel
-    neg.w  d4
     ext.l  d4
-    sub.l  d4, d5
-    blt    @NotFullStop
+    add.l  d4, d5
+    bgt    @FullStop
     bra    @DecelDone
     @PositiveVel:
     ext.l  d4
     sub.l  d4, d5
     bgt    @NotFullStop
+    @FullStop:
     moveq  #0x0, d5                                 ; Fully decelerated, stop
     @NotFullStop:
     @DecelDone:
