@@ -62,15 +62,12 @@ namespace luminary
 							u16 flags = stamps[i].GetCollisionTileFlags(x, y);
 							u8 angleByte = 0;
 							u8 quadrant = 0;
+							float degrees = 0.0f;
 
 							if (const TerrainTile* tile = tileset.GetTerrainTile(tileId))
 							{
-								float radians = tile->GetNormal().Angle(ion::Vector2(0.0f, 1.0f));
-								float degrees = 360.0f - ion::maths::Fmod(ion::maths::RadiansToDegrees(radians) + 360.0f, 360.0f);
-								if (degrees >= 360.0f)
-									degrees -= 360.0f;
-
-								angleByte = (u8)ion::maths::Floor((360.0f - degrees) * (256.0f / 360.0f));
+								degrees = tile->GetAngleDegrees();
+								angleByte = tile->GetAngleByte();
 								quadrant = ion::maths::Round(degrees / 90.0f) % 4;
 							}
 							
