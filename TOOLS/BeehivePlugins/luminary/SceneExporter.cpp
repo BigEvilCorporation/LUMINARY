@@ -166,8 +166,8 @@ namespace luminary
 				stream << "\tdc.l " << spawnDataName.str() << "\t; Entity spawn data" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX) << "\t; Position X" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY) << "\t; Position Y" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.width) << "\t; Width" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.height) << "\t; Height" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.width/2) << "\t; ExtentsX" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.height/2) << "\t; ExtentsY" << std::endl;
 			}
 
 			stream << std::endl;
