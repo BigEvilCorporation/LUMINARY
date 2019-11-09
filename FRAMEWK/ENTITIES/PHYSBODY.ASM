@@ -12,11 +12,12 @@
     ENTITY_COMPONENT_BEGIN ECPhysicsBody
 ECPhysicsBody_VelX                      rs.l 1
 ECPhysicsBody_VelY                      rs.l 1
-ECPhysicsBody_GroundSpeed               rs.l 1
-ECPhysicsBody_MaxGroundSpeed            rs.l 1
+ECPhysicsBody_GroundSpeed               rs.w 1
+ECPhysicsBody_MaxGroundSpeed            rs.w 1
 ECPhysicsBody_MaxVelY                   rs.w 1
 ECPhysicsBody_AccelX                    rs.w 1
 ECPhysicsBody_AccelY                    rs.w 1
+ECPhysicsBody_DecelX                    rs.w 1
 ECPhysicsBody_LastTerrainFlags          rs.w 1
 ECPhysicsBody_TerrainQuadrant           rs.b 1 ; PHYS_TERRAIN_SEARCH_QUADRANT_*
     ENTITY_COMPONENT_END
@@ -31,8 +32,8 @@ ECPhysicsBody_Initialise:
 
     move.l #0x0, ECPhysicsBody_VelX(a0)
     move.l #0x0, ECPhysicsBody_VelY(a0)
-    move.l #0x0, ECPhysicsBody_GroundSpeed(a0)
-    move.l #PHYS_DEFAULT_MAX_GROUND_SPEED, ECPhysicsBody_MaxGroundSpeed(a0)
+    move.w #0x0, ECPhysicsBody_GroundSpeed(a0)
+    move.w #PHYS_DEFAULT_MAX_GROUND_SPEED, ECPhysicsBody_MaxGroundSpeed(a0)
     move.w #PHYS_DEFAULT_MAX_VEL_Y, ECPhysicsBody_MaxVelY(a0)
     move.w #0x0, ECPhysicsBody_AccelX(a0)
     move.w #0x0, ECPhysicsBody_AccelY(a0)
@@ -89,31 +90,38 @@ ECPhysicsBody_Step:
 
     ; ======================================
     ; Step
-    ; ======================================
-    IF PHYS_GRAVITY_X                   ; Apply gravity to accel
-    addi.l #PHYS_GRAVITY_X, d4
-    ENDIF
-
-    IF PHYS_GRAVITY_Y
-    addi.l #PHYS_GRAVITY_Y, d5
-    ENDIF
+    ; ======================================                  
+    addi.l #PHYS_GRAVITY_Y, d5          ; Apply gravity to accel
 
     ; If on floor, convert X ground speed to x/y vel using sin/cos of angle
     move.w ECPhysicsBody_LastTerrainFlags(a3), d6	; Get flags and angle
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6		; Check on terrain
     beq    @NoGroundSpeed
-    move.l ECPhysicsBody_GroundSpeed(a3), d5		; Get ground speed
+    move.w ECPhysicsBody_GroundSpeed(a3), d5		; Get ground speed
+    ext.l  d5
+    tst.l  d4
+    beq    @Decelerate
     add.l  d4, d5                       			; Apply X accel to ground speed
-    beq    @NoGroundSpeed
+    bra    @Accelerate
+    @Decelerate:
+    move.w ECPhysicsBody_DecelX(a3), d4             ; Apply X decel to ground speed
+    ext.l  d4
+    sub.l  d4, d5
+    bvc    @NotFullStop
+    moveq  #0x0, d5                                 ; Fully decelerated, stop
+    @NotFullStop:
+    @Accelerate:
+    ;beq    @NoGroundSpeed
     
     PUSH.L d7
-    move.l ECPhysicsBody_MaxGroundSpeed(a3), d4	    ; Clamp ground speed to max
+    move.w ECPhysicsBody_MaxGroundSpeed(a3), d4	    ; Clamp ground speed to max
+    ext.l  d4
     move.l d4, d7
     neg.l  d7
     CLAMP.L d5,d7,d4
     POP.L  d7
     
-    move.l d5, ECPhysicsBody_GroundSpeed(a3); Store updated ground speed
+    move.w d5, ECPhysicsBody_GroundSpeed(a3); Store updated ground speed
 
     move.l d5, d2						; x vel
     move.l d5, d3						; y vel
@@ -138,7 +146,7 @@ ECPhysicsBody_Step:
 
     @NoGroundSpeed:
     
-    add.l  d4, d2                       ; Apply accel to vel
+    ;add.l  d4, d2                       ; Apply accel to vel
     add.l  d5, d3
 
     @EndGroundSpeed:

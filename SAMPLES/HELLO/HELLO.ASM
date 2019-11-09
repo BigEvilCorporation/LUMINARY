@@ -67,8 +67,8 @@ EPlayer_Initialise:
     SPRITE_COMPONENT_SETPALETTE_REG a2,d0
 
     ; Init player's physics component
-    ;ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    ;move.w #0x0800, ECPhysicsBody_AccelX(a0)
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
+    move.w #0x0008, ECPhysicsBody_DecelX(a0)
 
     rts
 
@@ -95,16 +95,15 @@ EPlayer_Update:
 
     btst   #PAD_BUTTON_LEFT, d0
     beq    @NoLft
-    subi.w #0x10, ECPhysicsBody_AccelX(a1)
+    move.w #-0x10, d1
     @NoLft:
 
     btst   #PAD_BUTTON_RIGHT, d0
     beq    @NoRt
-    addi.w #0x10, ECPhysicsBody_AccelX(a1)
+    move.w #0x10, d1
     @NoRt:
 
-    
-    ;move.w d1, ECPhysicsBody_AccelX(a1)
+    move.w d1, ECPhysicsBody_AccelX(a1)
     ;move.w d2, ECPhysicsBody_AccelY(a1)
 
     rts
