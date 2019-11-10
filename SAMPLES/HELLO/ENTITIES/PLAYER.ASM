@@ -14,12 +14,13 @@ PLAYER_ANIM_COUNT                       equ 4
 
 PLAYER_FLAG_JUMPING                     equ 0
 
-PLAYER_ACCEL                            equ 0x000C
-PLAYER_DECEL                            equ 0x000C
-PLAYER_DECEL_FORCED                     equ 0x0080
-PLAYER_JUMP_VEL                         equ 0x0680
+PLAYER_ACCEL                            equ 0x0C00
+PLAYER_ACCEL_AIR                        equ 0x1800
+PLAYER_DECEL                            equ 0x0C00
+PLAYER_DECEL_FORCED                     equ 0x7FFF
+PLAYER_JUMP_VEL                         equ 0x00068000
+PLAYER_MAX_VEL_X                 		equ 0x00060000
 PLAYER_WALK_TO_RUN_VEL                  equ 0x00030000
-PLAYER_MAX_GROUND_SPEED                 equ 0x0600
 
 PlayerSpriteAnimTable:
     dc.l   actor_sonic_spritesheet_idle, 0x0
@@ -76,7 +77,7 @@ EPlayer_Initialise:
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.w #PLAYER_MAX_GROUND_SPEED, ECPhysicsBody_MaxGroundSpeed(a0)
+    move.l #PLAYER_MAX_VEL_X, ECPhysicsBody_MaxVelX(a0)
     move.w #PLAYER_DECEL, ECPhysicsBody_DecelX(a0)
 
     rts
@@ -100,35 +101,47 @@ EPlayer_Update:
     ; Get ground speed
     move.w ECPhysicsBody_GroundSpeed(a1), d2
 
+    ; Get player state and current terrain flags
+    move.b EPlayer_StateFlags(a0), d5
+    move.w ECPhysicsBody_LastTerrainFlags(a1), d6
+
     ; Read input
     bsr    PAD_ReadPortA
 
     ; Apply acceleration/forced deceleration
     btst   #PAD_BUTTON_LEFT, d0
     beq    @EndLeft
-    tst.w  d2
-    ble    @AccelLeft
-    move.w #-PLAYER_DECEL_FORCED, d1
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6    ; Check on terrain
+    beq    @InAirLeft
+    tst.w  d2                                   ; Check if forcing opposite direction
+    bgt    @AccelForceLeft
+    move.w #-PLAYER_ACCEL, d1                   ; Just use plain ground accel
     bra    @EndLeft
-    @AccelLeft:
-    move.w #-PLAYER_ACCEL, d1
+    @AccelForceLeft:
+    move.w #-PLAYER_DECEL_FORCED, d1            ; Forcing opposite direction, use force decel
+    bra    @EndLeft
+    @InAirLeft:                                 ; In air, use air accel
+    move.w #-PLAYER_ACCEL_AIR, d1
+    bra    @EndLeft
     @EndLeft:
 
     btst   #PAD_BUTTON_RIGHT, d0
     beq    @EndRight
-    tst.w  d2
-    bge    @AccelRight
-    move.w #PLAYER_DECEL_FORCED, d1
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6    ; Check on terrain
+    beq    @InAirRight
+    tst.w  d2                                   ; Check if forcing opposite direction
+    blt    @AccelForceRight
+    move.w #PLAYER_ACCEL, d1                    ; Just use plain ground accel
     bra    @EndRight
-    @AccelRight:
-    move.w #PLAYER_ACCEL, d1
+    @AccelForceRight:
+    move.w #PLAYER_DECEL_FORCED, d1             ; Forcing opposite direction, use force decel
+    bra    @EndRight
+    @InAirRight:                                ; In air, use air accel
+    move.w #PLAYER_ACCEL_AIR, d1
+    bra    @EndRight
     @EndRight:
 
     move.w d1, ECPhysicsBody_AccelX(a1)
-
-    ; Get player state and current terrain flags
-    move.b EPlayer_StateFlags(a0), d5
-    move.w ECPhysicsBody_LastTerrainFlags(a1), d6
 
     ; If in jump state and on floor, clear jump flag
     btst   #PLAYER_FLAG_JUMPING, d5
@@ -232,13 +245,13 @@ EPlayer_Jump:
     lea    sinetable, a4                ; Jump angle to y vel
     moveq  #0x0, d3
     move.w (a4,d7.w), d3
-    muls   #PLAYER_JUMP_VEL, d3
+    muls   #PLAYER_JUMP_VEL>>8, d3      ; Ground speed values >> 8
     add.l  d3, ECPhysicsBody_VelY(a1)
             
     addi.w #SINE_TBL_COS_OFFS, d7		; Jump angle to x vel
     moveq  #0x0, d3
     move.w (a4,d7.w), d3
-    muls   #PLAYER_JUMP_VEL, d3
+    muls   #PLAYER_JUMP_VEL>>8, d3      ; Ground speed values >> 8
     add.l  d3, ECPhysicsBody_VelX(a1)
 
     ; Set jump flag

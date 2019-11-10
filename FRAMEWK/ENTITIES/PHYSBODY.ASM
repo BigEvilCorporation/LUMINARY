@@ -12,9 +12,8 @@
     ENTITY_COMPONENT_BEGIN ECPhysicsBody
 ECPhysicsBody_VelX                      rs.l 1
 ECPhysicsBody_VelY                      rs.l 1
+ECPhysicsBody_MaxVelX                   rs.l 1
 ECPhysicsBody_GroundSpeed               rs.w 1
-ECPhysicsBody_MaxGroundSpeed            rs.w 1
-ECPhysicsBody_MaxVelY                   rs.w 1
 ECPhysicsBody_AccelX                    rs.w 1
 ECPhysicsBody_AccelY                    rs.w 1
 ECPhysicsBody_DecelX                    rs.w 1
@@ -32,9 +31,8 @@ ECPhysicsBody_Initialise:
 
     move.l #0x0, ECPhysicsBody_VelX(a0)
     move.l #0x0, ECPhysicsBody_VelY(a0)
+    move.l #PHYS_DEFAULT_MAX_VEL_X, ECPhysicsBody_MaxVelX(a0)
     move.w #0x0, ECPhysicsBody_GroundSpeed(a0)
-    move.w #PHYS_DEFAULT_MAX_GROUND_SPEED, ECPhysicsBody_MaxGroundSpeed(a0)
-    move.w #PHYS_DEFAULT_MAX_VEL_Y, ECPhysicsBody_MaxVelY(a0)
     move.w #0x0, ECPhysicsBody_AccelX(a0)
     move.w #0x0, ECPhysicsBody_AccelY(a0)
     move.w #0x0, ECPhysicsBody_LastTerrainFlags(a0)
@@ -93,45 +91,51 @@ ECPhysicsBody_Step:
     ; ======================================                  
     addi.l #PHYS_GRAVITY_Y, d5          ; Apply gravity to accel
 
-    ; If on floor, convert X ground speed to x/y vel using sin/cos of angle
+    ; If on floor, move using ground speed
     move.w ECPhysicsBody_LastTerrainFlags(a3), d6	; Get flags and angle
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6		; Check on terrain
     beq    @NoGroundSpeed
+    moveq  #0x0, d5
     move.w ECPhysicsBody_GroundSpeed(a3), d5		; Get ground speed
     ext.l  d5
     tst.l  d4
     beq    @Decelerate
+    asr.l  #0x8, d4                                 ; X accel to ground speed range (16.16 >> 8)
     add.l  d4, d5                       			; Apply X accel to ground speed
     bra    @Accelerate
+
+    ; Deceleration
     @Decelerate:
     move.w ECPhysicsBody_DecelX(a3), d4             ; Apply X decel to ground speed
+    asr.w  #0x8, d4                                 ; X decel to ground speed range (16.16 >> 8)
+    ext.l  d4
     tst.l  d5                                       ; Reverse sign if vel < 0
     beq    @DecelDone
     bge    @PositiveVel
-    ext.l  d4
     add.l  d4, d5
     bgt    @FullStop
     bra    @DecelDone
     @PositiveVel:
-    ext.l  d4
     sub.l  d4, d5
     bgt    @NotFullStop
     @FullStop:
     moveq  #0x0, d5                                 ; Fully decelerated, stop
     @NotFullStop:
     @DecelDone:
+
     @Accelerate:
     
     PUSH.L d7
-    move.w ECPhysicsBody_MaxGroundSpeed(a3), d4	    ; Clamp ground speed to max
-    ext.l  d4
+    move.l ECPhysicsBody_MaxVelX(a3), d4	        ; Clamp ground speed to max
+    asr.w  #0x8, d4                                 ; Max X vel to ground speed range (16.16 >> 8)
     move.l d4, d7
     neg.l  d7
     CLAMP.L d5,d7,d4
     POP.L  d7
     
-    move.w d5, ECPhysicsBody_GroundSpeed(a3); Store updated ground speed
+    move.w d5, ECPhysicsBody_GroundSpeed(a3)        ; Store updated ground speed
 
+    ; Convert X ground speed to x/y vel using sin/cos of angle
     move.l d5, d2						; x vel
     move.l d5, d3						; y vel
     andi.w #0xFF, d6					; Extract angle from flags
@@ -154,18 +158,18 @@ ECPhysicsBody_Step:
 
     @NoGroundSpeed:
     
+    ; Regular accel/velocity not using terrain angles
     add.l  d4, d2                       ; Apply accel to vel
     add.l  d5, d3
 
-    @EndGroundSpeed:
+    ; Clamp X velocity
+    moveq  #0x0, d4
+    move.l ECPhysicsBody_MaxVelX(a3), d4
+    move.l d4, d5
+    neg.l  d5
+    CLAMP.L d2,d5,d4
 
-    ; Clamp Y velocity to max
-    ;moveq  #0x0, d4
-    ;move.w ECPhysicsBody_MaxVelY(a3), d4
-    ;swap   d4
-    ;move.l d4, d5
-    ;neg.l  d5
-    ;CLAMP.L d3,d5,d4
+    @EndGroundSpeed:
     
     move.l d2, a5                       ; Backup vel
     move.l d3, a6
@@ -256,7 +260,7 @@ ECPhysicsBody_Step:
 
 ECPhysicsBody_Landed:
     move.l ECPhysicsBody_VelX(a3), d6
-    divs   #PHYS_GROUND_SPEED_TO_VEL, d6
+    asr.l  #0x8, d6                     ; X vel to ground speed range (16.16 >> 8)
     move.w d6, ECPhysicsBody_GroundSpeed(a3)
     rts
 
