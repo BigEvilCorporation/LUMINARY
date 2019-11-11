@@ -7,5 +7,7 @@
 ; ============================================================================================
 
     RSSET RAM_GAME_START
-        STRUCT_ALLOC Scene,RAM_TESTSCENE1
-        ENT_COMPONENT_LIST ECAIBrain
+
+RAM_GAMEPAD_PREV_1                      rs.w 1  ; Prev frame gamepad state
+
+        STRUCT_ALLOC Scene,RAM_TESTSCENE1       ; Current scene

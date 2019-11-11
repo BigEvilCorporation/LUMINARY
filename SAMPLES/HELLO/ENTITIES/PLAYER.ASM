@@ -107,6 +107,8 @@ EPlayer_Update:
 
     ; Read input
     bsr    PAD_ReadPortA
+    move.w RAM_GAMEPAD_PREV_1, d7       ; For debounce
+    move.w d0, RAM_GAMEPAD_PREV_1       ; Backup prev state
 
     ; Apply acceleration/forced deceleration
     btst   #PAD_BUTTON_LEFT, d0
@@ -154,6 +156,8 @@ EPlayer_Update:
     ; Jump
     btst   #PAD_BUTTON_B, d0
     beq    @NoB
+    btst   #PAD_BUTTON_B, d7
+    bne    @NoB
     bsr    EPlayer_Jump
     @NoB:
 
