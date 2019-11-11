@@ -359,13 +359,14 @@ ECPhysicsBody_TerrainSearch_Down:
     cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_Y, d7     ; Y back to sprite space
-    sub.w  Entity_ExtentsY(a4), d7        ; Probe offset back to centre
+    sub.w  Entity_ExtentsY(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
-    IF !PHYS_TERRAIN_SNAP_TO_FLOOR
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3) ; If already on terrain, stay snapped to floor
+    bne    @SnapToFloor
     cmp.l  d7, d1                       ; Check if on or under floor
     blt    @EndTerrain
-    ENDIF
+    @SnapToFloor:
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d1        ; - step height
     move.l #0x0, d3
@@ -397,7 +398,7 @@ ECPhysicsBody_TerrainSearch_Right:
     cmp.w  #-1, d7                      ; d7 = terrain width, or -1
     beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_X, d7     ; X back to sprite space
-    sub.w  Entity_ExtentsX(a4), d7         ; Probe offset back to centre
+    sub.w  Entity_ExtentsX(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
     IF !PHYS_TERRAIN_SNAP_TO_FLOOR
