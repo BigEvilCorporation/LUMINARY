@@ -1,4 +1,4 @@
- ; ============================================================================================
+; ============================================================================================
 ; LUMINARY - a game engine and framework for the SEGA Mega Drive
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 5th August 2019
@@ -94,7 +94,8 @@ ECPhysicsBody_Step:
     ; If on floor, move using ground speed
     move.w ECPhysicsBody_LastTerrainFlags(a3), d6	; Get flags and angle
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6		; Check on terrain
-    beq    @NoGroundSpeed
+    beq    @InAir
+
     moveq  #0x0, d5
     move.w ECPhysicsBody_GroundSpeed(a3), d5		; Get ground speed
     ext.l  d5
@@ -127,36 +128,39 @@ ECPhysicsBody_Step:
     
     PUSH.L d7
     move.l ECPhysicsBody_MaxVelX(a3), d4	        ; Clamp ground speed to max
-    asr.w  #0x8, d4                                 ; Max X vel to ground speed range (16.16 >> 8)
-    move.l d4, d7
-    neg.l  d7
-    CLAMP.L d5,d7,d4
+    asr.l  #0x8, d4                                 ; Max X vel to ground speed range (16.16 >> 8)
+    move.w d4, d7
+    neg.w  d7
+    CLAMP.W d5,d7,d4
     POP.L  d7
-    
-    move.w d5, ECPhysicsBody_GroundSpeed(a3)        ; Store updated ground speed
 
     ; Convert X ground speed to x/y vel using sin/cos of angle
     move.l d5, d2						; x vel
     move.l d5, d3						; y vel
     andi.w #0xFF, d6					; Extract angle from flags
-
     add.w  d6, d6
 
     PUSH.L a4
-    lea    sinetable, a4                ; Ground speed to y vel
+    lea    sinetable, a4                ; Y vel = ground speed * sine(angle)
     moveq  #0x0, d4
     move.w (a4,d6.w), d4
     muls.w d4, d3
+
+    muls.w #PHYS_SLOPE_RESISTANCE_FACTOR>>8, d4     ; Adjust ground speed by sine(angle)*slope factor
+    asr.w  #0x8, d4
+    add.w  d4, d5
             
-    addi.w #SINE_TBL_COS_OFFS, d6		; Ground speed to x vel
+    addi.w #SINE_TBL_COS_OFFS, d6		; X vel = ground speed * cos(angle)
     moveq  #0x0, d4
     move.w (a4,d6.w), d4
     muls.w d4, d2
     POP.L  a4
 
+    move.w d5, ECPhysicsBody_GroundSpeed(a3)        ; Store updated ground speed
+
     bra    @EndGroundSpeed
 
-    @NoGroundSpeed:
+    @InAir:
     
     ; Regular accel/velocity not using terrain angles
     add.l  d4, d2                       ; Apply accel to vel
@@ -168,6 +172,9 @@ ECPhysicsBody_Step:
     move.l d4, d5
     neg.l  d5
     CLAMP.L d2,d5,d4
+
+    ; Search terrain downwards
+    move.b #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, ECPhysicsBody_TerrainQuadrant(a3)
 
     @EndGroundSpeed:
     
@@ -259,9 +266,79 @@ ECPhysicsBody_Step:
     rts
 
 ECPhysicsBody_Landed:
+
+    ; If landed on floor, not ceiling
+    tst.l  ECPhysicsBody_VelY(a3)
+    blt    @LandedCeiling
+
+    ; Get angle of terrain on impact
+    move.w ECPhysicsBody_LastTerrainFlags(a3), d5
+    andi.w #0xFF, d5
+    add.w  d5, d5
+    moveq  #0x0, d6
+
+    ; Shallow angle (0-22.5 deg, $F0-$FF/$00-$0F)
+    move.b d5, d6
+    addi.b #0x0F, d6
+    cmp.w  #0x0F*2, d6
+    ble    @ShallowAngle
+
+    ; Steep angle (22.5-45 deg, $E0-$EF/$10-$1F)
+    move.b d5, d6
+    addi.b #0x1F, d6
+    cmp.w  #0x1F*2, d6
+    ble    @SteepAngle
+    bra    @VerySteepAngle
+
+    @SteepAngle:
+    move.l ECPhysicsBody_VelX(a3), d7   ; If X > Y, landed sideways
+    move.l ECPhysicsBody_VelY(a3), d6
+    ABS.L  d7
+    cmp.l  d6, d7
+    bge    @LandedSideways
+
+    ; Landed at steep angle, set ground speed to Y velocity / 2
+    asr.l  #0x8, d6                     ; Y vel to ground speed range (16.16 >> 8)
+    asr.l  #0x1, d6                     ; / 2
+    moveq  #0x0, d7
+    lea    sinetable, a4                ; Get sign of angle sine
+    move.w (a4,d5.w), d7
+    tst.w  d7
+    bge    @NoNeg1
+    neg.w  d6                           ; -ve direction
+    @NoNeg1:
+    move.w d6, ECPhysicsBody_GroundSpeed(a3)
+    
+    rts
+
+    @VerySteepAngle:
+    move.l ECPhysicsBody_VelX(a3), d7   ; If X > Y, landed sideways
+    move.l ECPhysicsBody_VelY(a3), d6
+    ABS.L  d7
+    cmp.l  d6, d7
+    bge    @LandedSideways
+
+    ; Landed at very steep angle, set ground speed to Y velocity
+    asr.l  #0x8, d6                     ; Y vel to ground speed range (16.16 >> 8)
+    moveq  #0x0, d7
+    lea    sinetable, a4                ; Get sign of angle sine
+    move.w (a4,d5.w), d7
+    tst.w  d7
+    bge    @NoNeg2
+    neg.w  d6                           ; -ve direction
+    @NoNeg2:
+    move.w d6, ECPhysicsBody_GroundSpeed(a3)
+    
+    rts
+
+    @ShallowAngle:
+    @LandedSideways:
     move.l ECPhysicsBody_VelX(a3), d6
     asr.l  #0x8, d6                     ; X vel to ground speed range (16.16 >> 8)
     move.w d6, ECPhysicsBody_GroundSpeed(a3)
+
+    @LandedCeiling:
+
     rts
 
 ECPhysicsBody_TerrainSearch_Down:
@@ -282,11 +359,13 @@ ECPhysicsBody_TerrainSearch_Down:
     cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_Y, d7     ; Y back to sprite space
-    sub.w  Entity_ExtentsY(a4), d7        ; Probe offset to top
+    sub.w  Entity_ExtentsY(a4), d7        ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
+    IF !PHYS_TERRAIN_SNAP_TO_FLOOR
     cmp.l  d7, d1                       ; Check if on or under floor
     blt    @EndTerrain
+    ENDIF
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d1        ; - step height
     move.l #0x0, d3
@@ -318,11 +397,13 @@ ECPhysicsBody_TerrainSearch_Right:
     cmp.w  #-1, d7                      ; d7 = terrain width, or -1
     beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_X, d7     ; X back to sprite space
-    sub.w  Entity_ExtentsX(a4), d7         ; Probe offset to top
+    sub.w  Entity_ExtentsX(a4), d7         ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
+    IF !PHYS_TERRAIN_SNAP_TO_FLOOR
     cmp.l  d7, d0                       ; Check if left of wall
     blt    @EndTerrain
+    ENDIF
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d0        ; - step height
     move.l #0x0, d2
@@ -354,10 +435,13 @@ ECPhysicsBody_TerrainSearch_Up:
     cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_Y, d7     ; Y back to sprite space
+    add.w  Entity_ExtentsX(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
+    IF !PHYS_TERRAIN_SNAP_TO_FLOOR
     cmp.l  d7, d1                       ; Check if on or above ceiling
     bgt    @EndTerrain
+    ENDIF
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
     move.l #0x0, d3
@@ -389,10 +473,13 @@ ECPhysicsBody_TerrainSearch_Left:
     cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @EndTerrain
     addi.w #VDP_SPRITE_BORDER_X, d7     ; X back to sprite space
+    add.w  Entity_ExtentsX(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
+    IF !PHYS_TERRAIN_SNAP_TO_FLOOR
     cmp.l  d7, d0                       ; Check if left of wall
     bgt    @EndTerrain
+    ENDIF
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
     move.l #0x0, d2
