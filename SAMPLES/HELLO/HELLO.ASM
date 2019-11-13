@@ -12,6 +12,7 @@
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
     include 'samples/hello/entities/player.asm'
+    include 'samples/hello/entities/lrswitch.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -39,6 +40,11 @@ Main:
     lea    RAM_TESTSCENE1, a0
     lea    SceneData_tst1_tst1, a1
     bsr    SCN_LoadScene
+
+    ; Set player
+    lea    EPlayer_TypeDesc, a0
+    bsr    ENT_FindFirstOfType
+    move.l a1, RAM_PLAYER_1
 
     ; Load palettes
     lea    palette_sonic, a0

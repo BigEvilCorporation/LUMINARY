@@ -10,6 +10,7 @@
 #include "EntityParser.h"
 
 #include <ion/io/File.h>
+#include <ion/io/FileDevice.h>
 #include <ion/core/string/String.h>
 
 #include <cctype>
@@ -22,6 +23,8 @@ static const std::vector<std::string> s_asmExtensions =
 
 static const std::string s_entityBegin = "ENTITY_BEGIN";
 static const std::string s_entityEnd = "ENTITY_END";
+static const std::string s_staticEntityBegin = "STATIC_ENTITY_BEGIN";
+static const std::string s_staticEntityEnd = "STATIC_ENTITY_END";
 static const std::string s_entitySpawnBegin = "ENTITY_SPAWN_DATA_BEGIN";
 static const std::string s_entitySpawnEnd = "ENTITY_SPAWN_DATA_END";
 static const std::string s_componentBegin = "ENTITY_COMPONENT_BEGIN";
@@ -78,11 +81,11 @@ namespace luminary
 
 	bool EntityParser::ParseDirectory(const std::string& directory, std::vector<Entity>& entities)
 	{
-		if (m_fileSystem.GetDefaultFileDevice())
+		if (ion::io::FileDevice::GetDefault())
 		{
 			//Recursively search directory for ASM files
 			std::vector<std::string> asmFiles;
-			RecursiveFindASMFiles(*m_fileSystem.GetDefaultFileDevice(), directory, asmFiles);
+			RecursiveFindASMFiles(*ion::io::FileDevice::GetDefault(), directory, asmFiles);
 
 			//Find all entity and component text blocks
 			for (int i = 0; i < asmFiles.size(); i++)
@@ -124,6 +127,14 @@ namespace luminary
 				{
 					entities.push_back(entity);
 				}
+			}
+
+			//Parse static entities
+			for (int i = 0; i < m_staticEntityTextBlocks.size(); i++)
+			{
+				Entity entity;
+				ParseStaticEntity(m_staticEntityTextBlocks[i], entity);
+				entities.push_back(entity);
 			}
 
 			return true;
@@ -188,6 +199,7 @@ namespace luminary
 			bool inEntitySpawnBlock = false;
 			bool inComponentSpawnBlock = false;
 			bool inEntityBlock = false;
+			bool inStaticEntityBlock = false;
 			bool inComponentBlock = false;
 			bool inMacroBlock = false;
 
@@ -251,7 +263,7 @@ namespace luminary
 								}
 								else if (inEntityBlock)
 								{
-									//In entity spawn data block, collect lines until we find the end
+									//In entity block, collect lines until we find the end
 									if (ContainsToken(words, s_entityEnd) >= 0)
 									{
 										inEntityBlock = false;
@@ -263,9 +275,23 @@ namespace luminary
 										currentBlock.block.push_back(words);
 									}
 								}
+								else if (inStaticEntityBlock)
+								{
+									//In static entity block, collect lines until we find the end
+									if (ContainsToken(words, s_staticEntityEnd) >= 0)
+									{
+										inStaticEntityBlock = false;
+										m_staticEntityTextBlocks.push_back(currentBlock);
+										currentBlock = TextBlock();
+									}
+									else
+									{
+										currentBlock.block.push_back(words);
+									}
+								}
 								else if (inComponentBlock)
 								{
-									//In component spawn block, collect lines until we find the end
+									//In component block, collect lines until we find the end
 									if (ContainsToken(words, s_componentEnd) >= 0)
 									{
 										inComponentBlock = false;
@@ -296,6 +322,11 @@ namespace luminary
 									{
 										currentBlock.name = GetNameToken(words);
 										inEntityBlock = true;
+									}
+									else if ((pos = ContainsToken(words, s_staticEntityBegin)) >= 0)
+									{
+										currentBlock.name = GetNameToken(words);
+										inStaticEntityBlock = true;
 									}
 									else if ((pos = ContainsToken(words, s_componentBegin)) >= 0)
 									{
@@ -330,6 +361,7 @@ namespace luminary
 	bool EntityParser::ParseEntity(const TextBlock& textBlock, Entity& entity)
 	{
 		entity.name = textBlock.name;
+		entity.isStatic = false;
 
 		//Find components, and parse params
 		for (int i = 0; i < textBlock.block.size(); i++)
@@ -360,6 +392,21 @@ namespace luminary
 		}
 
 		return entity.name.size() > 0;
+	}
+
+	void EntityParser::ParseStaticEntity(const TextBlock& textBlock, Entity& entity)
+	{
+		entity.name = textBlock.name;
+		entity.isStatic = true;
+
+		for (int i = 0; i < textBlock.block.size(); i++)
+		{
+			Param param;
+			if (ParseParam(textBlock.block[i], param))
+			{
+				entity.params.push_back(param);
+			}
+		}
 	}
 
 	bool EntityParser::ParseComponent(const TextBlock& textBlock, Component& component)

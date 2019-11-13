@@ -29,7 +29,8 @@ namespace luminary
 			std::string collisionStampsetLabel;
 			std::string collisionMapLabel;
 			std::string palettesLabel;
-			std::vector<Entity> entities;
+			std::vector<Entity> staticEntities;
+			std::vector<Entity> dynamicEntities;
 
 			int numTiles;
 			int numStamps;

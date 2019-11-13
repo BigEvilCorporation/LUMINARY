@@ -339,12 +339,34 @@ ENT_UpdateAll:
     ; No params
     ; ======================================
 
+    ; Update all static entities
+    ; TODO: Only update entities in active grid
+    move.l RAM_SCENE_DATA, a2
+    move.w SceneData_StaticEntityCount(a2), d2
+    tst.w  d2
+    beq    @NoStaticEntities
+
+    move.l SceneData_StaticEntities(a2), a3
+    subi.w #0x1, d2
+
+    @StaticEntLp:
+    move.l (a3)+, a0                    ; Get entity
+    move.l Entity_TypeDesc(a0), a1      ; Get type desc
+    move.l EntityTypeDesc_Update(a1), a1; Get update func
+    PUSHM.L d2/a0-a3
+    jsr    (a1)                         ; Update
+    POPM.L  d2/a0-a3
+    dbra   d2, @StaticEntLp
+
+    @NoStaticEntities:
+
+    ; Update all dynamic entities
     lea    EntityBlockList_Entities, a0
     movea.w EntityBlockList_Head(a0), a0
     cmp.w  #0x0, a0
-    beq    @NoEntities
+    beq    @NoDynamicEntities
 
-    @EntLp:
+    @DynamicEntLp:
     movea.w EntityBlock_Next(a0), a2    ; Get next entity first, update can call destructor
     move.l Entity_TypeDesc(a0), a1      ; Get type desc
     move.l EntityTypeDesc_Update(a1), a1; Get update func
@@ -353,8 +375,38 @@ ENT_UpdateAll:
     POPM.L  a0-a2
     move.l a2, a0
     cmp.w  #0x0, a0
-    bne    @EntLp
+    bne    @DynamicEntLp
 
-    @NoEntities:
+    @NoDynamicEntities:
+
+    rts
+
+ENT_FindFirstOfType:
+    ; ======================================
+    ; Linear search for an instantiated
+    ; entity by its Entity_TypeDesc
+    ; ======================================
+    ; In:
+    ;  a0   Entity_TypeDesc
+    ; Out:
+    ;  a1   Entity
+    ; ======================================
+
+    movea.w #0x0, a1
+
+    lea     EntityBlockList_Entities, a1
+    movea.w EntityBlockList_Head(a1), a1
+    cmp.w   #0x0, a1
+    beq     @NoDynamicEntities
+
+    @DynamicEntLp:
+    cmp.l  Entity_TypeDesc(a1), a0
+    beq    @Found
+    movea.w EntityBlock_Next(a1), a1
+    cmp.w  #0x0, a1
+    bne    @DynamicEntLp
+
+    @NoDynamicEntities:
+    @Found:
 
     rts

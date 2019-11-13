@@ -12,8 +12,6 @@
 #include <string>
 #include <vector>
 
-#include <ion/io/FileSystem.h>
-
 #include "Types.h"
 
 namespace luminary
@@ -33,6 +31,7 @@ namespace luminary
 		};
 
 		std::vector<TextBlock> m_entityTextBlocks;
+		std::vector<TextBlock> m_staticEntityTextBlocks;
 		std::vector<TextBlock> m_entitySpawnTextBlocks;
 		std::vector<SpawnData> m_entitySpawnData;
 
@@ -45,6 +44,7 @@ namespace luminary
 		void FindTextBlocks(const std::string& filename);
 		std::string GetNameToken(const std::vector<std::string>& tokens);
 		bool ParseEntity(const TextBlock& textBlock, Entity& entity);
+		void ParseStaticEntity(const TextBlock& textBlock, Entity& entity);
 		bool ParseComponent(const TextBlock& textBlock, Component& component);
 		void ParseSpawnData(const TextBlock& textBlock, SpawnData& spawnData);
 		bool ParseParam(const std::vector<std::string>& line, Param& param);
@@ -52,7 +52,5 @@ namespace luminary
 		Component* ParseComponentDef(const std::vector<std::string>& line, size_t pos);
 		SpawnData* FindComponentSpawnData(const std::string& componentName);
 		SpawnData* FindEntitySpawnData(const std::string& entityName);
-
-		ion::io::FileSystem m_fileSystem;
 	};
 }

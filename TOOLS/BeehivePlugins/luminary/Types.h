@@ -55,5 +55,6 @@ namespace luminary
 		SpawnData spawnData;
 		std::vector<Param> params;
 		std::vector<Component> components;
+		bool isStatic;
 	};
 }

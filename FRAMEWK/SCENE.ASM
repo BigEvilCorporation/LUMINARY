@@ -19,7 +19,8 @@ SceneData_ColTileset                    rs.l 1
 SceneData_ColStampset                   rs.l 1
 SceneData_ColMap                        rs.l 1
 SceneData_Palettes                      rs.l 1
-SceneData_Entities                      rs.l 1
+SceneData_StaticEntities                rs.l 1
+SceneData_DynamicEntities               rs.l 1
 SceneData_GfxTileCount                  rs.w 1
 SceneData_GfxStampCount                 rs.w 1
 SceneData_GfxMapWidthStamps             rs.w 1
@@ -29,7 +30,8 @@ SceneData_ColStampCount                 rs.w 1
 SceneData_ColMapWidthStamps             rs.w 1
 SceneData_ColMapHeightStamps            rs.w 1
 SceneData_PaletteCount                  rs.w 1
-SceneData_EntityCount                   rs.w 1
+SceneData_StaticEntityCount             rs.w 1
+SceneData_DynamicEntityCount            rs.w 1
     STRUCT_END
 
     STRUCT_BEGIN SceneEntity
@@ -37,8 +39,8 @@ SceneEntity_EntityType                  rs.l 1
 SceneEntity_SpawnData                   rs.l 1
 SceneEntity_PosX                        rs.w 1
 SceneEntity_PosY                        rs.w 1
-SceneEntity_ExtentsX                       rs.w 1
-SceneEntity_ExtentsY                      rs.w 1
+SceneEntity_ExtentsX                    rs.w 1
+SceneEntity_ExtentsY                    rs.w 1
     STRUCT_END
 
 SCN_LoadScene:
@@ -73,12 +75,12 @@ SCN_LoadScene:
     bsr    VDP_LoadPalettes
     POPM.L a0-a1
 
-    ; Spawn all entities
-    move.w SceneData_EntityCount(a1), d2
+    ; Spawn all dynamic entities
+    move.w SceneData_DynamicEntityCount(a1), d2
     cmp.w  #SCN_MAX_ENTITIES, d2
     bgt    @Err_TooManyEntities
 
-    move.l SceneData_Entities(a1), a2       ; Get entity table
+    move.l SceneData_DynamicEntities(a1), a2; Get dynamic entity table
     lea    Scene_SpawnedEntities(a0), a3    ; Get output ptr table
     subi.w #0x1, d2
     @EntityLp:

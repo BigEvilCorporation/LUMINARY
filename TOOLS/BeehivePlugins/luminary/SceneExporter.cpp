@@ -37,10 +37,10 @@ namespace luminary
 
 			std::map<std::string, ExportedSpawnData> exportedSpawnDatas;
 
-			//Export entity and component spawn data tables
-			for (int i = 0; i < sceneData.entities.size(); i++)
+			//Export dynamic entity and component spawn data tables
+			for (int i = 0; i < sceneData.dynamicEntities.size(); i++)
 			{
-				const Entity& entity = sceneData.entities[i];
+				const Entity& entity = sceneData.dynamicEntities[i];
 				std::stringstream spawnDataName;
 				spawnDataName << "SceneEntitySpawnData_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name;
 
@@ -146,12 +146,74 @@ namespace luminary
 
 			stream << std::endl;
 
-			//Export entity spawn tables
-			stream << "SceneEntityData_" << sceneName << ":" << std::endl;
+			//Export static entities
+				// EntityBlock_Flags                       rs.w 1
+				// EntityBlock_Next                        rs.w 1
+				// Entity_TypeDesc                         rs.l 1; Entity type
+				// Entity_PosX                             rs.l 1; World pos X(16.16)
+				// Entity_PosY                             rs.l 1; World pos Y(16.16)
+				// Entity_ExtentsX                         rs.w 1; Width in pixels
+				// Entity_ExtentsY                         rs.w 1; Height in pixels
+				// ...all params
 
-			for (int i = 0; i < sceneData.entities.size(); i++)
+			for (int i = 0; i < sceneData.staticEntities.size(); i++)
 			{
-				const Entity& entity = sceneData.entities[i];
+				const Entity& entity = sceneData.staticEntities[i];
+				stream << "SceneEntity_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << ":" << std::endl;
+
+				stream << "\tdc.w 0x0\t; EntityBlock_Flags" << std::endl;
+				stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
+				stream << "\tdc.l " << entity.name << "_Typedesc\t; Entity_TypeDesc" << std::endl;
+				stream << "\tdc.l 0x0\t; Entity spawn data" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX) << "\t; Entity_PosX" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY) << "\t; Entity_PosY" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.width / 2) << "\t; Entity_ExtentsX" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.height / 2) << "\t; Entity_ExtentsY" << std::endl;
+
+				//Export all params
+				for (int j = 0; j < entity.spawnData.params.size(); j++)
+				{
+					const Param& param = entity.spawnData.params[j];
+					std::string value = param.value;
+					if (value.size() == 0)
+						value = "0";
+
+					switch (param.size)
+					{
+					case ParamSize::Byte:
+						stream << "\tdc.b " << value << "\t; " << param.name << std::endl;
+						break;
+					case ParamSize::Word:
+						stream << "\tdc.w " << value << "\t; " << param.name << std::endl;
+						break;
+					case ParamSize::Long:
+						stream << "\tdc.l " << value << "\t; " << param.name << std::endl;
+						break;
+					}
+				}
+
+				stream << "\teven" << std::endl;
+			}
+
+			stream << std::endl;
+
+			//Export static entity table
+			stream << "SceneEntityDataStatic_" << sceneName << ":" << std::endl;
+
+			for (int i = 0; i < sceneData.staticEntities.size(); i++)
+			{
+				const Entity& entity = sceneData.staticEntities[i];
+				stream << "\tdc.l " << "SceneEntity_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << std::endl;
+			}
+
+			stream << std::endl;
+
+			//Export dynamic entity spawn tables
+			stream << "SceneEntityDataDynamic_" << sceneName << ":" << std::endl;
+
+			for (int i = 0; i < sceneData.dynamicEntities.size(); i++)
+			{
+				const Entity& entity = sceneData.dynamicEntities[i];
 
 				std::stringstream spawnDataName;
 				spawnDataName << "SceneEntity_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << ":" << std::endl;
@@ -189,7 +251,8 @@ namespace luminary
 			// SceneData_ColMapWidthStamps             rs.w 1
 			// SceneData_ColMapHeightStamps            rs.w 1
 			// SceneData_PaletteCount                  rs.w 1
-			// SceneData_EntityCount                   rs.w 1
+			// SceneData_StaticEntityCount             rs.w 1
+			// SceneData_DynamicEntityCount            rs.w 1
 
 			stream << "SceneData_" << sceneName << ":" << std::endl;
 			stream << "\tdc.l " << sceneData.tilesetLabel << "\t; SceneData_GfxTileset" << std::endl;
@@ -199,7 +262,8 @@ namespace luminary
 			stream << "\tdc.l " << sceneData.collisionStampsetLabel << "\t; SceneData_ColStampset" << std::endl;
 			stream << "\tdc.l " << sceneData.collisionMapLabel << "\t; SceneData_ColMap" << std::endl;
 			stream << "\tdc.l " << sceneData.palettesLabel << "\t; SceneData_Palettes" << std::endl;
-			stream << "\tdc.l " << "SceneEntityData_" << sceneName << "\t; SceneData_Entities" << std::endl;
+			stream << "\tdc.l " << "SceneEntityDataStatic_" << sceneName << "\t; SceneData_StaticEntities" << std::endl;
+			stream << "\tdc.l " << "SceneEntityDataDynamic_" << sceneName << "\t; SceneData_DynamicEntities" << std::endl;
 			stream << "\tdc.w " << sceneData.numTiles << "\t; SceneData_GfxTileCount" << std::endl;
 			stream << "\tdc.w " << sceneData.numStamps << "\t; SceneData_GfxStampCount" << std::endl;
 			stream << "\tdc.w " << sceneData.mapWidthStamps << "\t; SceneData_GfxMapWidthStamps" << std::endl;
@@ -209,7 +273,8 @@ namespace luminary
 			stream << "\tdc.w " << sceneData.collisionMapWidthStamps << "\t; SceneData_ColMapWidthStamps" << std::endl;
 			stream << "\tdc.w " << sceneData.collisionMapHeightStamps << "\t; SceneData_ColMapHeightStamps" << std::endl;
 			stream << "\tdc.w " << sceneData.numPalettes << "\t; SceneData_PaletteCount" << std::endl;
-			stream << "\tdc.w " << sceneData.entities.size() << "\t; SceneData_EntityCount" << std::endl;
+			stream << "\tdc.w " << sceneData.staticEntities.size() << "\t; SceneData_StaticEntityCount" << std::endl;
+			stream << "\tdc.w " << sceneData.dynamicEntities.size() << "\t; SceneData_DynamicEntityCount" << std::endl;
 
 			file.Write(stream.str().c_str(), stream.str().size());
 			file.Close();

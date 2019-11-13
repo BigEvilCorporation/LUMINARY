@@ -71,6 +71,29 @@ ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
     even
 	endm
 
+    ; ======================================
+    ; Begins definition of a static
+    ; (read-only data) entity
+    ; ======================================
+    ; Name - Entity name
+    ; ======================================
+STATIC_ENTITY_BEGIN: macro name
+__ENTITY_NAME equs "\name\"
+    RSSET  SIZEOF_EntityBase
+    endm
+
+STATIC_ENTITY_END: macro
+__SIZEOF_\__ENTITY_NAME rs.b 0
+    ; Fill in EntityTypeDesc data
+\__ENTITY_NAME\_TypeDesc:
+    dc.w   0
+    dc.l   0
+    dc.l   0
+    dc.l   0
+    dc.l   \__ENTITY_NAME\_Update
+    even
+    endm
+
 ENTITY_COMPONENT_BEGIN: macro name
     ; ======================================
     ; Begins definition of a named component
@@ -128,3 +151,39 @@ ENT_GETCOMPONENT: macro entity_name,component_name,entity_addr,addr_reg
     ; ======================================
     movea.w Entity_\entity_name\_Component_\component_name\(\entity_addr\), \addr_reg
     endm
+
+ENT_GETBOUNDS: macro ent_addr,topleft_reg,bottomright_reg
+    ; ======================================
+    ; Extracts entity bounding box, in a
+    ; format compatible with GEOM_*
+    ; routines.
+    ; Returns pixel coordinates.
+    ; ======================================
+    ; In:
+    ; ent_addr           - Entity address
+    ; ======================================
+    ; Out:
+    ; topleft_reg.ww     - Top left coord
+    ; bottomright_reg.ww - Bottom right coord
+    ; ======================================
+
+	; Left
+	move.w Entity_PosX(\ent_addr), \topleft_reg	        ; X pos (top word = integer part)
+	move.w \topleft_reg, \bottomright_reg			    ; Copy for right
+    sub.w  Entity_ExtentsX(\ent_addr), \topleft_reg     ; Left bounds
+	
+	; Right
+	add.w  Entity_ExtentsX(\ent_addr), \bottomright_reg ; Right bounds
+	
+    swap   \topleft_reg
+    swap   \bottomright_reg
+
+	; Top
+	move.w Entity_PosY(\ent_addr), \topleft_reg		    ; Y pos (top word = integer part)
+	move.w \topleft_reg, \bottomright_reg				; Copy for bottom
+    sub.w  Entity_ExtentsY(\ent_addr), \topleft_reg     ; Top bounds
+	
+	; Bottom
+	add.w  Entity_ExtentsY(\ent_addr), \bottomright_reg ; Bottom bounds
+
+	endm

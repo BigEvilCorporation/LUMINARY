@@ -60,6 +60,7 @@
     include 'framewk/camera.asm'
     include 'framewk/entity.asm'
     include 'framewk/entmgr.asm'
+    include 'framewk/geometry.asm'
     include 'framewk/scene.asm'
 
     ; Entities and components
