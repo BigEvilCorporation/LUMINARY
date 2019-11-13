@@ -43,12 +43,12 @@ COL_GET_STAMP_OFFSET: macro coordx,coordy,mapwidth,stampoffset,remainder,tmpreg
     move.w \coordy, \stampoffset
     lsr.w  #COLLISION_STAMP_HEIGHT_SHIFT-2, \stampoffset    ; Integer (stamp Y) * longwords
     andi.w #0xFFFC, \stampoffset                            ; to nearest longword
-    mulu   \mapwidth, \stampoffset                          ; * map width
+    mulu.w \mapwidth, \stampoffset                          ; * map width
 
     ; Y remainder
     move.w \coordy, \remainder
     andi.w #(COLLISION_STAMP_HEIGHT-1), \remainder          ; Remainder (tile Y)
-    lsl.w  #COLLISION_STAMP_HEIGHT_SHIFT+2, \remainder      ; to rows, in longwords
+    lsl.w  #COLLISION_STAMP_HEIGHT_SHIFT+1+COLLISION_NUM_TERRAIN_LAYERS, \remainder ; to rows, in longwords * num layers
 
     ; X integer
     move.w \coordx, \tmpreg
@@ -59,8 +59,10 @@ COL_GET_STAMP_OFFSET: macro coordx,coordy,mapwidth,stampoffset,remainder,tmpreg
     ; X remainder
     move.w \coordx, \tmpreg
     andi.w #(COLLISION_STAMP_WIDTH-1), \tmpreg              ; Remainder (tile X)
-    add.w  \tmpreg, \tmpreg						            ; * longword
+    add.w  \tmpreg, \tmpreg						            ; * longword * num layers
+    REPT   COLLISION_NUM_TERRAIN_LAYERS
     add.w  \tmpreg, \tmpreg
+    ENDR
     add.w  \tmpreg, \remainder                              ; add to Y remainder
 
     endm

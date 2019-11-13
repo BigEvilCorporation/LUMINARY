@@ -21,10 +21,15 @@ COL_ProbeTerrainDown:
     ; d0.w Position X (map space)
     ; d1.w Position Y (map space)
     ; d2.w Map width (stamps)
+    ; d5.b Terrain layer
     ; Out:
     ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain height (map space, -1 if not found)
     ; ======================================
+
+    ; Layer to longwords
+    andi.w #0xFF, d5
+    lsl.w  #0x2, d5
     
     ; Position to tiles
     move.w d0, d6
@@ -40,6 +45,9 @@ COL_ProbeTerrainDown:
     move.w #COLLISION_MAX_TERRAIN_SEARCH_TILES-1, d0
     @NextTile:
 
+    ; Save layer
+    PUSH.W d5
+
     ; Get terrain stamp
     ; d6 = x coord (tiles)
     ; d1 = y coord (tiles)
@@ -49,10 +57,14 @@ COL_ProbeTerrainDown:
     ; d5 = temp reg
     COL_GET_STAMP_OFFSET d6,d1,d2,d3,d4,d5
 
+    ; Restore layer
+    POP.W  d5
+
     ; Get stamp address
-    add.l  (a0,d3.w), d4                ; Add stamp start offset to remainder
+    add.l  (a0,d3.w), d4     	        ; Add stamp start offset to remainder
     move.l a1, a3                       ; Get stamp data base addr
     adda.l d4, a3                       ; Add offset
+    adda.w d5, a3                       ; Add layer
 
     ; Read tile data
     move.l (a3), d3                     ; flags (b) + angle (b) in upper word, tileIdx in lower word
@@ -118,10 +130,15 @@ COL_ProbeTerrainUp:
     ; d0.w Position X (map space)
     ; d1.w Position Y (map space)
     ; d2.w Map width (stamps)
+    ; d5.b Terrain layer
     ; Out:
     ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain height (map space, -1 if not found)
     ; ======================================
+
+    ; Layer to longwords
+    andi.w #0xFF, d5
+    lsl.w  #0x2, d5
 
     ; Position to tiles
     move.w d0, d6
@@ -137,6 +154,9 @@ COL_ProbeTerrainUp:
     move.w #COLLISION_MAX_TERRAIN_SEARCH_TILES-1, d0
     @NextTile:
 
+    ; Save layer
+    PUSH.W d5
+
     ; Get terrain stamp
     ; d6 = x coord (tiles)
     ; d1 = y coord (tiles)
@@ -146,10 +166,14 @@ COL_ProbeTerrainUp:
     ; d5 = temp reg
     COL_GET_STAMP_OFFSET d6,d1,d2,d3,d4,d5
 
+    ; Restore layer
+    POP.W  d5
+
     ; Get stamp address
     add.l  (a0,d3.w), d4                ; Add stamp start offset to remainder
     move.l a1, a3                       ; Get stamp data base addr
     adda.l d4, a3                       ; Add offset
+    adda.w d5, a3                       ; Add layer
 
     ; Read tile data
     move.l (a3), d3                     ; flags (b) + angle (b) in upper word, tileIdx in lower word
@@ -215,10 +239,15 @@ COL_ProbeTerrainLeft:
     ; d0.w Position X (map space)
     ; d1.w Position Y (map space)
     ; d2.w Map width (stamps)
+    ; d5.b Terrain layer
     ; Out:
     ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain width (map space, -1 if not found)
     ; ======================================
+
+    ; Layer to longwords
+    andi.w #0xFF, d5
+    lsl.w  #0x2, d5
 
     ; Offset tileset addr to read width data
     adda.l #COLLISION_TILE_WIDTH, a2
@@ -239,6 +268,9 @@ COL_ProbeTerrainLeft:
     move.w #COLLISION_MAX_TERRAIN_SEARCH_TILES-1, d0
     @NextTile:
 
+    ; Save layer
+    PUSH.W d5
+
     ; Get terrain stamp
     ; d6 = x coord (tiles)
     ; d1 = y coord (tiles)
@@ -248,10 +280,14 @@ COL_ProbeTerrainLeft:
     ; d5 = temp reg
     COL_GET_STAMP_OFFSET d6,d1,d2,d3,d4,d5
 
+    ; Restore layer
+    POP.W  d5
+
     ; Get stamp address
     add.l  (a0,d3.w), d4                ; Add stamp start offset to remainder
     move.l a1, a3                       ; Get stamp data base addr
     adda.l d4, a3                       ; Add offset
+    adda.w d5, a3                       ; Add layer
 
     ; Read tile data
     move.l (a3), d3                     ; flags (b) + angle (b) in upper word, tileIdx in lower word
@@ -316,10 +352,15 @@ COL_ProbeTerrainRight:
     ; d0.w Position X (map space)
     ; d1.w Position Y (map space)
     ; d2.w Map width (stamps)
+    ; d5.b Terrain layer
     ; Out:
     ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain width (map space, -1 if not found)
     ; ======================================
+
+    ; Layer to longwords
+    andi.w #0xFF, d5
+    lsl.w  #0x2, d5
 
     ; Offset tileset addr to read width data
     adda.l #COLLISION_TILE_WIDTH, a2
@@ -340,6 +381,9 @@ COL_ProbeTerrainRight:
     move.w #COLLISION_MAX_TERRAIN_SEARCH_TILES-1, d0
     @NextTile:
 
+    ; Save layer
+    PUSH.W d5
+
     ; Get terrain stamp
     ; d6 = x coord (tiles)
     ; d1 = y coord (tiles)
@@ -349,10 +393,14 @@ COL_ProbeTerrainRight:
     ; d5 = temp reg
     COL_GET_STAMP_OFFSET d6,d1,d2,d3,d4,d5
 
+    ; Restore layer
+    POP.W  d5
+
     ; Get stamp address
     add.l  (a0,d3.w), d4                ; Add stamp start offset to remainder
     move.l a1, a3                       ; Get stamp data base addr
     adda.l d4, a3                       ; Add offset
+    adda.w d5, a3                       ; Add layer
 
     ; Read tile data
     move.l (a3), d3                     ; flags (b) + angle (b) in upper word, tileIdx in lower word

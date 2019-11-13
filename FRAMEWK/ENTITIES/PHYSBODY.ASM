@@ -19,6 +19,7 @@ ECPhysicsBody_AccelY                    rs.w 1
 ECPhysicsBody_DecelX                    rs.w 1
 ECPhysicsBody_LastTerrainFlags          rs.w 1
 ECPhysicsBody_TerrainQuadrant           rs.b 1 ; PHYS_TERRAIN_SEARCH_QUADRANT_*
+ECPhysicsBody_TerrainLayer              rs.b 1
     ENTITY_COMPONENT_END
 
 ECPhysicsBody_Initialise:
@@ -37,6 +38,7 @@ ECPhysicsBody_Initialise:
     move.w #0x0, ECPhysicsBody_AccelY(a0)
     move.w #0x0, ECPhysicsBody_LastTerrainFlags(a0)
     move.b #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, ECPhysicsBody_TerrainQuadrant(a0)
+    move.b #0x0, ECPhysicsBody_TerrainLayer(a0)
 
     rts
 
@@ -271,39 +273,37 @@ ECPhysicsBody_Landed:
     tst.l  ECPhysicsBody_VelY(a3)
     blt    @LandedCeiling
 
-    ; Get angle of terrain on impact
-    move.w ECPhysicsBody_LastTerrainFlags(a3), d5
-    andi.w #0xFF, d5
-    add.w  d5, d5
-    moveq  #0x0, d6
-
-    ; Shallow angle (0-22.5 deg, $F0-$FF/$00-$0F)
-    move.b d5, d6
-    addi.b #0x0F, d6
-    cmp.w  #0x0F*2, d6
-    ble    @ShallowAngle
-
-    ; Steep angle (22.5-45 deg, $E0-$EF/$10-$1F)
-    move.b d5, d6
-    addi.b #0x1F, d6
-    cmp.w  #0x1F*2, d6
-    ble    @SteepAngle
-    bra    @VerySteepAngle
-
-    @SteepAngle:
-    move.l ECPhysicsBody_VelX(a3), d7   ; If X > Y, landed sideways
+    ; If X > Y, landed sideways
+    move.l ECPhysicsBody_VelX(a3), d7
     move.l ECPhysicsBody_VelY(a3), d6
     ABS.L  d7
     cmp.l  d6, d7
     bge    @LandedSideways
 
+    ; Get angle of terrain on impact
+    ; TODO: Not the terrain angle, the movement angle from X/Y velocity
+    move.w ECPhysicsBody_LastTerrainFlags(a3), d5
+    moveq  #0x0, d6
+
+    ; Shallow angle (0-22.5 deg, $F0-$FF/$00-$0F)
+    move.b d5, d6
+    addi.b #0x10, d6
+    cmp.w  #0x10*2, d6
+    ble    @ShallowAngle
+
+    ; Steep angle (22.5-45 deg, $E0-$EF/$10-$1F)
+    move.b d5, d6
+    addi.b #0x20, d6
+    cmp.w  #0x20*2, d6
+    ble    @SteepAngle
+    bra    @VerySteepAngle
+
     ; Landed at steep angle, set ground speed to Y velocity / 2
+    @SteepAngle:
+    move.l ECPhysicsBody_VelY(a3), d6
     asr.l  #0x8, d6                     ; Y vel to ground speed range (16.16 >> 8)
     asr.l  #0x1, d6                     ; / 2
-    moveq  #0x0, d7
-    lea    sinetable, a4                ; Get sign of angle sine
-    move.w (a4,d5.w), d7
-    tst.w  d7
+    tst.b  d5                           ; Get sign of angle
     bge    @NoNeg1
     neg.w  d6                           ; -ve direction
     @NoNeg1:
@@ -311,19 +311,15 @@ ECPhysicsBody_Landed:
     
     rts
 
+    ; Landed at very steep angle, clamp Y velocity to 0x0FC0 and set as ground speed
     @VerySteepAngle:
-    move.l ECPhysicsBody_VelX(a3), d7   ; If X > Y, landed sideways
     move.l ECPhysicsBody_VelY(a3), d6
-    ABS.L  d7
-    cmp.l  d6, d7
-    bge    @LandedSideways
-
-    ; Landed at very steep angle, set ground speed to Y velocity
     asr.l  #0x8, d6                     ; Y vel to ground speed range (16.16 >> 8)
-    moveq  #0x0, d7
-    lea    sinetable, a4                ; Get sign of angle sine
-    move.w (a4,d5.w), d7
-    tst.w  d7
+    cmpi.w #0x0FC0, d6
+    ble    @NoClampY
+    move.w #0x0FC0, d6
+    @NoClampY:
+    tst.b  d5                           ; Get sign of angle
     bge    @NoNeg2
     neg.w  d6                           ; -ve direction
     @NoNeg2:
@@ -351,6 +347,7 @@ ECPhysicsBody_TerrainSearch_Down:
     move.w d7, d2
 
     ; Probe for floor
+    move.b ECPhysicsBody_TerrainLayer(a3), d5
     subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
     bsr    COL_ProbeTerrainDown         ; Probe terrain map (search downwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
@@ -390,6 +387,7 @@ ECPhysicsBody_TerrainSearch_Right:
     move.w d7, d2
 
     ; Probe for right-hand wall
+    move.b ECPhysicsBody_TerrainLayer(a3), d5
     subi.w #VDP_SPRITE_BORDER_X+PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
@@ -428,6 +426,7 @@ ECPhysicsBody_TerrainSearch_Up:
     move.w d7, d2
 
     ; Probe for ceiling
+    move.b ECPhysicsBody_TerrainLayer(a3), d5
     subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1 ; Y + step height
     bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
@@ -466,6 +465,7 @@ ECPhysicsBody_TerrainSearch_Left:
     move.w d7, d2
 
     ; Probe for left-hand wall
+    move.b ECPhysicsBody_TerrainLayer(a3), d5
     subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
