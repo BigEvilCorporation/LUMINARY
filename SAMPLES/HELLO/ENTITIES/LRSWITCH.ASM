@@ -36,6 +36,7 @@ SELayerSwitch_Update:
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a1,a2
 
     move.b SELayerSwitch_LayerA(a0), d0
+    move.b ECPhysicsBody_TerrainQuadrant(a2), d2
 
     cmp.b  #LAYER_SWITCH_DIRECTION_VERTICAL, SELayerSwitch_Direction(a0)
     beq    @Vertical
@@ -45,9 +46,9 @@ SELayerSwitch_Update:
     cmp.w  Entity_PosX(a1), d1
     ble    @LayerB
 
-    ; Check if heading right
+    ; Must be heading left
     tst.l  ECPhysicsBody_VelX(a2)
-    blt    @WrongDirection
+    bgt    @WrongDirection
 
     ; Layer A
     move.b SELayerSwitch_LayerA(a0), ECPhysicsBody_TerrainLayer(a2)
@@ -63,9 +64,9 @@ SELayerSwitch_Update:
     rts
 
     @LayerB:
-    ; Check if heading left
+    ; Must be heading right
     tst.l  ECPhysicsBody_VelX(a2)
-    bgt    @WrongDirection
+    blt    @WrongDirection
 
     ; Layer B
     move.b SELayerSwitch_LayerB(a0), ECPhysicsBody_TerrainLayer(a2)

@@ -108,8 +108,14 @@ SPR_DrawFrame:
     ; If flipped X, start the offset table at next coord
     btst   #VDP_SPRITE_FLAG_FLIPX, d3
     beq    @NoFlipX
-    addq.w #SIZE_LONG, a4
+    adda.w #SIZE_LONG, a4               ; Skip to X flip offset
     @NoFlipX:
+
+    ; If flipped Y, start the offset table at next coord
+    btst   #VDP_SPRITE_FLAG_FLIPY, d3
+    beq    @NoFlipY
+    adda.w #SIZE_LONG*2, a4             ; Skip to Y or XY flip offset
+    @NoFlipY:
 
     ; Combine tile ID and flags
     or.w   d3, d2
@@ -127,9 +133,9 @@ SPR_DrawFrame:
     addq.w #0x1, d6
     
     ; Next pos
-    add.w  (a4)+, d0
-    add.w  (a4)+, d1
-    addq.w #SIZE_LONG, a4
+    add.w  (a4)+, d0                    ; X offset
+    add.w  (a4)+, d1                    ; Y offset
+    adda.w #SIZE_LONG*3, a4             ; Skip other 3 flipped coords entries in table
     
     ; Next layout
     move.b (a2)+, d7

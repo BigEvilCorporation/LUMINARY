@@ -31,3 +31,16 @@ SPRITE_COMPONENT_SETFLIPX_REG: macro sprite,enabled
     andi.w #VDP_SPRITE_FLAG_NMASK_FLIPX, ECSprite_DrawFlags(\sprite)
     or.w   \enabled, ECSprite_DrawFlags(\sprite)
     endm
+
+SPRITE_COMPONENT_SETFLIPY_REG: macro sprite,enabled
+    ; ======================================
+    ; Set a sprite's flip Y flag from a reg
+    ; ======================================
+    ; sprite   - Address reg of sprite
+    ; enabled  - Reg containing 0 or 1
+    ; ======================================
+    andi.w #0x1, \enabled
+    ror.w  #VDP_SPRITE_FLAG_ROR_FLIPY, \enabled
+    andi.w #VDP_SPRITE_FLAG_NMASK_FLIPY, ECSprite_DrawFlags(\sprite)
+    or.w   \enabled, ECSprite_DrawFlags(\sprite)
+    endm

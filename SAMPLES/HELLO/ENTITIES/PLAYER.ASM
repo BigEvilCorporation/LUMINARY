@@ -8,9 +8,15 @@
 
 PLAYER_ANIM_IDLE                        equ 0
 PLAYER_ANIM_WALK                        equ 1
-PLAYER_ANIM_RUN                         equ 2
-PLAYER_ANIM_JUMP                        equ 3
-PLAYER_ANIM_COUNT                       equ 4
+PLAYER_ANIM_WALK_45                     equ 2
+PLAYER_ANIM_WALK_90                     equ 3
+PLAYER_ANIM_WALK_135                    equ 4
+PLAYER_ANIM_RUN                         equ 5
+PLAYER_ANIM_RUN_45                      equ 6
+PLAYER_ANIM_RUN_90                      equ 7
+PLAYER_ANIM_RUN_135                     equ 8
+PLAYER_ANIM_JUMP                        equ 9
+PLAYER_ANIM_COUNT                       equ 10
 
 PLAYER_FLAG_JUMPING                     equ 0
 
@@ -25,13 +31,56 @@ PLAYER_WALK_TO_RUN_VEL                  equ 0x00030000
 PlayerSpriteAnimTable:
     dc.l   actor_sonic_spritesheet_idle, 0x0
     dc.l   actor_sonic_spritesheet_walk, actor_sonic_sheet_walk_anim_walk
+    dc.l   actor_sonic_spritesheet_walk_45, actor_sonic_sheet_walk_45_anim_walk_45
+    dc.l   actor_sonic_spritesheet_walk_90, actor_sonic_sheet_walk_90_anim_walk_90
+    dc.l   actor_sonic_spritesheet_walk_135, actor_sonic_sheet_walk_135_anim_walk_135
     dc.l   actor_sonic_spritesheet_run,  actor_sonic_sheet_run_anim_run
+    dc.l   actor_sonic_spritesheet_run_45,  actor_sonic_sheet_run_45_anim_run_45
+    dc.l   actor_sonic_spritesheet_run_90,  actor_sonic_sheet_run_90_anim_run_90
+    dc.l   actor_sonic_spritesheet_run_135,  actor_sonic_sheet_run_135_anim_run_135
     dc.l   actor_sonic_spritesheet_jump, actor_sonic_sheet_jump_anim_jump
 
-SPRITE_ANIM_FROM_TABLE: macro table,index,sheet_addr,anim_addr
+PlayerSpriteAnimWalkAngleTable:
+    dc.b   PLAYER_ANIM_WALK             ; 00
+    dc.b   PLAYER_ANIM_WALK_135         ; 10
+    dc.b   PLAYER_ANIM_WALK_135         ; 20
+    dc.b   PLAYER_ANIM_WALK_90          ; 30
+    dc.b   PLAYER_ANIM_WALK_90          ; 40
+    dc.b   PLAYER_ANIM_WALK_45          ; 50
+    dc.b   PLAYER_ANIM_WALK_45          ; 60
+    dc.b   PLAYER_ANIM_WALK             ; 70    - Flipped XY
+    dc.b   PLAYER_ANIM_WALK             ; 80    - Flipped XY
+    dc.b   PLAYER_ANIM_WALK_135         ; 90    - Flipped XY
+    dc.b   PLAYER_ANIM_WALK_135         ; A0    - Flipped XY
+    dc.b   PLAYER_ANIM_WALK_90          ; B0    - Flipped XY
+    dc.b   PLAYER_ANIM_WALK_90          ; C0    - Flipped XY
+    dc.b   PLAYER_ANIM_WALK_45          ; D0    - Flipped XY
+    dc.b   PLAYER_ANIM_WALK_45          ; E0    - Flipped XY
+    dc.b   PLAYER_ANIM_WALK             ; F0
+
+PlayerSpriteAnimRunAngleTable:
+    dc.b   PLAYER_ANIM_RUN              ; 00
+    dc.b   PLAYER_ANIM_RUN_135          ; 10
+    dc.b   PLAYER_ANIM_RUN_135          ; 20
+    dc.b   PLAYER_ANIM_RUN_90           ; 30
+    dc.b   PLAYER_ANIM_RUN_90           ; 40
+    dc.b   PLAYER_ANIM_RUN_45           ; 50
+    dc.b   PLAYER_ANIM_RUN_45           ; 60
+    dc.b   PLAYER_ANIM_RUN              ; 70    - Flipped XY
+    dc.b   PLAYER_ANIM_RUN              ; 80    - Flipped XY
+    dc.b   PLAYER_ANIM_RUN_135          ; 90    - Flipped XY
+    dc.b   PLAYER_ANIM_RUN_135          ; A0    - Flipped XY
+    dc.b   PLAYER_ANIM_RUN_90           ; B0    - Flipped XY
+    dc.b   PLAYER_ANIM_RUN_90           ; C0    - Flipped XY
+    dc.b   PLAYER_ANIM_RUN_45           ; D0    - Flipped XY
+    dc.b   PLAYER_ANIM_RUN_45           ; E0    - Flipped XY
+    dc.b   PLAYER_ANIM_RUN              ; F0
+
+SPRITE_ANIM_FROM_TABLE_I: macro table,index,sheet_addr,anim_addr
     ; =================================================
     ; Retrives sprite sheet and animation addresses
-    ; from an animation table, given a table and index
+    ; from an animation table, given a table and index,
+    ; from immediate index
     ; =================================================
     ;  table      - Const address of animation table
     ;  index      - Const animation index
@@ -41,6 +90,29 @@ SPRITE_ANIM_FROM_TABLE: macro table,index,sheet_addr,anim_addr
     ; =================================================
     move.l \table+(\index*SIZE_LONG*2), \sheet_addr
     move.l \table+(\index*SIZE_LONG*2)+SIZE_LONG, \anim_addr
+    endm
+
+SPRITE_ANIM_FROM_TABLE_R: macro table,index_reg,sheet_addr,anim_addr
+    ; =================================================
+    ; Retrives sprite sheet and animation addresses
+    ; from an animation table, given a table and index,
+    ; from register index
+    ; =================================================
+    ;  table      - Const address of animation table
+    ;  index.b    - Animation index register
+    ; Out:
+    ;  sheet_addr - Sprite sheet address reg
+    ;  anim_addr  - Animation address reg
+    ; =================================================
+    andi.l #0xFF, \index_reg
+    lsl.w  #0x3, \index_reg
+    lea    \table, \sheet_addr
+    lea    \table, \anim_addr
+    adda.w \index_reg, \sheet_addr
+    adda.w \index_reg, \anim_addr
+    adda.w #SIZE_LONG, \anim_addr
+    move.l (\sheet_addr), \sheet_addr
+    move.l (\anim_addr), \anim_addr
     endm
 
     ENTITY_SPAWN_DATA_BEGIN EPlayer
@@ -167,9 +239,9 @@ EPlayer_Update:
 
     ; Debug draw
     move.w ECPhysicsBody_LastTerrainFlags(a1), d7
-    DBG_DRAW_WORD #8,#8,d7
+    DBG_DRAW_WORD #100,#8,d7
     move.b ECPhysicsBody_TerrainQuadrant(a1), d7
-    DBG_DRAW_BYTE #8,#9,d7
+    DBG_DRAW_BYTE #100,#9,d7
 
     ; Backup physics component
     move.l a1, a3
@@ -178,34 +250,34 @@ EPlayer_Update:
     btst   #PLAYER_FLAG_JUMPING, d5
     bne    @Jumping
 
-    move.l ECPhysicsBody_VelX(a1), d0
-    tst.l  d0
+    move.w ECPhysicsBody_GroundSpeed(a1), d0
+    tst.w  d0
     bne    @Moving
 
     ; Idle
-    SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_IDLE, a1, a2
+    SPRITE_ANIM_FROM_TABLE_I PlayerSpriteAnimTable, PLAYER_ANIM_IDLE, a1, a2
     bra    @SetAnim
 
     ; Jumping
     @Jumping:
-    SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_JUMP, a1, a2
+    SPRITE_ANIM_FROM_TABLE_I PlayerSpriteAnimTable, PLAYER_ANIM_JUMP, a1, a2
     bra    @SetAnim
 
     @Moving:
 
-    move.l d0, d2
-    ABS.L  d2
-    cmp.l  #PLAYER_WALK_TO_RUN_VEL, d2
+    move.w d0, d2
+    ABS.W  d2
+    cmp.w  #PLAYER_WALK_TO_RUN_VEL>>8, d2
     bgt    @Running
 
     ; Walking
-    SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_WALK, a1, a2
+    bsr    EPlayer_GetWalkAnim
     bra    @SetAnim
 
     @Running:
 
     ; Running
-    SPRITE_ANIM_FROM_TABLE PlayerSpriteAnimTable, PLAYER_ANIM_RUN, a1, a2
+    bsr    EPlayer_GetRunAnim
     bra    @SetAnim
 
     ; Load animation
@@ -224,6 +296,24 @@ EPlayer_Update:
     SPRITE_COMPONENT_SETFLIPX_REG a0,d1     ; Set flip X flag
     @NoFlipChange:
 
+    rts
+
+EPlayer_GetWalkAnim:
+    lea    PlayerSpriteAnimWalkAngleTable, a2       ; Angle-to-anim table
+    move.w ECPhysicsBody_LastTerrainFlags(a1), d0   ; Player terrain angle
+    lsr.b  #0x4, d0                                 ; Segment as anim index
+    andi.w #0x000F, d0
+    move.b (a2,d0.w), d0
+    SPRITE_ANIM_FROM_TABLE_R PlayerSpriteAnimTable, d0, a1, a2
+    rts
+
+EPlayer_GetRunAnim:
+    lea    PlayerSpriteAnimRunAngleTable, a2       ; Angle-to-anim table
+    move.w ECPhysicsBody_LastTerrainFlags(a1), d0   ; Player terrain angle
+    lsr.b  #0x4, d0                                 ; Segment as anim index
+    andi.w #0x000F, d0
+    move.b (a2,d0.w), d0
+    SPRITE_ANIM_FROM_TABLE_R PlayerSpriteAnimTable, d0, a1, a2
     rts
 
 EPlayer_Jump:

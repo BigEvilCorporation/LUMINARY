@@ -11,6 +11,7 @@
 
 #include <ion/io/File.h>
 #include <ion/core/utils/STL.h>
+#include <ion/maths/Vector.h>
 
 #include <sstream>
 #include <map>
@@ -161,14 +162,15 @@ namespace luminary
 				const Entity& entity = sceneData.staticEntities[i];
 				stream << "SceneEntity_" << sceneName << "_" << entity.name << "_" << entity.spawnData.name << ":" << std::endl;
 
+				ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
+
 				stream << "\tdc.w 0x0\t; EntityBlock_Flags" << std::endl;
 				stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
 				stream << "\tdc.l " << entity.name << "_Typedesc\t; Entity_TypeDesc" << std::endl;
-				stream << "\tdc.l 0x0\t; Entity spawn data" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX) << "\t; Entity_PosX" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY) << "\t; Entity_PosY" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.width / 2) << "\t; Entity_ExtentsX" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.height / 2) << "\t; Entity_ExtentsY" << std::endl;
+				stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionX + extents.x)<<16) << "\t; Entity_PosX" << std::endl;
+				stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionY + extents.y)<<16) << "\t; Entity_PosY" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; Entity_ExtentsX" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; Entity_ExtentsY" << std::endl;
 
 				//Export all params
 				for (int j = 0; j < entity.spawnData.params.size(); j++)
@@ -224,12 +226,14 @@ namespace luminary
 					spawnDataName.str(it->second.labelName);
 				}
 
+				ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
+
 				stream << "\tdc.l " << entity.name << "_Typedesc\t; Entity descriptor" << std::endl;
 				stream << "\tdc.l " << spawnDataName.str() << "\t; Entity spawn data" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX) << "\t; Position X" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY) << "\t; Position Y" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.width/2) << "\t; ExtentsX" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.height/2) << "\t; ExtentsY" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX + extents.x) << "\t; Position X" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY + extents.y) << "\t; Position Y" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; ExtentsX" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; ExtentsY" << std::endl;
 			}
 
 			stream << std::endl;
