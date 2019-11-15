@@ -204,9 +204,9 @@ ECPhysicsBody_Step:
     add.l  d5, d1
     
     ; Backup and clear last terrain flags
-    move.w ECPhysicsBody_LastTerrainFlags(a3), d6
+    move.w ECPhysicsBody_LastTerrainFlags(a3), d5
     move.w #0x0, ECPhysicsBody_LastTerrainFlags(a3)
-    PUSH.W d6
+    PUSHM.W d5/d6
 
     ; Terrain lookup
     move.b ECPhysicsBody_TerrainQuadrant(a3), d6
@@ -229,12 +229,12 @@ ECPhysicsBody_Step:
     bsr    ECPhysicsBody_TerrainSearch_Left
     @EndTerrain:
 
-    POP.W  d6
+    POPM.W  d5/d6
 
     ; Check if landed on ground this frame
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
     beq    @NotLanded
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
     bne    @NotLanded
     bsr    ECPhysicsBody_Landed
     @NotLanded:
@@ -359,7 +359,7 @@ ECPhysicsBody_TerrainSearch_Down:
     sub.w  Entity_ExtentsY(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3) ; If already on terrain, stay snapped to floor
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5 ; If already on terrain, stick to it
     bne    @SnapToFloor
     cmp.l  d7, d1                       ; Check if on or under floor
     blt    @EndTerrain
@@ -399,10 +399,11 @@ ECPhysicsBody_TerrainSearch_Right:
     sub.w  Entity_ExtentsX(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
-    IF !PHYS_TERRAIN_SNAP_TO_FLOOR
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5 ; If already on terrain, stick to it
+    bne    @SnapToFloor
     cmp.l  d7, d0                       ; Check if left of wall
     blt    @EndTerrain
-    ENDIF
+    @SnapToFloor:
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d0        ; - step height
     move.l #0x0, d2
@@ -438,10 +439,11 @@ ECPhysicsBody_TerrainSearch_Up:
     add.w  Entity_ExtentsX(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
-    IF !PHYS_TERRAIN_SNAP_TO_FLOOR
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5 ; If already on terrain, stick to it
+    bne    @SnapToFloor
     cmp.l  d7, d1                       ; Check if on or above ceiling
     bgt    @EndTerrain
-    ENDIF
+    @SnapToFloor:
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
     move.l #0x0, d3
@@ -477,10 +479,11 @@ ECPhysicsBody_TerrainSearch_Left:
     add.w  Entity_ExtentsX(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
-    IF !PHYS_TERRAIN_SNAP_TO_FLOOR
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5 ; If already on terrain, stick to it
+    bne    @SnapToFloor
     cmp.l  d7, d0                       ; Check if left of wall
     bgt    @EndTerrain
-    ENDIF
+    @SnapToFloor:
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
     move.l #0x0, d2
