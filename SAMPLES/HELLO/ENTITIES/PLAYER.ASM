@@ -40,41 +40,81 @@ PlayerSpriteAnimTable:
     dc.l   actor_sonic_spritesheet_run_135,  actor_sonic_sheet_run_135_anim_run_135
     dc.l   actor_sonic_spritesheet_jump, actor_sonic_sheet_jump_anim_jump
 
-PlayerSpriteAnimWalkAngleTable:
-    dc.b   PLAYER_ANIM_WALK             ; 00
-    dc.b   PLAYER_ANIM_WALK_135         ; 10
-    dc.b   PLAYER_ANIM_WALK_135         ; 20
-    dc.b   PLAYER_ANIM_WALK_90          ; 30
-    dc.b   PLAYER_ANIM_WALK_90          ; 40
-    dc.b   PLAYER_ANIM_WALK_45          ; 50
-    dc.b   PLAYER_ANIM_WALK_45          ; 60
-    dc.b   PLAYER_ANIM_WALK             ; 70    - Flipped XY
-    dc.b   PLAYER_ANIM_WALK             ; 80    - Flipped XY
-    dc.b   PLAYER_ANIM_WALK_135         ; 90    - Flipped XY
-    dc.b   PLAYER_ANIM_WALK_135         ; A0    - Flipped XY
-    dc.b   PLAYER_ANIM_WALK_90          ; B0    - Flipped XY
-    dc.b   PLAYER_ANIM_WALK_90          ; C0    - Flipped XY
-    dc.b   PLAYER_ANIM_WALK_45          ; D0    - Flipped XY
-    dc.b   PLAYER_ANIM_WALK_45          ; E0    - Flipped XY
-    dc.b   PLAYER_ANIM_WALK             ; F0
+PlayerSpriteAnimWalkAngleTable_CW:
+    dc.b   PLAYER_ANIM_WALK,        0x1, 0x0   ; 00
+    dc.b   PLAYER_ANIM_WALK_45,     0x1, 0x0   ; 10
+    dc.b   PLAYER_ANIM_WALK_45,     0x1, 0x0   ; 20
+    dc.b   PLAYER_ANIM_WALK_90,     0x1, 0x0   ; 30
+    dc.b   PLAYER_ANIM_WALK_90,     0x1, 0x0   ; 40
+    dc.b   PLAYER_ANIM_WALK_135,    0x1, 0x0   ; 50
+    dc.b   PLAYER_ANIM_WALK_135,    0x1, 0x0   ; 60
+    dc.b   PLAYER_ANIM_WALK,        0x0, 0x1   ; 70
+    dc.b   PLAYER_ANIM_WALK,        0x0, 0x1   ; 80
+    dc.b   PLAYER_ANIM_WALK_45,     0x0, 0x1   ; 90
+    dc.b   PLAYER_ANIM_WALK_45,     0x0, 0x1   ; A0
+    dc.b   PLAYER_ANIM_WALK_90,     0x0, 0x1   ; B0
+    dc.b   PLAYER_ANIM_WALK_90,     0x0, 0x1   ; C0
+    dc.b   PLAYER_ANIM_WALK_135,    0x0, 0x1   ; D0
+    dc.b   PLAYER_ANIM_WALK_135,    0x0, 0x1   ; E0
+    dc.b   PLAYER_ANIM_WALK,        0x1, 0x0   ; F0
+    even
 
-PlayerSpriteAnimRunAngleTable:
-    dc.b   PLAYER_ANIM_RUN              ; 00
-    dc.b   PLAYER_ANIM_RUN_135          ; 10
-    dc.b   PLAYER_ANIM_RUN_135          ; 20
-    dc.b   PLAYER_ANIM_RUN_90           ; 30
-    dc.b   PLAYER_ANIM_RUN_90           ; 40
-    dc.b   PLAYER_ANIM_RUN_45           ; 50
-    dc.b   PLAYER_ANIM_RUN_45           ; 60
-    dc.b   PLAYER_ANIM_RUN              ; 70    - Flipped XY
-    dc.b   PLAYER_ANIM_RUN              ; 80    - Flipped XY
-    dc.b   PLAYER_ANIM_RUN_135          ; 90    - Flipped XY
-    dc.b   PLAYER_ANIM_RUN_135          ; A0    - Flipped XY
-    dc.b   PLAYER_ANIM_RUN_90           ; B0    - Flipped XY
-    dc.b   PLAYER_ANIM_RUN_90           ; C0    - Flipped XY
-    dc.b   PLAYER_ANIM_RUN_45           ; D0    - Flipped XY
-    dc.b   PLAYER_ANIM_RUN_45           ; E0    - Flipped XY
-    dc.b   PLAYER_ANIM_RUN              ; F0
+PlayerSpriteAnimWalkAngleTable_CCW:
+    dc.b   PLAYER_ANIM_WALK,        0x0, 0x0   ; 00
+    dc.b   PLAYER_ANIM_WALK_135,    0x1, 0x1   ; 10
+    dc.b   PLAYER_ANIM_WALK_135,    0x1, 0x1   ; 20
+    dc.b   PLAYER_ANIM_WALK_90,     0x1, 0x1   ; 30
+    dc.b   PLAYER_ANIM_WALK_90,     0x1, 0x1   ; 40
+    dc.b   PLAYER_ANIM_WALK_45,     0x1, 0x1   ; 50
+    dc.b   PLAYER_ANIM_WALK_45,     0x1, 0x1   ; 60
+    dc.b   PLAYER_ANIM_WALK,        0x1, 0x1   ; 70
+    dc.b   PLAYER_ANIM_WALK,        0x1, 0x1   ; 80
+    dc.b   PLAYER_ANIM_WALK_135,    0x0, 0x0   ; 90
+    dc.b   PLAYER_ANIM_WALK_135,    0x0, 0x0   ; A0
+    dc.b   PLAYER_ANIM_WALK_90,     0x0, 0x0   ; B0
+    dc.b   PLAYER_ANIM_WALK_90,     0x0, 0x0   ; C0
+    dc.b   PLAYER_ANIM_WALK_45,     0x0, 0x0   ; D0
+    dc.b   PLAYER_ANIM_WALK_45,     0x0, 0x0   ; E0
+    dc.b   PLAYER_ANIM_WALK,        0x0, 0x0   ; F0
+    even
+
+PlayerSpriteAnimRunAngleTable_CW:
+    dc.b   PLAYER_ANIM_RUN,         0x1, 0x0   ; 00
+    dc.b   PLAYER_ANIM_RUN_45,      0x1, 0x0   ; 10
+    dc.b   PLAYER_ANIM_RUN_45,      0x1, 0x0   ; 20
+    dc.b   PLAYER_ANIM_RUN_90,      0x1, 0x0   ; 30
+    dc.b   PLAYER_ANIM_RUN_90,      0x1, 0x0   ; 40
+    dc.b   PLAYER_ANIM_RUN_135,     0x1, 0x0   ; 50
+    dc.b   PLAYER_ANIM_RUN_135,     0x1, 0x0   ; 60
+    dc.b   PLAYER_ANIM_RUN,         0x0, 0x1   ; 70
+    dc.b   PLAYER_ANIM_RUN,         0x0, 0x1   ; 80
+    dc.b   PLAYER_ANIM_RUN_45,      0x0, 0x1   ; 90
+    dc.b   PLAYER_ANIM_RUN_45,      0x0, 0x1   ; A0
+    dc.b   PLAYER_ANIM_RUN_90,      0x0, 0x1   ; B0
+    dc.b   PLAYER_ANIM_RUN_90,      0x0, 0x1   ; C0
+    dc.b   PLAYER_ANIM_RUN_135,     0x0, 0x1   ; D0
+    dc.b   PLAYER_ANIM_RUN_135,     0x0, 0x1   ; E0
+    dc.b   PLAYER_ANIM_RUN,         0x1, 0x0   ; F0
+    even
+
+PlayerSpriteAnimRunAngleTable_CCW:
+    dc.b   PLAYER_ANIM_RUN,         0x0, 0x0   ; 00
+    dc.b   PLAYER_ANIM_RUN_135,     0x1, 0x1   ; 10
+    dc.b   PLAYER_ANIM_RUN_135,     0x1, 0x1   ; 20
+    dc.b   PLAYER_ANIM_RUN_90,      0x1, 0x1   ; 30
+    dc.b   PLAYER_ANIM_RUN_90,      0x1, 0x1   ; 40
+    dc.b   PLAYER_ANIM_RUN_45,      0x1, 0x1   ; 50
+    dc.b   PLAYER_ANIM_RUN_45,      0x1, 0x1   ; 60
+    dc.b   PLAYER_ANIM_RUN,         0x1, 0x1   ; 70
+    dc.b   PLAYER_ANIM_RUN,         0x1, 0x1   ; 80
+    dc.b   PLAYER_ANIM_RUN_135,     0x0, 0x0   ; 90
+    dc.b   PLAYER_ANIM_RUN_135,     0x0, 0x0   ; A0
+    dc.b   PLAYER_ANIM_RUN_90,      0x0, 0x0   ; B0
+    dc.b   PLAYER_ANIM_RUN_90,      0x0, 0x0   ; C0
+    dc.b   PLAYER_ANIM_RUN_45,      0x0, 0x0   ; D0
+    dc.b   PLAYER_ANIM_RUN_45,      0x0, 0x0   ; E0
+    dc.b   PLAYER_ANIM_RUN,         0x0, 0x0   ; F0
+    even
 
 SPRITE_ANIM_FROM_TABLE_I: macro table,index,sheet_addr,anim_addr
     ; =================================================
@@ -272,15 +312,15 @@ EPlayer_Update:
 
     ; Walking
     bsr    EPlayer_GetWalkAnim
-    bra    @SetAnim
+    bra    @SetAngleAnim
 
     @Running:
 
     ; Running
     bsr    EPlayer_GetRunAnim
-    bra    @SetAnim
+    bra    @SetAngleAnim
 
-    ; Load animation
+    ; Load animation (without flip flags)
     @SetAnim:
     ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0 ; Get sprite component
     bsr    ECSprite_LoadAnimation           ; Load animation
@@ -298,21 +338,52 @@ EPlayer_Update:
 
     rts
 
-EPlayer_GetWalkAnim:
-    lea    PlayerSpriteAnimWalkAngleTable, a2       ; Angle-to-anim table
-    move.w ECPhysicsBody_LastTerrainFlags(a1), d0   ; Player terrain angle
-    lsr.b  #0x4, d0                                 ; Segment as anim index
-    andi.w #0x000F, d0
-    move.b (a2,d0.w), d0
-    SPRITE_ANIM_FROM_TABLE_R PlayerSpriteAnimTable, d0, a1, a2
+    ; Load animation (with flip flags)
+    @SetAngleAnim:
+    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0 ; Get sprite component
+    SPRITE_COMPONENT_SETFLIPX_REG a0,d1     ; Set flip flags
+    SPRITE_COMPONENT_SETFLIPY_REG a0,d2
+    bsr    ECSprite_LoadAnimation           ; Load animation
+
     rts
 
+    ; ======================================
+    ; Eplayer_GetWalk/Run/AngleAnim
+    ; ======================================
+    ; In:
+    ;  a0   Entity
+    ;  a1   ECPhysicsBody
+    ; In/out:
+    ;  a1   Sprite sheet
+    ;  a2   Sprite anim
+    ;  d1.b X flip
+    ;  d2.b Y flip
+    ; ======================================
+EPlayer_GetWalkAnim:
+    tst.w  ECPhysicsBody_GroundSpeed(a1)
+    blt    @CW
+    lea    PlayerSpriteAnimWalkAngleTable_CCW, a2   ; Angle-to-anim table (counter clockwise)
+    bra    Eplayer_GetAngleAnim
+    @CW:
+    lea    PlayerSpriteAnimWalkAngleTable_CW, a2    ; Angle-to-anim table (clockwise)
+    bra    Eplayer_GetAngleAnim
 EPlayer_GetRunAnim:
-    lea    PlayerSpriteAnimRunAngleTable, a2       ; Angle-to-anim table
+    tst.w  ECPhysicsBody_GroundSpeed(a1)
+    blt    @CW
+    lea    PlayerSpriteAnimRunAngleTable_CCW, a2    ; Angle-to-anim table (counter clockwise)
+    bra    Eplayer_GetAngleAnim
+    @CW:
+    lea    PlayerSpriteAnimRunAngleTable_CW, a2     ; Angle-to-anim table (clockwise)
+    bra    Eplayer_GetAngleAnim
+Eplayer_GetAngleAnim:
     move.w ECPhysicsBody_LastTerrainFlags(a1), d0   ; Player terrain angle
     lsr.b  #0x4, d0                                 ; Segment as anim index
     andi.w #0x000F, d0
-    move.b (a2,d0.w), d0
+    mulu.w #0x3, d0
+    adda.w d0, a2
+    move.b (a2)+, d0                                ; Get anim index
+    move.b (a2)+, d1                                ; Get X flip
+    move.b (a2)+, d2                                ; Get Y flip
     SPRITE_ANIM_FROM_TABLE_R PlayerSpriteAnimTable, d0, a1, a2
     rts
 
