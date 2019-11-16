@@ -339,12 +339,30 @@ ECPhysicsBody_Landed:
 
 ECPhysicsBody_TerrainSearch_Down:
 
+    ; ======================================
+    ; In:
+    ; a0   Terrain stamp map data
+	; a1   Terrain stampset data
+    ; a2   Terrain tileset data
+    ; d0.w Position X (map space)
+    ; d1.w Position Y (map space)
+    ; d2.w Map width (stamps)
+    ; d5.b Terrain layer
+    ; Out:
+    ; d3.w Collision flags/angle/quadrant
+    ; d7.w Terrain height (map space, -1 if not found)
+    ; ======================================
+
+    PUSH.L d2
+
+    move.w d7, d2                       ; Map width (stamps)
+
+    ; Probe A
     PUSHM.L d0-d5/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_X, d0     ; X to map space
+    subi.w #VDP_SPRITE_BORDER_X+PHYS_TERRAIN_PROBE_OFFSET, d0; X to map space - left probe
     add.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
-    move.w d7, d2
 
     ; Probe for floor
     move.b ECPhysicsBody_TerrainLayer(a3), d5
@@ -352,6 +370,34 @@ ECPhysicsBody_TerrainSearch_Down:
     bsr    COL_ProbeTerrainDown         ; Probe terrain map (search downwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
+
+    ; Probe B
+    IF PHYS_TERRAIN_DUAL_PROBES
+    PUSHM.L d0-d5/a0-a6
+    PUSHM.W d6-d7                       ; Backup probe A's height/flags/angle/quadrant
+    swap   d0                           ; 16.16 to integer
+    swap   d1
+    subi.w #VDP_SPRITE_BORDER_X-PHYS_TERRAIN_PROBE_OFFSET, d0; X to map space + right probe
+    add.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
+
+    ; Probe for floor
+    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
+    bsr    COL_ProbeTerrainDown         ; Probe terrain map (search downwards)
+    move.w d7, d4                       ; Backup probe B's height
+    POPM.W d6-d7                        ; Restore probe A's height/flags/angle/quadrant
+    cmp.w  #-1, d7                      ; If probe A didn't find a floor, use B
+    beq    @ProbeB
+    cmp.w  #-1, d4                      ; If probe B didn't find a floor, use A
+    beq    @ProbeA
+    cmp.w  d4, d7
+    ble    @ProbeA                      ; If probe A found a lesser height, use B
+    @ProbeB:
+    move.w d4, d7                       ; Use probe B's height
+    move.w d3, d6                       ; Use probe B's flags/angle/quadrant
+    @ProbeA:
+    POPM.L d0-d5/a0-a6
+    ENDIF
 
     cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @EndTerrain
@@ -375,23 +421,57 @@ ECPhysicsBody_TerrainSearch_Down:
 
     @EndTerrain:
 
+    POP.l  d2
+
     rts
 
 ECPhysicsBody_TerrainSearch_Right:
 
+    PUSH.L d2
+
+    move.w d7, d2                       ; Map width (stamps)
+
+    ; Probe A
     PUSHM.L d0-d5/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_Y, d1     ; Y to map space
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_TERRAIN_PROBE_OFFSET, d1 ; Y to map space - bottom probe
     add.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
-    move.w d7, d2
 
-    ; Probe for right-hand wall
+    ; Probe for right wall
     move.b ECPhysicsBody_TerrainLayer(a3), d5
     subi.w #VDP_SPRITE_BORDER_X+PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
+
+    ; Probe B
+    IF PHYS_TERRAIN_DUAL_PROBES
+    PUSHM.L d0-d5/a0-a6
+    PUSHM.W d6-d7                       ; Backup probe A's width/flags/angle/quadrant
+    swap   d0                           ; 16.16 to integer
+    swap   d1
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_TERRAIN_PROBE_OFFSET, d1 ; Y to map space + top probe
+    add.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
+
+    ; Probe for right wall
+    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    subi.w #VDP_SPRITE_BORDER_X+PHYS_STEP_HEIGHT, d0 ; X - step height
+    bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
+    move.w d7, d4                       ; Backup probe B's width
+    POPM.W d6-d7                        ; Restore probe A's width/flags/angle/quadrant
+    cmp.w  #-1, d7                      ; If probe A didn't find a floor, use B
+    beq    @ProbeB
+    cmp.w  #-1, d4                      ; If probe B didn't find a floor, use A
+    beq    @ProbeA
+    cmp.w  d4, d7
+    ble    @ProbeA                      ; If probe A found a lesser width, use B
+    @ProbeB:
+    move.w d4, d7                       ; Use probe B's width
+    move.w d3, d6                       ; Use probe B's flags/angle/quadrant
+    @ProbeA:
+    POPM.L d0-d5/a0-a6
+    ENDIF
 
     cmp.w  #-1, d7                      ; d7 = terrain width, or -1
     beq    @EndTerrain
@@ -415,16 +495,22 @@ ECPhysicsBody_TerrainSearch_Right:
 
     @EndTerrain:
 
+    POP.L  d2
+
     rts
 
 ECPhysicsBody_TerrainSearch_Up:
 
+   PUSH.L d2
+
+    move.w d7, d2                       ; Map width (stamps)
+
+    ; Probe A
     PUSHM.L d0-d5/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_X, d0     ; X to map space
+    subi.w #VDP_SPRITE_BORDER_X+PHYS_TERRAIN_PROBE_OFFSET, d0; X to map space - left probe
     sub.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
-    move.w d7, d2
 
     ; Probe for ceiling
     move.b ECPhysicsBody_TerrainLayer(a3), d5
@@ -432,6 +518,34 @@ ECPhysicsBody_TerrainSearch_Up:
     bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
+
+    ; Probe B
+    IF PHYS_TERRAIN_DUAL_PROBES
+    PUSHM.L d0-d5/a0-a6
+    PUSHM.W d6-d7                       ; Backup probe A's width/flags/angle/quadrant
+    swap   d0                           ; 16.16 to integer
+    swap   d1
+    subi.w #VDP_SPRITE_BORDER_X-PHYS_TERRAIN_PROBE_OFFSET, d0; X to map space + right probe
+    sub.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
+
+    ; Probe for ceiling
+    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1 ; Y + step height
+    bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
+    move.w d7, d4                       ; Backup probe B's width
+    POPM.W d6-d7                        ; Restore probe A's width/flags/angle/quadrant
+    cmp.w  #-1, d7                      ; If probe A didn't find a floor, use B
+    beq    @ProbeB
+    cmp.w  #-1, d4                      ; If probe B didn't find a floor, use A
+    beq    @ProbeA
+    cmp.w  d4, d7
+    bge    @ProbeA                      ; If probe A found a greater width, use B
+    @ProbeB:
+    move.w d4, d7                       ; Use probe B's width
+    move.w d3, d6                       ; Use probe B's flags/angle/quadrant
+    @ProbeA:
+    POPM.L d0-d5/a0-a6
+    ENDIF
 
     cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @EndTerrain
@@ -455,23 +569,57 @@ ECPhysicsBody_TerrainSearch_Up:
 
     @EndTerrain:
 
+    POP.L  d2
+
     rts
 
 ECPhysicsBody_TerrainSearch_Left:
 
+    PUSH.L d2
+
+    move.w d7, d2                       ; Map width (stamps)
+
+    ; Probe A
     PUSHM.L d0-d5/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_Y, d1     ; Y to map space
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_TERRAIN_PROBE_OFFSET, d1; Y to map space + top probe
     sub.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
-    move.w d7, d2
 
-    ; Probe for left-hand wall
+    ; Probe for floor
     move.b ECPhysicsBody_TerrainLayer(a3), d5
     subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
+
+    ; Probe B
+    IF PHYS_TERRAIN_DUAL_PROBES
+    PUSHM.L d0-d5/a0-a6
+    PUSHM.W d6-d7                       ; Backup probe A's height/flags/angle/quadrant
+    swap   d0                           ; 16.16 to integer
+    swap   d1
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_TERRAIN_PROBE_OFFSET, d1; Y to map space - bottom probe
+    sub.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
+
+    ; Probe for floor
+    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0 ; X - step height
+    bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
+    move.w d7, d4                       ; Backup probe B's height
+    POPM.W d6-d7                        ; Restore probe A's height/flags/angle/quadrant
+    cmp.w  #-1, d7                      ; If probe A didn't find a floor, use B
+    beq    @ProbeB
+    cmp.w  #-1, d4                      ; If probe B didn't find a floor, use A
+    beq    @ProbeA
+    cmp.w  d4, d7
+    bge    @ProbeA                      ; If probe A found a lesser height, use B
+    @ProbeB:
+    move.w d4, d7                       ; Use probe B's height
+    move.w d3, d6                       ; Use probe B's flags/angle/quadrant
+    @ProbeA:
+    POPM.L d0-d5/a0-a6
+    ENDIF
 
     cmp.w  #-1, d7                      ; d7 = terrain height, or -1
     beq    @EndTerrain
@@ -494,5 +642,7 @@ ECPhysicsBody_TerrainSearch_Left:
     move.b d6, ECPhysicsBody_TerrainQuadrant(a3)
 
     @EndTerrain:
+
+    POP.L  d2
 
     rts
