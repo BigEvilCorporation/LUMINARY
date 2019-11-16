@@ -15,16 +15,16 @@ COL_ProbeTerrainDown:
     ; collision flags.
     ; ======================================
     ; In:
-    ; a0   Terrain stamp map data
-	; a1   Terrain stampset data
-    ; a2   Terrain tileset data
-    ; d0.w Position X (map space)
-    ; d1.w Position Y (map space)
-    ; d2.w Map width (stamps)
-    ; d5.b Terrain layer
+    ; a0    Terrain stamp map data
+	; a1    Terrain stampset data
+    ; a2    Terrain tileset data
+    ; d0.w  Position X (map space)
+    ; d1.w  Position Y (map space)
+    ; d2.w  Map width (stamps)
+    ; d5.ww COLLISION_TEST_BIT_*, terrain layer
     ; Out:
-    ; d3.w Collision flags/angle/quadrant
-    ; d7.w Terrain height (map space, -1 if not found)
+    ; d3.w  Collision flags/angle/quadrant
+    ; d7.w  Terrain height (map space, -1 if not found)
     ; ======================================
 
     ; Layer to longwords
@@ -71,8 +71,11 @@ COL_ProbeTerrainDown:
     beq    @ZeroHeightOrCeiling         ; Tile 0 is blank
 
     ; If tile solid, success
-    btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3 ; Flags in upper byte
+    btst   #COLLISION_TEST_BIT_SOLID_L, d5      ; Check if testing for solid tiles
+    beq    @NoCheckSolid
+    btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3   ; Flags in upper byte
     bne    @SolidTile
+    @NoCheckSolid:
 
     ; Get tile
     moveq  #0x0, d4
@@ -180,8 +183,11 @@ COL_ProbeTerrainUp:
     beq    @ZeroHeightOrFloor           ; Tile 0 is blank
 
     ; If tile solid, success
+    btst   #COLLISION_TEST_BIT_SOLID_L, d5    ; Check if testing for solid tiles
+    beq    @NoCheckSolid
     btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3 ; Flags in upper byte
     bne    @SolidTile
+    @NoCheckSolid:
 
     ; Get tile
     moveq  #0x0, d4
@@ -294,8 +300,11 @@ COL_ProbeTerrainLeft:
     beq    @ZeroWidthOrRightWall        ; Tile 0 is blank
 
     ; If tile solid, success
+    btst   #COLLISION_TEST_BIT_SOLID_L, d5    ; Check if testing for solid tiles
+    beq    @NoCheckSolid
     btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3 ; Flags in upper byte
     bne    @SolidTile
+    @NoCheckSolid:
 
     ; Get tile
     moveq  #0x0, d4
@@ -407,8 +416,11 @@ COL_ProbeTerrainRight:
     beq    @ZeroWidthOrLeftWall         ; Tile 0 is blank
 
     ; If tile solid, success
+    btst   #COLLISION_TEST_BIT_SOLID_L, d5    ; Check if testing for solid tiles
+    beq    @NoCheckSolid
     btst   #COLLISION_FLAG_BIT_SOLID_B+24, d3 ; Flags in upper byte
     bne    @SolidTile
+    @NoCheckSolid:
 
     ; Get tile
     moveq  #0x0, d4

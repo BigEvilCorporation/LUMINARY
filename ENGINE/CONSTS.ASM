@@ -76,6 +76,10 @@ COLLISION_FLAG_BIT_TERRAIN_W            equ COLLISION_FLAG_BIT_TERRAIN_B+8
 COLLISION_FLAG_BIT_SOLID_B              equ 5
 COLLISION_FLAG_BIT_SOLID_W              equ COLLISION_FLAG_BIT_SOLID_B+8
 
+; Collision tests
+COLLISION_TEST_BIT_TERRAIN_L            equ 0+16
+COLLISION_TEST_BIT_SOLID_L              equ 1+16
+
 ; Sprites
 VDP_MAX_SPRITES                         equ 0x40
 VDP_SPRITE_FLAG_FLIPX                   equ 11

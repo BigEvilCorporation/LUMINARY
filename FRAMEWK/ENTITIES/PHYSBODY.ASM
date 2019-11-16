@@ -175,9 +175,6 @@ ECPhysicsBody_Step:
     neg.l  d5
     CLAMP.L d2,d5,d4
 
-    ; Search terrain downwards
-    ;move.b #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, ECPhysicsBody_TerrainQuadrant(a3)
-
     @EndGroundSpeed:
     
     move.l d2, a5                       ; Backup vel
@@ -235,15 +232,21 @@ ECPhysicsBody_Step:
     beq    @Left
     @Up:
     bsr    ECPhysicsBody_TerrainSearch_Up
-    bra    @EndTerrain
+    bra    @SearchWalls
     @Down:
     bsr    ECPhysicsBody_TerrainSearch_Down
-    bra    @EndTerrain
+    bra    @SearchWalls
     @Right:
     bsr    ECPhysicsBody_TerrainSearch_Right
     bra    @EndTerrain
     @Left:
     bsr    ECPhysicsBody_TerrainSearch_Left
+    bra    @EndTerrain
+
+    @SearchWalls:
+    ; Searched vertically for terrain, now search horizontally for walls
+    jsr    ECPhysicsBody_WallSearch
+
     @EndTerrain:
 
     POPM.W  d5/d6
@@ -354,6 +357,90 @@ ECPhysicsBody_Landed:
 
     rts
 
+ECPhysicsBody_WallSearch:
+    ; ======================================
+    ; Searches for solid walls horizontally.
+    ; Corrects object X position, returns
+    ; collision flags.
+    ; Does not affect angle or quadrant.
+    ; ======================================
+    ; In:
+    ;  a0   Terrain stamp map data
+	;  a1   Terrain stampset data
+    ;  a2   Terrain tileset data
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d5.b Terrain layer
+    ;  d7.w Map width (stamps)
+    ;  a4   Entity
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
+    ; Out:
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d3.l Collision flags (floor flag, angle, and quadrant unchanged)
+    ;  a5.l X velocity
+    ;  a6.l Y velocity
+    ; ======================================
+
+    PUSHM.L d2/d7
+
+    move.w d7, d2                       ; Map width (stamps)
+
+    ; Get probe position
+    PUSHM.L d0-d5/a0-a6
+    swap   d0                                       ; 16.16 to integer
+    swap   d1
+    subi.w #VDP_SPRITE_BORDER_X, d0                 ; X to map space
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1; Y to map space - step height
+    add.w  Entity_ExtentsY(a4), d1                  ; Centre to probe Y offset
+    move.l #1<<COLLISION_TEST_BIT_SOLID_L, d5
+    move.b ECPhysicsBody_TerrainLayer(a3), d5       ; Get layer
+    
+    ; Probe for floor
+    cmp.l  #0x0, a5
+    ble    @SearchLeft
+    add.w  Entity_ExtentsX(a4), d0      ; Centre to probe X offset
+    bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
+    bra    @SearchRight
+    @SearchLeft:
+    sub.w  Entity_ExtentsX(a4), d0      ; Centre to probe X offset
+    bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
+    @SearchRight:
+    
+    move.w d3, d6                       ; Backup tile flags/angle/quadrant
+    POPM.L d0-d5/a0-a6
+
+    btst   #COLLISION_FLAG_BIT_SOLID_W, d6 ; Check if hit wall
+    beq    @EndWall
+    addi.w #VDP_SPRITE_BORDER_X, d7     ; X back to sprite space
+    cmp.l  #0x0, a5
+    ble    @ProbeLeft
+    sub.w  Entity_ExtentsX(a4), d7      ; Probe offset back to centre
+    bra    @ProbeRight
+    @ProbeLeft:
+    add.w  Entity_ExtentsX(a4), d7      ; Probe offset back to centre
+    @ProbeRight:
+    swap   d7                           ; To 16.16, cap fraction
+    move.w #0x0, d7
+    cmp.l  d7, d0                       ; Check if penetrating wall
+    ble    @EndWall
+    move.l d7, d0                       ; Hit wall, cap X and zero velocity
+    move.l #0x0, d2                     ; Zero X velocity
+    move.l #0x0, a5                     ; Zero X velocity (mirror)
+    move.w #0x0, ECPhysicsBody_GroundSpeed(a3) ; Zero ground speed
+    bclr   #COLLISION_FLAG_BIT_TERRAIN_W, d6      ; Don't treat this as terrain
+    lsr.w  #0x8, d6                               ; Leave angle unchanged
+    or.b   d6, ECPhysicsBody_LastTerrainFlags(a3) ; Store flags (leave angle unchanged)
+
+    @EndWall:
+
+    POPM.L  d2/d7
+
+    rts
+
 ECPhysicsBody_TerrainSearch_Down:
     ; ======================================
     ; Searches for terrain downwards.
@@ -361,21 +448,29 @@ ECPhysicsBody_TerrainSearch_Down:
     ; collision flags and terrain height
     ; ======================================
     ; In:
-    ; a0   Terrain stamp map data
-	; a1   Terrain stampset data
-    ; a2   Terrain tileset data
-    ; d0.l Position X (map space)
-    ; d1.l Position Y (map space)
-    ; d2.w Map width (stamps)
-    ; d5.b Terrain layer
+    ;  a0   Terrain stamp map data
+	;  a1   Terrain stampset data
+    ;  a2   Terrain tileset data
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d5.b Terrain layer
+    ;  d7.w Map width (stamps)
+    ;  a4   Entity
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
     ; Out:
-    ; d0.l Position X (map space)
-    ; d1.l Position Y (map space)
-    ; d3.w Collision flags/angle/quadrant
-    ; d7.w Terrain height (map space, -1 if not found)
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d7.w Terrain height (map space, -1 if not found)
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
     ; ======================================
 
-    PUSH.L d2
+    PUSHM.L d2/d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -383,12 +478,13 @@ ECPhysicsBody_TerrainSearch_Down:
     PUSHM.L d0-d5/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_X+PHYS_TERRAIN_PROBE_OFFSET, d0; X to map space - left probe
-    add.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
+    subi.w #VDP_SPRITE_BORDER_X+PHYS_TERRAIN_PROBE_OFFSET, d0   ; X to map space - left probe
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1            ; Y to map space - step height
+    add.w  Entity_ExtentsY(a4), d1                              ; Centre to Y probe offset
 
     ; Probe for floor
+    move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
     move.b ECPhysicsBody_TerrainLayer(a3), d5
-    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
     bsr    COL_ProbeTerrainDown         ; Probe terrain map (search downwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
@@ -399,12 +495,13 @@ ECPhysicsBody_TerrainSearch_Down:
     PUSHM.W d6-d7                       ; Backup probe A's height/flags/angle/quadrant
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_X-PHYS_TERRAIN_PROBE_OFFSET, d0; X to map space + right probe
-    add.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
+    subi.w #VDP_SPRITE_BORDER_X-PHYS_TERRAIN_PROBE_OFFSET, d0   ; X to map space + right probe
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1            ; Y to map space - step height
+    add.w  Entity_ExtentsY(a4), d1                              ; Centre to Y probe offset
 
     ; Probe for floor
+    move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
     move.b ECPhysicsBody_TerrainLayer(a3), d5
-    subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1 ; Y - step height
     bsr    COL_ProbeTerrainDown         ; Probe terrain map (search downwards)
     move.w d7, d4                       ; Backup probe B's height
     POPM.W d6-d7                        ; Restore probe A's height/flags/angle/quadrant
@@ -434,8 +531,8 @@ ECPhysicsBody_TerrainSearch_Down:
     @SnapToFloor:
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d1        ; - step height
-    move.l #0x0, d3
-    move.l #0x0, a6
+    move.l #0x0, d3                     ; Zero Y velocity
+    move.l #0x0, a6                     ; Zero Y velocity (mirror)
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
     lsr.w  #0x8, d6                     ; Quadrant to terrain mode
     andi.b #0x3, d6
@@ -443,7 +540,7 @@ ECPhysicsBody_TerrainSearch_Down:
 
     @EndTerrain:
 
-    POP.l  d2
+    POPM.L  d2/d7
 
     rts
 
@@ -454,21 +551,29 @@ ECPhysicsBody_TerrainSearch_Right:
     ; collision flags and terrain width
     ; ======================================
     ; In:
-    ; a0   Terrain stamp map data
-	; a1   Terrain stampset data
-    ; a2   Terrain tileset data
-    ; d0.l Position X (map space)
-    ; d1.l Position Y (map space)
-    ; d2.w Map width (stamps)
-    ; d5.b Terrain layer
+    ;  a0   Terrain stamp map data
+	;  a1   Terrain stampset data
+    ;  a2   Terrain tileset data
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d5.b Terrain layer
+    ;  d7.w Map width (stamps)
+    ;  a4   Entity
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
     ; Out:
-    ; d0.l Position X (map space)
-    ; d1.l Position Y (map space)
-    ; d3.w Collision flags/angle/quadrant
-    ; d7.w Terrain height (map space, -1 if not found)
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d7.w Terrain height (map space, -1 if not found)
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
     ; ======================================
 
-    PUSH.L d2
+    PUSHM.L d2/d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -476,12 +581,13 @@ ECPhysicsBody_TerrainSearch_Right:
     PUSHM.L d0-d5/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_Y+PHYS_TERRAIN_PROBE_OFFSET, d1 ; Y to map space - bottom probe
-    add.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_TERRAIN_PROBE_OFFSET, d1   ; Y to map space - bottom probe
+    subi.w #VDP_SPRITE_BORDER_X+PHYS_STEP_HEIGHT, d0            ; X to map space - step height
+    add.w  Entity_ExtentsX(a4), d0                              ; Centre to X probe offset
 
     ; Probe for right wall
+    move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
     move.b ECPhysicsBody_TerrainLayer(a3), d5
-    subi.w #VDP_SPRITE_BORDER_X+PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
@@ -492,12 +598,13 @@ ECPhysicsBody_TerrainSearch_Right:
     PUSHM.W d6-d7                       ; Backup probe A's width/flags/angle/quadrant
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_Y-PHYS_TERRAIN_PROBE_OFFSET, d1 ; Y to map space + top probe
-    add.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_TERRAIN_PROBE_OFFSET, d1   ; Y to map space + top probe
+    subi.w #VDP_SPRITE_BORDER_X+PHYS_STEP_HEIGHT, d0            ; X to map space - step height
+    add.w  Entity_ExtentsX(a4), d0                              ; Centre to probe X offset
 
     ; Probe for right wall
+    move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
     move.b ECPhysicsBody_TerrainLayer(a3), d5
-    subi.w #VDP_SPRITE_BORDER_X+PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
     move.w d7, d4                       ; Backup probe B's width
     POPM.W d6-d7                        ; Restore probe A's width/flags/angle/quadrant
@@ -527,8 +634,8 @@ ECPhysicsBody_TerrainSearch_Right:
     @SnapToFloor:
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d0        ; - step height
-    move.l #0x0, d2
-    move.l #0x0, a5
+    move.l #0x0, d2                     ; Zero X velocity
+    move.l #0x0, a5                     ; Zero X velocity (mirror)
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
     lsr.w  #0x8, d6                     ; Quadrant to terrain mode
     andi.b #0x3, d6
@@ -536,7 +643,7 @@ ECPhysicsBody_TerrainSearch_Right:
 
     @EndTerrain:
 
-    POP.L  d2
+    POPM.L  d2/d7
 
     rts
 
@@ -547,21 +654,29 @@ ECPhysicsBody_TerrainSearch_Up:
     ; collision flags and terrain height
     ; ======================================
     ; In:
-    ; a0   Terrain stamp map data
-	; a1   Terrain stampset data
-    ; a2   Terrain tileset data
-    ; d0.l Position X (map space)
-    ; d1.l Position Y (map space)
-    ; d2.w Map width (stamps)
-    ; d5.b Terrain layer
+    ;  a0   Terrain stamp map data
+	;  a1   Terrain stampset data
+    ;  a2   Terrain tileset data
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d5.b Terrain layer
+    ;  d7.w Map width (stamps)
+    ;  a4   Entity
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
     ; Out:
-    ; d0.l Position X (map space)
-    ; d1.l Position Y (map space)
-    ; d3.w Collision flags/angle/quadrant
-    ; d7.w Terrain height (map space, -1 if not found)
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d7.w Terrain height (map space, -1 if not found)
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
     ; ======================================
 
-    PUSH.L d2
+    PUSHM.L d2/d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -569,12 +684,13 @@ ECPhysicsBody_TerrainSearch_Up:
     PUSHM.L d0-d5/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_X+PHYS_TERRAIN_PROBE_OFFSET, d0; X to map space - left probe
-    sub.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
+    subi.w #VDP_SPRITE_BORDER_X+PHYS_TERRAIN_PROBE_OFFSET, d0   ; X to map space - left probe
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1            ; Y to map space + step height
+    sub.w  Entity_ExtentsY(a4), d1                              ; Centre to Y probe offset
 
     ; Probe for ceiling
+    move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
     move.b ECPhysicsBody_TerrainLayer(a3), d5
-    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1 ; Y + step height
     bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
@@ -585,12 +701,13 @@ ECPhysicsBody_TerrainSearch_Up:
     PUSHM.W d6-d7                       ; Backup probe A's width/flags/angle/quadrant
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_X-PHYS_TERRAIN_PROBE_OFFSET, d0; X to map space + right probe
-    sub.w  Entity_ExtentsY(a4), d1      ; Centre to probe offset
+    subi.w #VDP_SPRITE_BORDER_X-PHYS_TERRAIN_PROBE_OFFSET, d0   ; X to map space + right probe
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1            ; Y to map space + step height
+    sub.w  Entity_ExtentsY(a4), d1                              ; Centre to Y probe offset
 
     ; Probe for ceiling
+    move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
     move.b ECPhysicsBody_TerrainLayer(a3), d5
-    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d1 ; Y + step height
     bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
     move.w d7, d4                       ; Backup probe B's width
     POPM.W d6-d7                        ; Restore probe A's width/flags/angle/quadrant
@@ -620,8 +737,8 @@ ECPhysicsBody_TerrainSearch_Up:
     @SnapToFloor:
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
-    move.l #0x0, d3
-    move.l #0x0, a6
+    move.l #0x0, d3                     ; Zero Y velocity
+    move.l #0x0, a6                     ; Zero Y velocity (mirror)
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
     lsr.w  #0x8, d6                     ; Quadrant to terrain mode
     andi.b #0x3, d6
@@ -629,7 +746,7 @@ ECPhysicsBody_TerrainSearch_Up:
 
     @EndTerrain:
 
-    POP.L  d2
+    POPM.L  d2/d7
 
     rts
 
@@ -640,21 +757,29 @@ ECPhysicsBody_TerrainSearch_Left:
     ; collision flags and terrain width
     ; ======================================
     ; In:
-    ; a0   Terrain stamp map data
-	; a1   Terrain stampset data
-    ; a2   Terrain tileset data
-    ; d0.l Position X (map space)
-    ; d1.l Position Y (map space)
-    ; d2.w Map width (stamps)
-    ; d5.b Terrain layer
+    ;  a0   Terrain stamp map data
+	;  a1   Terrain stampset data
+    ;  a2   Terrain tileset data
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d5.b Terrain layer
+    ;  d7.w Map width (stamps)
+    ;  a4   Entity
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
     ; Out:
-    ; d0.l Position X (map space)
-    ; d1.l Position Y (map space)
-    ; d3.w Collision flags/angle/quadrant
-    ; d7.w Terrain height (map space, -1 if not found)
+    ;  d0.l Position X (map space)
+    ;  d1.l Position Y (map space)
+    ;  d2.l X velocity
+    ;  d3.l Y velocity
+    ;  d7.w Terrain height (map space, -1 if not found)
+    ;  a5.l X velocity (mirror)
+    ;  a6.l Y velocity (mirror)
     ; ======================================
 
-    PUSH.L d2
+    PUSHM.L d2/d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -662,12 +787,13 @@ ECPhysicsBody_TerrainSearch_Left:
     PUSHM.L d0-d5/a0-a6
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_Y-PHYS_TERRAIN_PROBE_OFFSET, d1; Y to map space + top probe
-    sub.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_TERRAIN_PROBE_OFFSET, d1   ; Y to map space + top probe
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0            ; X to map space - step height
+    sub.w  Entity_ExtentsX(a4), d0                              ; Centre to X probe offset
 
     ; Probe for floor
+    move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
     move.b ECPhysicsBody_TerrainLayer(a3), d5
-    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
@@ -678,12 +804,13 @@ ECPhysicsBody_TerrainSearch_Left:
     PUSHM.W d6-d7                       ; Backup probe A's height/flags/angle/quadrant
     swap   d0                           ; 16.16 to integer
     swap   d1
-    subi.w #VDP_SPRITE_BORDER_Y+PHYS_TERRAIN_PROBE_OFFSET, d1; Y to map space - bottom probe
-    sub.w  Entity_ExtentsX(a4), d0      ; Centre to probe offset
+    subi.w #VDP_SPRITE_BORDER_Y+PHYS_TERRAIN_PROBE_OFFSET, d1   ; Y to map space - bottom probe
+    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0            ; X to map space - step height
+    sub.w  Entity_ExtentsX(a4), d0                              ; Centre to X probe offset
 
     ; Probe for floor
+    move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
     move.b ECPhysicsBody_TerrainLayer(a3), d5
-    subi.w #VDP_SPRITE_BORDER_Y-PHYS_STEP_HEIGHT, d0 ; X - step height
     bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
     move.w d7, d4                       ; Backup probe B's height
     POPM.W d6-d7                        ; Restore probe A's height/flags/angle/quadrant
@@ -713,8 +840,8 @@ ECPhysicsBody_TerrainSearch_Left:
     @SnapToFloor:
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     addi.w #PHYS_STEP_HEIGHT, d0        ; + step height
-    move.l #0x0, d2
-    move.l #0x0, a5
+    move.l #0x0, d2                     ; Zero X velocity
+    move.l #0x0, a5                     ; Zero X velocity (mirror)
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
     lsr.w  #0x8, d6                     ; Quadrant to terrain mode
     andi.b #0x3, d6
@@ -722,6 +849,6 @@ ECPhysicsBody_TerrainSearch_Left:
 
     @EndTerrain:
 
-    POP.L  d2
+    POPM.L  d2/d7
 
     rts
