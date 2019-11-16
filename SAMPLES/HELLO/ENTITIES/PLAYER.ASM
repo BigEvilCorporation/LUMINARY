@@ -19,14 +19,19 @@ PLAYER_ANIM_JUMP                        equ 9
 PLAYER_ANIM_COUNT                       equ 10
 
 PLAYER_FLAG_JUMPING                     equ 0
+PLAYER_FLAG_SPINNING                    equ 1
 
 PLAYER_ACCEL                            equ 0x0C00
 PLAYER_ACCEL_AIR                        equ 0x1800
 PLAYER_DECEL                            equ 0x0C00
 PLAYER_DECEL_FORCED                     equ 0x7FFF
+PLAYER_DECEL_SPIN                       equ 0x0600
 PLAYER_JUMP_VEL                         equ 0x00068000
 PLAYER_MAX_VEL_X                 		equ 0x00060000
+PLAYER_MAX_VEL_X_SPIN            		equ 0x00160000
 PLAYER_WALK_TO_RUN_VEL                  equ 0x00030000
+
+PLAYER_SPIN_MIN_SPEED                   equ 0x00008000
 
 PlayerSpriteAnimTable:
     dc.l   actor_sonic_spritesheet_idle, 0x0
@@ -160,6 +165,7 @@ SPRITE_ANIM_FROM_TABLE_R: macro table,index_reg,sheet_addr,anim_addr
     ENTITY_SPAWN_DATA_END
 
     ENTITY_BEGIN EPlayer
+EPlayer_TerrainFlagsPrev                rs.w 1
 EPlayer_StateFlags                      rs.b 1
 	ENT_COMPONENT ECPhysicsBody
     ENT_COMPONENT ECSprite
@@ -174,6 +180,7 @@ EPlayer_Initialise:
     ; ======================================
 
     ; Initialise
+    move.w #0x0, EPlayer_TerrainFlagsPrev(a0)
     move.b #0x0, EPlayer_StateFlags(a0)
 
     ; Set as camera target
@@ -217,10 +224,62 @@ EPlayer_Update:
     move.b EPlayer_StateFlags(a0), d5
     move.w ECPhysicsBody_LastTerrainFlags(a1), d6
 
+    ; Handle input
+    bsr    EPlayer_UpdateInput
+
+    ; Update state
+    bsr    EPlayer_UpdateState
+
+    ; Store updated flags
+    move.b d5, EPlayer_StateFlags(a0)
+    move.w d6, ECPhysicsBody_LastTerrainFlags(a1)
+
+    ; Store prev collision flags
+    move.w d6, EPlayer_TerrainFlagsPrev(a0)
+
+    ; Update animation from current state
+    bsr    EPlayer_UpdateAnimation
+
+    ; Debug draw
+    move.w ECPhysicsBody_LastTerrainFlags(a1), d7
+    DBG_DRAW_WORD #100,#8,d7
+    move.b ECPhysicsBody_TerrainQuadrant(a1), d7
+    DBG_DRAW_BYTE #100,#9,d7
+
+    rts
+
+EPlayer_UpdateInput:
+    ; ======================================
+    ; Sets movement state from input
+    ; ======================================
+    ; In:
+    ;  a0   Entity
+    ;  a1   ECPhysicsBody
+    ;  d5.b Player state flags
+    ;  d6.w Terrain flags
+    ; Out:
+    ;  d5.b Player state flags
+    ;  d6.w Terrain flags
+    ; ======================================
+
     ; Read input
     bsr    PAD_ReadPortA
     move.w RAM_GAMEPAD_PREV_1, d7       ; For debounce
     move.w d0, RAM_GAMEPAD_PREV_1       ; Backup prev state
+
+    ; If pressing down, spin
+    btst   #PAD_BUTTON_DOWN, d0
+    beq    @EndDown
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6    ; If on floor
+    beq    @EndDown
+    move.w ECPhysicsBody_GroundSpeed(a1), d4    ; If ground speed > threshold
+    ABS.W  d4
+    cmp.w  #PLAYER_SPIN_MIN_SPEED>>8, d4
+    blt    @EndDown
+    bset   #PLAYER_FLAG_SPINNING, d5            ; Spinning
+    move.l #PLAYER_MAX_VEL_X_SPIN, ECPhysicsBody_MaxVelX(a1)    ; Set spinning max vel
+    move.w #PLAYER_DECEL_SPIN, ECPhysicsBody_DecelX(a1)         ; Set spinning deceleration
+    @EndDown:
 
     ; Apply acceleration/forced deceleration
     btst   #PAD_BUTTON_LEFT, d0
@@ -229,6 +288,8 @@ EPlayer_Update:
     beq    @InAirLeft
     tst.w  d2                                   ; Check if forcing opposite direction
     bgt    @AccelForceLeft
+    btst   #PLAYER_FLAG_SPINNING, d5            ; Can't accel if spinning
+    bne    @EndLeft
     move.w #-PLAYER_ACCEL, d1                   ; Just use plain ground accel
     bra    @EndLeft
     @AccelForceLeft:
@@ -245,6 +306,8 @@ EPlayer_Update:
     beq    @InAirRight
     tst.w  d2                                   ; Check if forcing opposite direction
     blt    @AccelForceRight
+    btst   #PLAYER_FLAG_SPINNING, d5            ; Can't accel if spinning
+    bne    @EndRight
     move.w #PLAYER_ACCEL, d1                    ; Just use plain ground accel
     bra    @EndRight
     @AccelForceRight:
@@ -255,15 +318,8 @@ EPlayer_Update:
     bra    @EndRight
     @EndRight:
 
+    ; Set new acceleration
     move.w d1, ECPhysicsBody_AccelX(a1)
-
-    ; If in jump state and on floor, clear jump flag
-    btst   #PLAYER_FLAG_JUMPING, d5
-    beq    @EndJumpClear
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
-    beq    @EndJumpClear
-    bclr   #PLAYER_FLAG_JUMPING, d5
-    @EndJumpClear:
 
     ; Jump
     btst   #PAD_BUTTON_B, d0
@@ -273,15 +329,59 @@ EPlayer_Update:
     bsr    EPlayer_Jump
     @NoB:
 
-    ; Store flags
-    move.b d5, EPlayer_StateFlags(a0)
-    move.w d6, ECPhysicsBody_LastTerrainFlags(a1)
+    rts
 
-    ; Debug draw
-    move.w ECPhysicsBody_LastTerrainFlags(a1), d7
-    DBG_DRAW_WORD #100,#8,d7
-    move.b ECPhysicsBody_TerrainQuadrant(a1), d7
-    DBG_DRAW_BYTE #100,#9,d7
+EPlayer_UpdateState:
+    ; ======================================
+    ; Updates current state
+    ; ======================================
+    ; In:
+    ;  a0   Entity
+    ;  a1   ECPhysicsBody
+    ;  d5.b Player state flags
+    ;  d6.w Terrain flags
+    ; Out:
+    ;  d5.b Player state flags
+    ;  d6.w Terrain flags
+    ; ======================================
+
+    ; If in jump state and on floor, clear jump flag
+    btst   #PLAYER_FLAG_JUMPING, d5
+    beq    @EndJumpClear
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
+    beq    @EndJumpClear
+    bclr   #PLAYER_FLAG_JUMPING, d5                 ; Reset jump flag
+    @EndJumpClear:
+
+    ; If in spin state and velocity ground speed too low, or just landed, clear spin flag
+    btst   #PLAYER_FLAG_SPINNING, d5
+    beq    @EndSpinClear
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
+    beq    @EndSpinClear
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, EPlayer_TerrainFlagsPrev(a0) ; If hit ground this frame
+    beq    @HitGround
+    move.w ECPhysicsBody_GroundSpeed(a1), d4                ; or if ground speed > threshold
+    ABS.W  d4
+    cmp.w  #PLAYER_SPIN_MIN_SPEED>>8, d4
+    bge    @EndSpinClear
+    @HitGround:
+    bclr   #PLAYER_FLAG_SPINNING, d5                        ; Reset spin flag
+    move.l #PLAYER_MAX_VEL_X, ECPhysicsBody_MaxVelX(a1)     ; Reset max vel
+    move.w #PLAYER_DECEL, ECPhysicsBody_DecelX(a1)          ; Reset deceleration
+    @EndSpinClear:
+
+    rts
+
+EPlayer_UpdateAnimation:
+    ; ======================================
+    ; Sets animation from current state
+    ; ======================================
+    ; In:
+    ;  a0   Entity
+    ;  a1   ECPhysicsBody
+    ;  d5.b Player state flags
+    ;  d6.w Terrain flags
+    ; ======================================
 
     ; Backup physics component
     move.l a1, a3
@@ -289,6 +389,9 @@ EPlayer_Update:
     ; Determine animation
     btst   #PLAYER_FLAG_JUMPING, d5
     bne    @Jumping
+
+    btst   #PLAYER_FLAG_SPINNING, d5
+    bne    @Spinning
 
     move.w ECPhysicsBody_GroundSpeed(a1), d0
     tst.w  d0
@@ -300,6 +403,11 @@ EPlayer_Update:
 
     ; Jumping
     @Jumping:
+    SPRITE_ANIM_FROM_TABLE_I PlayerSpriteAnimTable, PLAYER_ANIM_JUMP, a1, a2
+    bra    @SetAnim
+
+    ; Spinning
+    @Spinning:
     SPRITE_ANIM_FROM_TABLE_I PlayerSpriteAnimTable, PLAYER_ANIM_JUMP, a1, a2
     bra    @SetAnim
 
@@ -353,7 +461,7 @@ EPlayer_Update:
     ; In:
     ;  a0   Entity
     ;  a1   ECPhysicsBody
-    ; In/out:
+    ; Out:
     ;  a1   Sprite sheet
     ;  a2   Sprite anim
     ;  d1.b X flip
