@@ -176,7 +176,7 @@ ECPhysicsBody_Step:
     CLAMP.L d2,d5,d4
 
     ; Search terrain downwards
-    move.b #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, ECPhysicsBody_TerrainQuadrant(a3)
+    ;move.b #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, ECPhysicsBody_TerrainQuadrant(a3)
 
     @EndGroundSpeed:
     
@@ -208,7 +208,24 @@ ECPhysicsBody_Step:
     move.w #0x0, ECPhysicsBody_LastTerrainFlags(a3)
     PUSHM.W d5/d6
 
-    ; Terrain lookup
+    ; If not already on ground, search all directions
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    bne    @SearchQuadrant
+    bsr    ECPhysicsBody_TerrainSearch_Down
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    bne    @EndTerrain
+    bsr    ECPhysicsBody_TerrainSearch_Right
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    bne    @EndTerrain
+    bsr    ECPhysicsBody_TerrainSearch_Left
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    bne    @EndTerrain
+    bsr    ECPhysicsBody_TerrainSearch_Up
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    bne    @EndTerrain
+
+    ; Already on ground, terrain lookup by quadrant
+    @SearchQuadrant:
     move.b ECPhysicsBody_TerrainQuadrant(a3), d6
     cmp.b  #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, d6
     beq    @Down
@@ -232,7 +249,7 @@ ECPhysicsBody_Step:
     POPM.W  d5/d6
 
     ; Check if landed on ground this frame
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysicsBody_LastTerrainFlags(a3)
     beq    @NotLanded
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
     bne    @NotLanded
@@ -338,17 +355,22 @@ ECPhysicsBody_Landed:
     rts
 
 ECPhysicsBody_TerrainSearch_Down:
-
+    ; ======================================
+    ; Searches for terrain downwards.
+    ; Corrects object Y, returns
+    ; collision flags and terrain height
     ; ======================================
     ; In:
     ; a0   Terrain stamp map data
 	; a1   Terrain stampset data
     ; a2   Terrain tileset data
-    ; d0.w Position X (map space)
-    ; d1.w Position Y (map space)
+    ; d0.l Position X (map space)
+    ; d1.l Position Y (map space)
     ; d2.w Map width (stamps)
     ; d5.b Terrain layer
     ; Out:
+    ; d0.l Position X (map space)
+    ; d1.l Position Y (map space)
     ; d3.w Collision flags/angle/quadrant
     ; d7.w Terrain height (map space, -1 if not found)
     ; ======================================
@@ -426,6 +448,25 @@ ECPhysicsBody_TerrainSearch_Down:
     rts
 
 ECPhysicsBody_TerrainSearch_Right:
+    ; ======================================
+    ; Searches for terrain to the right.
+    ; Corrects object X, returns
+    ; collision flags and terrain width
+    ; ======================================
+    ; In:
+    ; a0   Terrain stamp map data
+	; a1   Terrain stampset data
+    ; a2   Terrain tileset data
+    ; d0.l Position X (map space)
+    ; d1.l Position Y (map space)
+    ; d2.w Map width (stamps)
+    ; d5.b Terrain layer
+    ; Out:
+    ; d0.l Position X (map space)
+    ; d1.l Position Y (map space)
+    ; d3.w Collision flags/angle/quadrant
+    ; d7.w Terrain height (map space, -1 if not found)
+    ; ======================================
 
     PUSH.L d2
 
@@ -500,8 +541,27 @@ ECPhysicsBody_TerrainSearch_Right:
     rts
 
 ECPhysicsBody_TerrainSearch_Up:
+    ; ======================================
+    ; Searches for terrain upwards.
+    ; Corrects object Y, returns
+    ; collision flags and terrain height
+    ; ======================================
+    ; In:
+    ; a0   Terrain stamp map data
+	; a1   Terrain stampset data
+    ; a2   Terrain tileset data
+    ; d0.l Position X (map space)
+    ; d1.l Position Y (map space)
+    ; d2.w Map width (stamps)
+    ; d5.b Terrain layer
+    ; Out:
+    ; d0.l Position X (map space)
+    ; d1.l Position Y (map space)
+    ; d3.w Collision flags/angle/quadrant
+    ; d7.w Terrain height (map space, -1 if not found)
+    ; ======================================
 
-   PUSH.L d2
+    PUSH.L d2
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -574,6 +634,25 @@ ECPhysicsBody_TerrainSearch_Up:
     rts
 
 ECPhysicsBody_TerrainSearch_Left:
+    ; ======================================
+    ; Searches for terrain to the left.
+    ; Corrects object X, returns
+    ; collision flags and terrain width
+    ; ======================================
+    ; In:
+    ; a0   Terrain stamp map data
+	; a1   Terrain stampset data
+    ; a2   Terrain tileset data
+    ; d0.l Position X (map space)
+    ; d1.l Position Y (map space)
+    ; d2.w Map width (stamps)
+    ; d5.b Terrain layer
+    ; Out:
+    ; d0.l Position X (map space)
+    ; d1.l Position Y (map space)
+    ; d3.w Collision flags/angle/quadrant
+    ; d7.w Terrain height (map space, -1 if not found)
+    ; ======================================
 
     PUSH.L d2
 
@@ -633,7 +712,7 @@ ECPhysicsBody_TerrainSearch_Left:
     bgt    @EndTerrain
     @SnapToFloor:
     move.l d7, d0                       ; Hit terrain, cap X and zero velocity
-    addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
+    addi.w #PHYS_STEP_HEIGHT, d0        ; + step height
     move.l #0x0, d2
     move.l #0x0, a5
     move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
