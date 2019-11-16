@@ -17,6 +17,7 @@ ECPhysicsBody_GroundSpeed               rs.w 1
 ECPhysicsBody_AccelX                    rs.w 1
 ECPhysicsBody_AccelY                    rs.w 1
 ECPhysicsBody_DecelX                    rs.w 1
+ECPhysicsBody_SlopeFact                 rs.w 1
 ECPhysicsBody_LastTerrainFlags          rs.w 1
 ECPhysicsBody_TerrainQuadrant           rs.b 1 ; PHYS_TERRAIN_SEARCH_QUADRANT_*
 ECPhysicsBody_TerrainLayer              rs.b 1
@@ -37,6 +38,7 @@ ECPhysicsBody_Initialise:
     move.w #0x0, ECPhysicsBody_AccelX(a0)
     move.w #0x0, ECPhysicsBody_AccelY(a0)
     move.w #0x0, ECPhysicsBody_LastTerrainFlags(a0)
+    move.w #PHYS_DEFAULT_SLOPE_FACTOR, ECPhysicsBody_SlopeFact(a0)
     move.b #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, ECPhysicsBody_TerrainQuadrant(a0)
     move.b #0x0, ECPhysicsBody_TerrainLayer(a0)
 
@@ -148,7 +150,7 @@ ECPhysicsBody_Step:
     move.w (a4,d6.w), d4
     muls.w d4, d3
 
-    muls.w #PHYS_SLOPE_RESISTANCE_FACTOR>>8, d4     ; Adjust ground speed by sine(angle)*slope factor
+    muls.w ECPhysicsBody_SlopeFact(a3), d4     ; Adjust ground speed by sine(angle)*slope factor
     asr.w  #0x8, d4
     add.w  d4, d5
             

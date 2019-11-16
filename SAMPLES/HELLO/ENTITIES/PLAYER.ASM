@@ -26,6 +26,9 @@ PLAYER_ACCEL_AIR                        equ 0x1800
 PLAYER_DECEL                            equ 0x0C00
 PLAYER_DECEL_FORCED                     equ 0x7FFF
 PLAYER_DECEL_SPIN                       equ 0x0600
+PLAYER_SLOPE_FACTOR                     equ 0x2000>>PHYS_VEL_TO_GROUND_SPEED_SHIFT
+PLAYER_SLOPE_FACTOR_SPIN_UP             equ 0x1400>>PHYS_VEL_TO_GROUND_SPEED_SHIFT
+PLAYER_SLOPE_FACTOR_SPIN_DN             equ 0x5000>>PHYS_VEL_TO_GROUND_SPEED_SHIFT
 PLAYER_JUMP_VEL                         equ 0x00068000
 PLAYER_MAX_VEL_X                 		equ 0x00060000
 PLAYER_MAX_VEL_X_SPIN            		equ 0x00160000
@@ -279,6 +282,7 @@ EPlayer_UpdateInput:
     bset   #PLAYER_FLAG_SPINNING, d5            ; Spinning
     move.l #PLAYER_MAX_VEL_X_SPIN, ECPhysicsBody_MaxVelX(a1)    ; Set spinning max vel
     move.w #PLAYER_DECEL_SPIN, ECPhysicsBody_DecelX(a1)         ; Set spinning deceleration
+    move.w #PLAYER_SLOPE_FACTOR_SPIN_DN, ECPhysicsBody_SlopeFact(a1) ; Set spinning slope factor
     @EndDown:
 
     ; Apply acceleration/forced deceleration
@@ -353,9 +357,27 @@ EPlayer_UpdateState:
     bclr   #PLAYER_FLAG_JUMPING, d5                 ; Reset jump flag
     @EndJumpClear:
 
-    ; If in spin state and velocity ground speed too low, or just landed, clear spin flag
+    ; If in spin state
     btst   #PLAYER_FLAG_SPINNING, d5
     beq    @EndSpinClear
+
+    ; Update slope factor based on terrain angle sign
+    moveq  #0x0, d7
+    move.b d6, d7                       ; Extract angle from flags
+    subi.b #PHYS_TERRAIN_ANGLE_90, d7   ; -90 degrees
+    add.w  d7, d7
+    lea    sinetable, a4
+    moveq  #0x0, d3
+    move.w (a4,d7.w), d3
+    tst.w  d3
+    bge    @SlopeUp
+    move.w #PLAYER_SLOPE_FACTOR_SPIN_DN, ECPhysicsBody_SlopeFact(a1)
+    bra    @SlopeDown
+    @SlopeUp:
+    move.w #PLAYER_SLOPE_FACTOR_SPIN_UP, ECPhysicsBody_SlopeFact(a1)
+    @SlopeDown:
+
+    ; If velocity ground speed too low, or just landed, clear spin flag
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
     beq    @EndSpinClear
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, EPlayer_TerrainFlagsPrev(a0) ; If hit ground this frame
@@ -368,6 +390,7 @@ EPlayer_UpdateState:
     bclr   #PLAYER_FLAG_SPINNING, d5                        ; Reset spin flag
     move.l #PLAYER_MAX_VEL_X, ECPhysicsBody_MaxVelX(a1)     ; Reset max vel
     move.w #PLAYER_DECEL, ECPhysicsBody_DecelX(a1)          ; Reset deceleration
+    move.w #PLAYER_SLOPE_FACTOR, ECPhysicsBody_SlopeFact(a1); Reset slope factor
     @EndSpinClear:
 
     rts
