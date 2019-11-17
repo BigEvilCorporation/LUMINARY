@@ -150,9 +150,14 @@ ECPhysicsBody_Step:
     move.w (a4,d6.w), d4
     muls.w d4, d3
 
-    muls.w ECPhysicsBody_SlopeFact(a3), d4     ; Adjust ground speed by sine(angle)*slope factor
+    cmp.w  #PHYS_SLOPE_MIN*2, d6
+    blt    @NoSlope
+    cmp.w  #(0xFF-PHYS_SLOPE_MIN)*2, d6
+    bgt    @NoSlope
+    muls.w ECPhysicsBody_SlopeFact(a3), d4 ; Adjust ground speed by sine(angle)*slope factor
     asr.w  #0x8, d4
     add.w  d4, d5
+    @NoSlope:
             
     addi.w #SINE_TBL_COS_OFFS, d6		; X vel = ground speed * cos(angle)
     moveq  #0x0, d4
@@ -160,7 +165,7 @@ ECPhysicsBody_Step:
     muls.w d4, d2
     POP.L  a4
 
-    move.w d5, ECPhysicsBody_GroundSpeed(a3)        ; Store updated ground speed
+    move.w d5, ECPhysicsBody_GroundSpeed(a3) ; Store updated ground speed
 
     bra    @EndGroundSpeed
 
