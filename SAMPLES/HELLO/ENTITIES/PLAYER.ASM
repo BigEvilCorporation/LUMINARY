@@ -244,6 +244,7 @@ EPlayer_Update:
     bsr    EPlayer_UpdateAnimation
 
     ; Debug draw
+    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
     move.w ECPhysicsBody_LastTerrainFlags(a1), d7
     DBG_DRAW_WORD #100,#8,d7
     move.b ECPhysicsBody_TerrainQuadrant(a1), d7
@@ -453,8 +454,13 @@ EPlayer_UpdateAnimation:
 
     ; Load animation (without flip flags)
     @SetAnim:
+    PUSH.L a0
     ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0 ; Get sprite component
     bsr    ECSprite_LoadAnimation           ; Load animation
+
+    ; Reset Y flip flag
+    move.b #0x0, d1
+    SPRITE_COMPONENT_SETFLIPY_REG a0,d1     ; Reset Y flip
 
     ; Set X flip flag
     move.b #0x0, d1
@@ -466,15 +472,18 @@ EPlayer_UpdateAnimation:
     @FaceRight:
     SPRITE_COMPONENT_SETFLIPX_REG a0,d1     ; Set flip X flag
     @NoFlipChange:
+    POP.L  a0
 
     rts
 
     ; Load animation (with flip flags)
     @SetAngleAnim:
+    PUSH.L a0
     ENT_GETCOMPONENT EPlayer,ECSprite,a0,a0 ; Get sprite component
     SPRITE_COMPONENT_SETFLIPX_REG a0,d1     ; Set flip flags
     SPRITE_COMPONENT_SETFLIPY_REG a0,d2
     bsr    ECSprite_LoadAnimation           ; Load animation
+    POP.L  a0
 
     rts
 
