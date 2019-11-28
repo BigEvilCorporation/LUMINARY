@@ -3,65 +3,73 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 5th August 2019
 ; ============================================================================================
-; PHYSBODY.ASM - Physics body sprite component
+; PHYSCHAR.ASM - Physics body character component
+; ============================================================================================
+; - Dual terrain probes in all 4 directions
+; - Horizontal wall probes
+; - Multiple collision layers
+; - Ground speed based movement
+; - Terrain angle detection
+; - Slope correction and slope landing force
 ; ============================================================================================
 
-    COMPONENT_SPAWN_DATA_BEGIN ECPhysicsBody
+    COMPONENT_SPAWN_DATA_BEGIN ECPhysBodyChar
     COMPONENT_SPAWN_DATA_END
     
-    ENTITY_COMPONENT_BEGIN ECPhysicsBody
-ECPhysicsBody_VelX                      rs.l 1
-ECPhysicsBody_VelY                      rs.l 1
-ECPhysicsBody_MaxVelX                   rs.l 1
-ECPhysicsBody_GroundSpeed               rs.w 1
-ECPhysicsBody_AccelX                    rs.w 1
-ECPhysicsBody_AccelY                    rs.w 1
-ECPhysicsBody_DecelX                    rs.w 1
-ECPhysicsBody_SlopeFact                 rs.w 1
-ECPhysicsBody_LastTerrainFlags          rs.w 1
-ECPhysicsBody_TerrainQuadrant           rs.b 1 ; PHYS_TERRAIN_SEARCH_QUADRANT_*
-ECPhysicsBody_TerrainLayer              rs.b 1
+    ENTITY_COMPONENT_BEGIN ECPhysBodyChar
+ECPhysBodyChar_VelX                      rs.l 1
+ECPhysBodyChar_VelY                      rs.l 1
+ECPhysBodyChar_MaxVelX                   rs.l 1
+ECPhysBodyChar_GroundSpeed               rs.w 1
+ECPhysBodyChar_AccelX                    rs.w 1
+ECPhysBodyChar_AccelY                    rs.w 1
+ECPhysBodyChar_DecelX                    rs.w 1
+ECPhysBodyChar_SlopeFact                 rs.w 1
+ECPhysBodyChar_LastTerrainFlags          rs.w 1
+ECPhysBodyChar_TerrainQuadrant           rs.b 1 ; PHYS_TERRAIN_SEARCH_QUADRANT_*
+ECPhysBodyChar_TerrainLayer              rs.b 1
     ENTITY_COMPONENT_END
 
-ECPhysicsBody_Initialise:
+ECPhysBodyChar_Initialise:
     ; ======================================
-    ; ECPhysicsBody constructor
+    ; ECPhysBodyChar constructor
     ; ======================================
 	; a0   Component
     ; a1   Component spawn data
     ; ======================================
 
-    move.l #0x0, ECPhysicsBody_VelX(a0)
-    move.l #0x0, ECPhysicsBody_VelY(a0)
-    move.l #PHYS_DEFAULT_MAX_VEL_X, ECPhysicsBody_MaxVelX(a0)
-    move.w #0x0, ECPhysicsBody_GroundSpeed(a0)
-    move.w #0x0, ECPhysicsBody_AccelX(a0)
-    move.w #0x0, ECPhysicsBody_AccelY(a0)
-    move.w #0x0, ECPhysicsBody_LastTerrainFlags(a0)
-    move.w #PHYS_DEFAULT_SLOPE_FACTOR, ECPhysicsBody_SlopeFact(a0)
-    move.b #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, ECPhysicsBody_TerrainQuadrant(a0)
-    move.b #0x0, ECPhysicsBody_TerrainLayer(a0)
+    move.l #0x0, ECPhysBodyChar_VelX(a0)
+    move.l #0x0, ECPhysBodyChar_VelY(a0)
+    move.l #PHYS_DEFAULT_MAX_VEL_X, ECPhysBodyChar_MaxVelX(a0)
+    move.w #0x0, ECPhysBodyChar_GroundSpeed(a0)
+    move.w #0x0, ECPhysBodyChar_AccelX(a0)
+    move.w #0x0, ECPhysBodyChar_AccelY(a0)
+    move.w #0x0, ECPhysBodyChar_LastTerrainFlags(a0)
+    move.w #PHYS_DEFAULT_SLOPE_FACTOR, ECPhysBodyChar_SlopeFact(a0)
+    move.b #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, ECPhysBodyChar_TerrainQuadrant(a0)
+    move.b #0x0, ECPhysBodyChar_TerrainLayer(a0)
 
     rts
 
-ECPhysicsBody_Shutdown:
+ECPhysBodyChar_Shutdown:
     ; ======================================
-    ; ECPhysicsBody destructor
+    ; ECPhysBodyChar destructor
     ; ======================================
 	; a0   Component
     ; ======================================
 
     rts
 
-ECPhysicsBody_Step:
+ECPhysBodyChar_StepAll:
     ; ======================================
-    ; Steps all physics bodies and handles
-    ; collisions
+    ; Steps all character physics bodies and
+    ; handles collisions, terrain angles,
+    ; and slope correction
     ; ======================================
 	; No params
     ; ======================================
 
-    ENT_COMPONENT_GET_LIST_HEAD ECPhysicsBody, a3
+    ENT_COMPONENT_GET_LIST_HEAD ECPhysBodyChar, a3
     cmp.w  #0x0, a3
     beq    @NoBodies
 
@@ -80,11 +88,11 @@ ECPhysicsBody_Step:
     move.l Entity_PosX(a4), d0          ; Get pos
     move.l Entity_PosY(a4), d1
 
-    move.l ECPhysicsBody_VelX(a3), d2   ; Get vel
-    move.l ECPhysicsBody_VelY(a3), d3
+    move.l ECPhysBodyChar_VelX(a3), d2   ; Get vel
+    move.l ECPhysBodyChar_VelY(a3), d3
 
-    move.w ECPhysicsBody_AccelX(a3), d4 ; Get accel
-    move.w ECPhysicsBody_AccelY(a3), d5
+    move.w ECPhysBodyChar_AccelX(a3), d4 ; Get accel
+    move.w ECPhysBodyChar_AccelY(a3), d5
     ext.l  d4
     ext.l  d5
     
@@ -93,15 +101,15 @@ ECPhysicsBody_Step:
     ; ======================================
     ; Step
     ; ======================================                  
-    addi.l #PHYS_GRAVITY_Y, d5          ; Apply gravity to accel
+    addi.l #PHYS_GRAVITY_Y, d5          ; Apply gravity to Y accel
 
     ; If on floor, move using ground speed
-    move.w ECPhysicsBody_LastTerrainFlags(a3), d6	; Get flags and angle
+    move.w ECPhysBodyChar_LastTerrainFlags(a3), d6	; Get flags and angle
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6		; Check on terrain
     beq    @InAir
 
     moveq  #0x0, d5
-    move.w ECPhysicsBody_GroundSpeed(a3), d5		; Get ground speed
+    move.w ECPhysBodyChar_GroundSpeed(a3), d5		; Get ground speed
     ext.l  d5
     tst.l  d4
     beq    @Decelerate
@@ -111,7 +119,7 @@ ECPhysicsBody_Step:
 
     ; Deceleration
     @Decelerate:
-    move.w ECPhysicsBody_DecelX(a3), d4             ; Apply X decel to ground speed
+    move.w ECPhysBodyChar_DecelX(a3), d4             ; Apply X decel to ground speed
     asr.w  #0x8, d4                                 ; X decel to ground speed range (16.16 >> 8)
     ext.l  d4
     tst.l  d5                                       ; Reverse sign if vel < 0
@@ -131,7 +139,7 @@ ECPhysicsBody_Step:
     @Accelerate:
     
     PUSH.L d7
-    move.l ECPhysicsBody_MaxVelX(a3), d4	        ; Clamp ground speed to max
+    move.l ECPhysBodyChar_MaxVelX(a3), d4	        ; Clamp ground speed to max
     asr.l  #0x8, d4                                 ; Max X vel to ground speed range (16.16 >> 8)
     move.w d4, d7
     neg.w  d7
@@ -154,7 +162,7 @@ ECPhysicsBody_Step:
     blt    @NoSlope
     cmp.w  #(0xFF-PHYS_SLOPE_MIN)*2, d6
     bgt    @NoSlope
-    muls.w ECPhysicsBody_SlopeFact(a3), d4 ; Adjust ground speed by sine(angle)*slope factor
+    muls.w ECPhysBodyChar_SlopeFact(a3), d4 ; Adjust ground speed by sine(angle)*slope factor
     asr.w  #0x8, d4
     add.w  d4, d5
     @NoSlope:
@@ -165,7 +173,7 @@ ECPhysicsBody_Step:
     muls.w d4, d2
     POP.L  a4
 
-    move.w d5, ECPhysicsBody_GroundSpeed(a3) ; Store updated ground speed
+    move.w d5, ECPhysBodyChar_GroundSpeed(a3) ; Store updated ground speed
 
     bra    @EndGroundSpeed
 
@@ -177,7 +185,7 @@ ECPhysicsBody_Step:
 
     ; Clamp X velocity
     moveq  #0x0, d4
-    move.l ECPhysicsBody_MaxVelX(a3), d4
+    move.l ECPhysBodyChar_MaxVelX(a3), d4
     move.l d4, d5
     neg.l  d5
     CLAMP.L d2,d5,d4
@@ -208,30 +216,30 @@ ECPhysicsBody_Step:
     add.l  d5, d1
     
     ; Backup and clear last terrain flags
-    move.w ECPhysicsBody_LastTerrainFlags(a3), d5
-    move.w #0x0, ECPhysicsBody_LastTerrainFlags(a3)
+    move.w ECPhysBodyChar_LastTerrainFlags(a3), d5
+    move.w #0x0, ECPhysBodyChar_LastTerrainFlags(a3)
     PUSHM.W d5/d6
 
     ; If not already on ground, search all directions
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
     bne    @SearchQuadrant
-    bsr    ECPhysicsBody_TerrainSearch_Down
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bsr    ECPhysBodyChar_TerrainSearch_Down
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
-    bsr    ECPhysicsBody_TerrainSearch_Right
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bsr    ECPhysBodyChar_TerrainSearch_Right
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
-    bsr    ECPhysicsBody_TerrainSearch_Left
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bsr    ECPhysBodyChar_TerrainSearch_Left
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
-    bsr    ECPhysicsBody_TerrainSearch_Up
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bsr    ECPhysBodyChar_TerrainSearch_Up
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
 
     ; Already on ground, terrain lookup by quadrant
     @SearchQuadrant:
-    move.w #0x0, ECPhysicsBody_LastTerrainFlags(a3)
-    move.b ECPhysicsBody_TerrainQuadrant(a3), d6
+    move.w #0x0, ECPhysBodyChar_LastTerrainFlags(a3)
+    move.b ECPhysBodyChar_TerrainQuadrant(a3), d6
     cmp.b  #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, d6
     beq    @Down
     cmp.b  #PHYS_TERRAIN_SEARCH_QUADRANT_RIGHT, d6
@@ -239,42 +247,42 @@ ECPhysicsBody_Step:
     cmp.b  #PHYS_TERRAIN_SEARCH_QUADRANT_LEFT, d6
     beq    @Left
     @Up:
-    bsr    ECPhysicsBody_TerrainSearch_Up
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bsr    ECPhysBodyChar_TerrainSearch_Up
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @SearchWalls
     bra    @Down
     @Right:
-    bsr    ECPhysicsBody_TerrainSearch_Right
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bsr    ECPhysBodyChar_TerrainSearch_Right
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
     bra    @Down
     @Left:
-    bsr    ECPhysicsBody_TerrainSearch_Left
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bsr    ECPhysBodyChar_TerrainSearch_Left
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
     bra    @Down
 
     @Down:
-    bsr    ECPhysicsBody_TerrainSearch_Down
+    bsr    ECPhysBodyChar_TerrainSearch_Down
 
     @SearchWalls:
     ; Searched vertically for terrain, now search horizontally for walls
-    jsr    ECPhysicsBody_WallSearch
+    jsr    ECPhysBodyChar_WallSearch
 
     @EndTerrain:
 
     ; If quadrant changed, search that direction immediately
-    ;cmp.b  ECPhysicsBody_TerrainQuadrant(a3), d6
+    ;cmp.b  ECPhysBodyChar_TerrainQuadrant(a3), d6
     ;bne    @SearchQuadrant
 
     POPM.W  d5/d6
 
     ; Check if landed on ground this frame
-    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysicsBody_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     beq    @NotLanded
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
     bne    @NotLanded
-    bsr    ECPhysicsBody_Landed
+    bsr    ECPhysBodyChar_Landed
     @NotLanded:
 
     POP.W  d7                           ; Restore map width
@@ -292,8 +300,8 @@ ECPhysicsBody_Step:
     move.l d0, Entity_PosX(a4)          ; Store pos
     move.l d1, Entity_PosY(a4)
 
-    move.l a5, ECPhysicsBody_VelX(a3)   ; Store vel
-    move.l a6, ECPhysicsBody_VelY(a3)
+    move.l a5, ECPhysBodyChar_VelX(a3)   ; Store vel
+    move.l a6, ECPhysBodyChar_VelY(a3)
 
     ; ======================================
 
@@ -305,22 +313,22 @@ ECPhysicsBody_Step:
 
     rts
 
-ECPhysicsBody_Landed:
+ECPhysBodyChar_Landed:
 
     ; If landed on floor, not ceiling
-    tst.l  ECPhysicsBody_VelY(a3)
+    tst.l  ECPhysBodyChar_VelY(a3)
     blt    @LandedCeiling
 
     ; If X > Y, landed sideways
-    move.l ECPhysicsBody_VelX(a3), d7
-    move.l ECPhysicsBody_VelY(a3), d6
+    move.l ECPhysBodyChar_VelX(a3), d7
+    move.l ECPhysBodyChar_VelY(a3), d6
     ABS.L  d7
     cmp.l  d6, d7
     bge    @LandedSideways
 
     ; Get angle of terrain on impact
     ; TODO: Not the terrain angle, the movement angle from X/Y velocity
-    move.w ECPhysicsBody_LastTerrainFlags(a3), d5
+    move.w ECPhysBodyChar_LastTerrainFlags(a3), d5
     moveq  #0x0, d6
 
     ; Shallow angle (0-22.5 deg, $F0-$FF/$00-$0F)
@@ -338,20 +346,20 @@ ECPhysicsBody_Landed:
 
     ; Landed at steep angle, set ground speed to Y velocity / 2
     @SteepAngle:
-    move.l ECPhysicsBody_VelY(a3), d6
+    move.l ECPhysBodyChar_VelY(a3), d6
     asr.l  #0x8, d6                     ; Y vel to ground speed range (16.16 >> 8)
     asr.l  #0x1, d6                     ; / 2
     tst.b  d5                           ; Get sign of angle
     bge    @NoNeg1
     neg.w  d6                           ; -ve direction
     @NoNeg1:
-    move.w d6, ECPhysicsBody_GroundSpeed(a3)
+    move.w d6, ECPhysBodyChar_GroundSpeed(a3)
     
     rts
 
     ; Landed at very steep angle, clamp Y velocity to 0x0FC0 and set as ground speed
     @VerySteepAngle:
-    move.l ECPhysicsBody_VelY(a3), d6
+    move.l ECPhysBodyChar_VelY(a3), d6
     asr.l  #0x8, d6                     ; Y vel to ground speed range (16.16 >> 8)
     cmpi.w #0x0FC0, d6
     ble    @NoClampY
@@ -361,21 +369,21 @@ ECPhysicsBody_Landed:
     bge    @NoNeg2
     neg.w  d6                           ; -ve direction
     @NoNeg2:
-    move.w d6, ECPhysicsBody_GroundSpeed(a3)
+    move.w d6, ECPhysBodyChar_GroundSpeed(a3)
     
     rts
 
     @ShallowAngle:
     @LandedSideways:
-    move.l ECPhysicsBody_VelX(a3), d6
+    move.l ECPhysBodyChar_VelX(a3), d6
     asr.l  #0x8, d6                     ; X vel to ground speed range (16.16 >> 8)
-    move.w d6, ECPhysicsBody_GroundSpeed(a3)
+    move.w d6, ECPhysBodyChar_GroundSpeed(a3)
 
     @LandedCeiling:
 
     rts
 
-ECPhysicsBody_WallSearch:
+ECPhysBodyChar_WallSearch:
     ; ======================================
     ; Searches for solid walls horizontally.
     ; Corrects object X position, returns
@@ -415,7 +423,7 @@ ECPhysicsBody_WallSearch:
     subi.w #VDP_SPRITE_BORDER_Y+PHYS_STEP_HEIGHT, d1; Y to map space - step height
     add.w  Entity_ExtentsY(a4), d1                  ; Centre to probe Y offset
     move.l #1<<COLLISION_TEST_BIT_SOLID_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5       ; Get layer
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5       ; Get layer
     
     ; Probe for floor
     cmp.l  #0x0, a5
@@ -448,10 +456,10 @@ ECPhysicsBody_WallSearch:
     move.l d7, d0                       ; Hit wall, cap X and zero velocity
     move.l #0x0, d2                     ; Zero X velocity
     move.l #0x0, a5                     ; Zero X velocity (mirror)
-    move.w #0x0, ECPhysicsBody_GroundSpeed(a3) ; Zero ground speed
+    move.w #0x0, ECPhysBodyChar_GroundSpeed(a3) ; Zero ground speed
     bclr   #COLLISION_FLAG_BIT_TERRAIN_W, d6      ; Don't treat this as terrain
     lsr.w  #0x8, d6                               ; Leave angle unchanged
-    or.b   d6, ECPhysicsBody_LastTerrainFlags(a3) ; Store flags (leave angle unchanged)
+    or.b   d6, ECPhysBodyChar_LastTerrainFlags(a3) ; Store flags (leave angle unchanged)
 
     @EndWall:
 
@@ -459,7 +467,7 @@ ECPhysicsBody_WallSearch:
 
     rts
 
-ECPhysicsBody_TerrainSearch_Down:
+ECPhysBodyChar_TerrainSearch_Down:
     ; ======================================
     ; Searches for terrain downwards.
     ; Corrects object Y, returns
@@ -502,7 +510,7 @@ ECPhysicsBody_TerrainSearch_Down:
 
     ; Probe for floor
     move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5
     bsr    COL_ProbeTerrainDown         ; Probe terrain map (search downwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
@@ -519,7 +527,7 @@ ECPhysicsBody_TerrainSearch_Down:
 
     ; Probe for floor
     move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5
     bsr    COL_ProbeTerrainDown         ; Probe terrain map (search downwards)
     move.w d7, d4                       ; Backup probe B's height
     POPM.W d6-d7                        ; Restore probe A's height/flags/angle/quadrant
@@ -551,10 +559,10 @@ ECPhysicsBody_TerrainSearch_Down:
     subi.w #PHYS_STEP_HEIGHT, d1        ; - step height
     move.l #0x0, d3                     ; Zero Y velocity
     move.l #0x0, a6                     ; Zero Y velocity (mirror)
-    move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
+    move.w d6, ECPhysBodyChar_LastTerrainFlags(a3)   ; Store flags
     lsr.w  #0x8, d6                     ; Quadrant to terrain mode
     andi.b #0x3, d6
-    move.b d6, ECPhysicsBody_TerrainQuadrant(a3)
+    move.b d6, ECPhysBodyChar_TerrainQuadrant(a3)
 
     @EndTerrain:
 
@@ -562,7 +570,7 @@ ECPhysicsBody_TerrainSearch_Down:
 
     rts
 
-ECPhysicsBody_TerrainSearch_Right:
+ECPhysBodyChar_TerrainSearch_Right:
     ; ======================================
     ; Searches for terrain to the right.
     ; Corrects object X, returns
@@ -605,7 +613,7 @@ ECPhysicsBody_TerrainSearch_Right:
 
     ; Probe for right wall
     move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5
     bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
@@ -622,7 +630,7 @@ ECPhysicsBody_TerrainSearch_Right:
 
     ; Probe for right wall
     move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5
     bsr    COL_ProbeTerrainRight        ; Probe terrain map (search right)
     move.w d7, d4                       ; Backup probe B's width
     POPM.W d6-d7                        ; Restore probe A's width/flags/angle/quadrant
@@ -654,10 +662,10 @@ ECPhysicsBody_TerrainSearch_Right:
     subi.w #PHYS_STEP_HEIGHT, d0        ; - step height
     move.l #0x0, d2                     ; Zero X velocity
     move.l #0x0, a5                     ; Zero X velocity (mirror)
-    move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
+    move.w d6, ECPhysBodyChar_LastTerrainFlags(a3)   ; Store flags
     lsr.w  #0x8, d6                     ; Quadrant to terrain mode
     andi.b #0x3, d6
-    move.b d6, ECPhysicsBody_TerrainQuadrant(a3)
+    move.b d6, ECPhysBodyChar_TerrainQuadrant(a3)
 
     @EndTerrain:
 
@@ -665,7 +673,7 @@ ECPhysicsBody_TerrainSearch_Right:
 
     rts
 
-ECPhysicsBody_TerrainSearch_Up:
+ECPhysBodyChar_TerrainSearch_Up:
     ; ======================================
     ; Searches for terrain upwards.
     ; Corrects object Y, returns
@@ -708,7 +716,7 @@ ECPhysicsBody_TerrainSearch_Up:
 
     ; Probe for ceiling
     move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5
     bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
@@ -725,7 +733,7 @@ ECPhysicsBody_TerrainSearch_Up:
 
     ; Probe for ceiling
     move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5
     bsr    COL_ProbeTerrainUp           ; Probe terrain map (search upwards)
     move.w d7, d4                       ; Backup probe B's width
     POPM.W d6-d7                        ; Restore probe A's width/flags/angle/quadrant
@@ -757,10 +765,10 @@ ECPhysicsBody_TerrainSearch_Up:
     addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
     move.l #0x0, d3                     ; Zero Y velocity
     move.l #0x0, a6                     ; Zero Y velocity (mirror)
-    move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
+    move.w d6, ECPhysBodyChar_LastTerrainFlags(a3)   ; Store flags
     lsr.w  #0x8, d6                     ; Quadrant to terrain mode
     andi.b #0x3, d6
-    move.b d6, ECPhysicsBody_TerrainQuadrant(a3)
+    move.b d6, ECPhysBodyChar_TerrainQuadrant(a3)
 
     @EndTerrain:
 
@@ -768,7 +776,7 @@ ECPhysicsBody_TerrainSearch_Up:
 
     rts
 
-ECPhysicsBody_TerrainSearch_Left:
+ECPhysBodyChar_TerrainSearch_Left:
     ; ======================================
     ; Searches for terrain to the left.
     ; Corrects object X, returns
@@ -811,7 +819,7 @@ ECPhysicsBody_TerrainSearch_Left:
 
     ; Probe for floor
     move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5
     bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
     move.w d3, d6                       ; Backup tile flags/angle/quadrant
     POPM.L d0-d5/a0-a6
@@ -828,7 +836,7 @@ ECPhysicsBody_TerrainSearch_Left:
 
     ; Probe for floor
     move.l #1<<COLLISION_TEST_BIT_TERRAIN_L, d5
-    move.b ECPhysicsBody_TerrainLayer(a3), d5
+    move.b ECPhysBodyChar_TerrainLayer(a3), d5
     bsr    COL_ProbeTerrainLeft         ; Probe terrain map (search left)
     move.w d7, d4                       ; Backup probe B's height
     POPM.W d6-d7                        ; Restore probe A's height/flags/angle/quadrant
@@ -860,10 +868,10 @@ ECPhysicsBody_TerrainSearch_Left:
     addi.w #PHYS_STEP_HEIGHT, d0        ; + step height
     move.l #0x0, d2                     ; Zero X velocity
     move.l #0x0, a5                     ; Zero X velocity (mirror)
-    move.w d6, ECPhysicsBody_LastTerrainFlags(a3)   ; Store flags
+    move.w d6, ECPhysBodyChar_LastTerrainFlags(a3)   ; Store flags
     lsr.w  #0x8, d6                     ; Quadrant to terrain mode
     andi.b #0x3, d6
-    move.b d6, ECPhysicsBody_TerrainQuadrant(a3)
+    move.b d6, ECPhysBodyChar_TerrainQuadrant(a3)
 
     @EndTerrain:
 

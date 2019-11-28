@@ -64,7 +64,8 @@
     include 'framewk/scene.asm'
 
     ; Entities and components
-    include 'framewk/entities/physbody.asm'
+    include 'framewk/entities/physbasc.asm'
+    include 'framewk/entities/physchar.asm'
     include 'framewk/entities/sprite.asm'
 
     ; Memory maps

@@ -33,10 +33,10 @@ SELayerSwitch_Update:
     beq    @NoIntersect
 
     ; Get player physics component
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a1,a2
+    ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a1,a2
 
     move.b SELayerSwitch_LayerA(a0), d0
-    move.b ECPhysicsBody_TerrainQuadrant(a2), d2
+    move.b ECPhysBodyChar_TerrainQuadrant(a2), d2
 
     cmp.b  #LAYER_SWITCH_DIRECTION_VERTICAL, SELayerSwitch_Direction(a0)
     beq    @Vertical
@@ -47,11 +47,11 @@ SELayerSwitch_Update:
     ble    @LayerB
 
     ; Must be heading left
-    tst.l  ECPhysicsBody_VelX(a2)
+    tst.l  ECPhysBodyChar_VelX(a2)
     bgt    @WrongDirection
 
     ; Layer A
-    move.b SELayerSwitch_LayerA(a0), ECPhysicsBody_TerrainLayer(a2)
+    move.b SELayerSwitch_LayerA(a0), ECPhysBodyChar_TerrainLayer(a2)
     rts
 
     @Vertical:
@@ -60,16 +60,16 @@ SELayerSwitch_Update:
     ;move.w Entity_PosY(a0), d1
     ;cmp.w  Entity_PosY(a1), d1
     ;ble    @LayerB
-    ;move.b SELayerSwitch_LayerA(a0), ECPhysicsBody_TerrainLayer(a2)
+    ;move.b SELayerSwitch_LayerA(a0), ECPhysBodyChar_TerrainLayer(a2)
     rts
 
     @LayerB:
     ; Must be heading right
-    tst.l  ECPhysicsBody_VelX(a2)
+    tst.l  ECPhysBodyChar_VelX(a2)
     blt    @WrongDirection
 
     ; Layer B
-    move.b SELayerSwitch_LayerB(a0), ECPhysicsBody_TerrainLayer(a2)
+    move.b SELayerSwitch_LayerB(a0), ECPhysBodyChar_TerrainLayer(a2)
 
     @NoIntersect:
     @WrongDirection:

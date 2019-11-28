@@ -16,7 +16,8 @@
 
     ; Entity component lists
     ENT_COMPONENT_LIST ECSprite
-    ENT_COMPONENT_LIST ECPhysicsBody
+    ENT_COMPONENT_LIST ECPhysBodyChar
+    ENT_COMPONENT_LIST ECPhysBodyBasic
 
     ; Scene
 RAM_SCENE_CURRENT                       rs.l 1

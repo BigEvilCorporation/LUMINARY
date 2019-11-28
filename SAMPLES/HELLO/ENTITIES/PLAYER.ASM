@@ -173,7 +173,7 @@ SPRITE_ANIM_FROM_TABLE_R: macro table,index_reg,sheet_addr,anim_addr
     ENTITY_BEGIN EPlayer
 EPlayer_TerrainFlagsPrev                rs.w 1
 EPlayer_StateFlags                      rs.b 1
-	ENT_COMPONENT ECPhysicsBody
+	ENT_COMPONENT ECPhysBodyChar
     ENT_COMPONENT ECSprite
     ENTITY_END
 
@@ -203,9 +203,9 @@ EPlayer_Initialise:
     SPRITE_COMPONENT_SETPALETTE_REG a2,d0
 
     ; Init player's physics component
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a0
-    move.l #PLAYER_MAX_VEL_X, ECPhysicsBody_MaxVelX(a0)
-    move.w #PLAYER_DECEL, ECPhysicsBody_DecelX(a0)
+    ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a0,a0
+    move.l #PLAYER_MAX_VEL_X, ECPhysBodyChar_MaxVelX(a0)
+    move.w #PLAYER_DECEL, ECPhysBodyChar_DecelX(a0)
 
     rts
 
@@ -223,14 +223,14 @@ EPlayer_Update:
     move.l #0x0, d2
     
     ; Get physics component
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
+    ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a0,a1
 
     ; Get ground speed
-    move.w ECPhysicsBody_GroundSpeed(a1), d2
+    move.w ECPhysBodyChar_GroundSpeed(a1), d2
 
     ; Get player state and current terrain flags
     move.b EPlayer_StateFlags(a0), d5
-    move.w ECPhysicsBody_LastTerrainFlags(a1), d6
+    move.w ECPhysBodyChar_LastTerrainFlags(a1), d6
 
     ; Handle input
     bsr    EPlayer_UpdateInput
@@ -240,7 +240,7 @@ EPlayer_Update:
 
     ; Store updated flags
     move.b d5, EPlayer_StateFlags(a0)
-    move.w d6, ECPhysicsBody_LastTerrainFlags(a1)
+    move.w d6, ECPhysBodyChar_LastTerrainFlags(a1)
 
     ; Store prev collision flags
     move.w d6, EPlayer_TerrainFlagsPrev(a0)
@@ -258,10 +258,10 @@ EPlayer_Update:
     rts
 
     ; Debug draw
-    ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
-    move.w ECPhysicsBody_LastTerrainFlags(a1), d7
+    ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a0,a1
+    move.w ECPhysBodyChar_LastTerrainFlags(a1), d7
     DBG_DRAW_WORD #100,#8,d7
-    move.b ECPhysicsBody_TerrainQuadrant(a1), d7
+    move.b ECPhysBodyChar_TerrainQuadrant(a1), d7
     DBG_DRAW_BYTE #100,#9,d7
 
     rts
@@ -272,7 +272,7 @@ EPlayer_UpdateInput:
     ; ======================================
     ; In:
     ;  a0   Entity
-    ;  a1   ECPhysicsBody
+    ;  a1   ECPhysBodyChar
     ;  d5.b Player state flags
     ;  d6.w Terrain flags
     ; Out:
@@ -290,15 +290,15 @@ EPlayer_UpdateInput:
     beq    @EndDown
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6    ; If on floor
     beq    @EndDown
-    move.w ECPhysicsBody_GroundSpeed(a1), d4    ; If ground speed > threshold
+    move.w ECPhysBodyChar_GroundSpeed(a1), d4    ; If ground speed > threshold
     ABS.W  d4
     cmp.w  #PLAYER_SPIN_MIN_SPEED>>8, d4
     blt    @EndDown
     bset   #PLAYER_FLAG_SPINNING, d5            ; Spinning
     move.w #PLAYER_HEIGHT_SPIN/2, Entity_ExtentsY(a0)           ; Set spinning height
-    move.l #PLAYER_MAX_VEL_X_SPIN, ECPhysicsBody_MaxVelX(a1)    ; Set spinning max vel
-    move.w #PLAYER_DECEL_SPIN, ECPhysicsBody_DecelX(a1)         ; Set spinning deceleration
-    move.w #PLAYER_SLOPE_FACTOR_SPIN_DN, ECPhysicsBody_SlopeFact(a1) ; Set spinning slope factor
+    move.l #PLAYER_MAX_VEL_X_SPIN, ECPhysBodyChar_MaxVelX(a1)    ; Set spinning max vel
+    move.w #PLAYER_DECEL_SPIN, ECPhysBodyChar_DecelX(a1)         ; Set spinning deceleration
+    move.w #PLAYER_SLOPE_FACTOR_SPIN_DN, ECPhysBodyChar_SlopeFact(a1) ; Set spinning slope factor
     @EndDown:
 
     ; Apply acceleration/forced deceleration
@@ -339,7 +339,7 @@ EPlayer_UpdateInput:
     @EndRight:
 
     ; Set new acceleration
-    move.w d1, ECPhysicsBody_AccelX(a1)
+    move.w d1, ECPhysBodyChar_AccelX(a1)
 
     ; Jump
     btst   #PAD_BUTTON_B, d0
@@ -357,7 +357,7 @@ EPlayer_UpdateState:
     ; ======================================
     ; In:
     ;  a0   Entity
-    ;  a1   ECPhysicsBody
+    ;  a1   ECPhysBodyChar
     ;  d5.b Player state flags
     ;  d6.w Terrain flags
     ; Out:
@@ -387,10 +387,10 @@ EPlayer_UpdateState:
     move.w (a4,d7.w), d3
     tst.w  d3
     bge    @SlopeUp
-    move.w #PLAYER_SLOPE_FACTOR_SPIN_DN, ECPhysicsBody_SlopeFact(a1)
+    move.w #PLAYER_SLOPE_FACTOR_SPIN_DN, ECPhysBodyChar_SlopeFact(a1)
     bra    @SlopeDown
     @SlopeUp:
-    move.w #PLAYER_SLOPE_FACTOR_SPIN_UP, ECPhysicsBody_SlopeFact(a1)
+    move.w #PLAYER_SLOPE_FACTOR_SPIN_UP, ECPhysBodyChar_SlopeFact(a1)
     @SlopeDown:
 
     ; If velocity ground speed too low, or just landed, clear spin flag
@@ -398,16 +398,16 @@ EPlayer_UpdateState:
     beq    @EndSpinClear
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, EPlayer_TerrainFlagsPrev(a0) ; If hit ground this frame
     beq    @HitGround
-    move.w ECPhysicsBody_GroundSpeed(a1), d4                ; or if ground speed > threshold
+    move.w ECPhysBodyChar_GroundSpeed(a1), d4                ; or if ground speed > threshold
     ABS.W  d4
     cmp.w  #PLAYER_SPIN_MIN_SPEED>>8, d4
     bge    @EndSpinClear
     @HitGround:
     bclr   #PLAYER_FLAG_SPINNING, d5                        ; Reset spin flag
     move.w #PLAYER_HEIGHT/2, Entity_ExtentsY(a0)            ; Reset height
-    move.l #PLAYER_MAX_VEL_X, ECPhysicsBody_MaxVelX(a1)     ; Reset max vel
-    move.w #PLAYER_DECEL, ECPhysicsBody_DecelX(a1)          ; Reset deceleration
-    move.w #PLAYER_SLOPE_FACTOR, ECPhysicsBody_SlopeFact(a1); Reset slope factor
+    move.l #PLAYER_MAX_VEL_X, ECPhysBodyChar_MaxVelX(a1)     ; Reset max vel
+    move.w #PLAYER_DECEL, ECPhysBodyChar_DecelX(a1)          ; Reset deceleration
+    move.w #PLAYER_SLOPE_FACTOR, ECPhysBodyChar_SlopeFact(a1); Reset slope factor
     @EndSpinClear:
 
     rts
@@ -418,7 +418,7 @@ EPlayer_UpdateAnimation:
     ; ======================================
     ; In:
     ;  a0   Entity
-    ;  a1   ECPhysicsBody
+    ;  a1   ECPhysBodyChar
     ;  d5.b Player state flags
     ;  d6.w Terrain flags
     ; ======================================
@@ -433,7 +433,7 @@ EPlayer_UpdateAnimation:
     btst   #PLAYER_FLAG_SPINNING, d5
     bne    @Spinning
 
-    move.w ECPhysicsBody_GroundSpeed(a1), d0
+    move.w ECPhysBodyChar_GroundSpeed(a1), d0
     tst.w  d0
     bne    @Moving
 
@@ -480,8 +480,8 @@ EPlayer_UpdateAnimation:
 
     ; Set X flip flag
     move.b #0x0, d1
-    move.l ECPhysicsBody_VelX(a3), d2
-    tst.l  ECPhysicsBody_VelX(a3)
+    move.l ECPhysBodyChar_VelX(a3), d2
+    tst.l  ECPhysBodyChar_VelX(a3)
     beq    @NoFlipChange
     bgt    @FaceRight
     move.b #0x1, d1
@@ -508,7 +508,7 @@ EPlayer_UpdateAnimation:
     ; ======================================
     ; In:
     ;  a0   Entity
-    ;  a1   ECPhysicsBody
+    ;  a1   ECPhysBodyChar
     ; Out:
     ;  a1   Sprite sheet
     ;  a2   Sprite anim
@@ -516,7 +516,7 @@ EPlayer_UpdateAnimation:
     ;  d2.b Y flip
     ; ======================================
 EPlayer_GetWalkAnim:
-    tst.w  ECPhysicsBody_GroundSpeed(a1)
+    tst.w  ECPhysBodyChar_GroundSpeed(a1)
     blt    @CW
     lea    PlayerSpriteAnimWalkAngleTable_CCW, a2   ; Angle-to-anim table (counter clockwise)
     bra    Eplayer_GetAngleAnim
@@ -524,7 +524,7 @@ EPlayer_GetWalkAnim:
     lea    PlayerSpriteAnimWalkAngleTable_CW, a2    ; Angle-to-anim table (clockwise)
     bra    Eplayer_GetAngleAnim
 EPlayer_GetRunAnim:
-    tst.w  ECPhysicsBody_GroundSpeed(a1)
+    tst.w  ECPhysBodyChar_GroundSpeed(a1)
     blt    @CW
     lea    PlayerSpriteAnimRunAngleTable_CCW, a2    ; Angle-to-anim table (counter clockwise)
     bra    Eplayer_GetAngleAnim
@@ -532,7 +532,7 @@ EPlayer_GetRunAnim:
     lea    PlayerSpriteAnimRunAngleTable_CW, a2     ; Angle-to-anim table (clockwise)
     bra    Eplayer_GetAngleAnim
 Eplayer_GetAngleAnim:
-    move.w ECPhysicsBody_LastTerrainFlags(a1), d0   ; Player terrain angle
+    move.w ECPhysBodyChar_LastTerrainFlags(a1), d0   ; Player terrain angle
     lsr.b  #0x4, d0                                 ; Segment as anim index
     andi.w #0x000F, d0
     mulu.w #0x3, d0
@@ -549,7 +549,7 @@ EPlayer_Jump:
     ; ======================================
     ; In:
     ;  a0   Entity
-    ;  a1   ECPhysicsBody
+    ;  a1   ECPhysBodyChar
     ; In/out:
     ;  d5.b PLAYER_FLAG_*
     ;  d6.b COLLISION_FLAG_*
@@ -567,13 +567,13 @@ EPlayer_Jump:
     moveq  #0x0, d3
     move.w (a4,d7.w), d3
     muls   #PLAYER_JUMP_VEL>>8, d3      ; Ground speed values >> 8
-    add.l  d3, ECPhysicsBody_VelY(a1)
+    add.l  d3, ECPhysBodyChar_VelY(a1)
             
     addi.w #SINE_TBL_COS_OFFS, d7		; Jump angle to x vel
     moveq  #0x0, d3
     move.w (a4,d7.w), d3
     muls   #PLAYER_JUMP_VEL>>8, d3      ; Ground speed values >> 8
-    add.l  d3, ECPhysicsBody_VelX(a1)
+    add.l  d3, ECPhysBodyChar_VelX(a1)
 
     ; Set jump flag
     bset   #PLAYER_FLAG_JUMPING, d5

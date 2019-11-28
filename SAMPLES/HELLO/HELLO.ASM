@@ -63,7 +63,8 @@ Main:
 
     ; Update
     bsr    ENT_UpdateAll
-    bsr    ECPhysicsBody_Step
+    bsr    ECPhysBodyChar_StepAll
+    bsr    ECPhysBodyBasic_StepAll
     bsr    CAM_UpdateAll
     bsr    MAP_ClampScroll
     bsr    MAP_UpdateStreaming
