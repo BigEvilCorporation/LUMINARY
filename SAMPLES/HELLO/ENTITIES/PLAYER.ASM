@@ -6,6 +6,9 @@
 ; PLAYER.ASM - Player entity component
 ; ============================================================================================
 
+PLAYER_HEIGHT                           equ 0x0028
+PLAYER_HEIGHT_SPIN                      equ 0x0020
+
 PLAYER_ANIM_IDLE                        equ 0
 PLAYER_ANIM_WALK                        equ 1
 PLAYER_ANIM_WALK_45                     equ 2
@@ -193,6 +196,8 @@ EPlayer_Initialise:
     move.l a0, Camera_TargetEntity(a2)
     @NoCam:
 
+    ; Set palette
+    ; TODO: Better palette management
     ENT_GETCOMPONENT EPlayer,ECSprite,a0,a2
     move.w #0x3, d0
     SPRITE_COMPONENT_SETPALETTE_REG a2,d0
@@ -290,6 +295,7 @@ EPlayer_UpdateInput:
     cmp.w  #PLAYER_SPIN_MIN_SPEED>>8, d4
     blt    @EndDown
     bset   #PLAYER_FLAG_SPINNING, d5            ; Spinning
+    move.w #PLAYER_HEIGHT_SPIN/2, Entity_ExtentsY(a0)           ; Set spinning height
     move.l #PLAYER_MAX_VEL_X_SPIN, ECPhysicsBody_MaxVelX(a1)    ; Set spinning max vel
     move.w #PLAYER_DECEL_SPIN, ECPhysicsBody_DecelX(a1)         ; Set spinning deceleration
     move.w #PLAYER_SLOPE_FACTOR_SPIN_DN, ECPhysicsBody_SlopeFact(a1) ; Set spinning slope factor
@@ -398,6 +404,7 @@ EPlayer_UpdateState:
     bge    @EndSpinClear
     @HitGround:
     bclr   #PLAYER_FLAG_SPINNING, d5                        ; Reset spin flag
+    move.w #PLAYER_HEIGHT/2, Entity_ExtentsY(a0)            ; Reset height
     move.l #PLAYER_MAX_VEL_X, ECPhysicsBody_MaxVelX(a1)     ; Reset max vel
     move.w #PLAYER_DECEL, ECPhysicsBody_DecelX(a1)          ; Reset deceleration
     move.w #PLAYER_SLOPE_FACTOR, ECPhysicsBody_SlopeFact(a1); Reset slope factor
