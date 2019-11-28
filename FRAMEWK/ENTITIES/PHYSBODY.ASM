@@ -216,20 +216,21 @@ ECPhysicsBody_Step:
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
     bne    @SearchQuadrant
     bsr    ECPhysicsBody_TerrainSearch_Down
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
     bne    @EndTerrain
     bsr    ECPhysicsBody_TerrainSearch_Right
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
     bne    @EndTerrain
     bsr    ECPhysicsBody_TerrainSearch_Left
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
     bne    @EndTerrain
     bsr    ECPhysicsBody_TerrainSearch_Up
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
     bne    @EndTerrain
 
     ; Already on ground, terrain lookup by quadrant
     @SearchQuadrant:
+    move.w #0x0, ECPhysicsBody_LastTerrainFlags(a3)
     move.b ECPhysicsBody_TerrainQuadrant(a3), d6
     cmp.b  #PHYS_TERRAIN_SEARCH_QUADRANT_DOWN, d6
     beq    @Down
@@ -239,22 +240,32 @@ ECPhysicsBody_Step:
     beq    @Left
     @Up:
     bsr    ECPhysicsBody_TerrainSearch_Up
-    bra    @SearchWalls
-    @Down:
-    bsr    ECPhysicsBody_TerrainSearch_Down
-    bra    @SearchWalls
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bne    @SearchWalls
+    bra    @Down
     @Right:
     bsr    ECPhysicsBody_TerrainSearch_Right
-    bra    @EndTerrain
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bne    @EndTerrain
+    bra    @Down
     @Left:
     bsr    ECPhysicsBody_TerrainSearch_Left
-    bra    @EndTerrain
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysicsBody_LastTerrainFlags(a3)
+    bne    @EndTerrain
+    bra    @Down
+
+    @Down:
+    bsr    ECPhysicsBody_TerrainSearch_Down
 
     @SearchWalls:
     ; Searched vertically for terrain, now search horizontally for walls
     jsr    ECPhysicsBody_WallSearch
 
     @EndTerrain:
+
+    ; If quadrant changed, search that direction immediately
+    ;cmp.b  ECPhysicsBody_TerrainQuadrant(a3), d6
+    ;bne    @SearchQuadrant
 
     POPM.W  d5/d6
 
@@ -379,7 +390,7 @@ ECPhysicsBody_WallSearch:
     ;  d1.l Position Y (map space)
     ;  d2.l X velocity
     ;  d3.l Y velocity
-    ;  d5.b Terrain layer
+    ;  d5.w Prev terrain flags
     ;  d7.w Map width (stamps)
     ;  a4   Entity
     ;  a5.l X velocity (mirror)
@@ -392,7 +403,7 @@ ECPhysicsBody_WallSearch:
     ;  a6.l Y velocity
     ; ======================================
 
-    PUSHM.L d2/d7
+    PUSHM.L d2/d6-d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -444,7 +455,7 @@ ECPhysicsBody_WallSearch:
 
     @EndWall:
 
-    POPM.L  d2/d7
+    POPM.L  d2/d6-d7
 
     rts
 
@@ -462,7 +473,7 @@ ECPhysicsBody_TerrainSearch_Down:
     ;  d1.l Position Y (map space)
     ;  d2.l X velocity
     ;  d3.l Y velocity
-    ;  d5.b Terrain layer
+    ;  d5.w Prev terrain flags
     ;  d7.w Map width (stamps)
     ;  a4   Entity
     ;  a5.l X velocity (mirror)
@@ -477,7 +488,7 @@ ECPhysicsBody_TerrainSearch_Down:
     ;  a6.l Y velocity (mirror)
     ; ======================================
 
-    PUSHM.L d2/d7
+    PUSHM.L d2/d6-d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -547,7 +558,7 @@ ECPhysicsBody_TerrainSearch_Down:
 
     @EndTerrain:
 
-    POPM.L  d2/d7
+    POPM.L  d2/d6-d7
 
     rts
 
@@ -565,7 +576,7 @@ ECPhysicsBody_TerrainSearch_Right:
     ;  d1.l Position Y (map space)
     ;  d2.l X velocity
     ;  d3.l Y velocity
-    ;  d5.b Terrain layer
+    ;  d5.w Prev terrain flags
     ;  d7.w Map width (stamps)
     ;  a4   Entity
     ;  a5.l X velocity (mirror)
@@ -580,7 +591,7 @@ ECPhysicsBody_TerrainSearch_Right:
     ;  a6.l Y velocity (mirror)
     ; ======================================
 
-    PUSHM.L d2/d7
+    PUSHM.L d2/d6-d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -650,7 +661,7 @@ ECPhysicsBody_TerrainSearch_Right:
 
     @EndTerrain:
 
-    POPM.L  d2/d7
+    POPM.L  d2/d6-d7
 
     rts
 
@@ -668,7 +679,7 @@ ECPhysicsBody_TerrainSearch_Up:
     ;  d1.l Position Y (map space)
     ;  d2.l X velocity
     ;  d3.l Y velocity
-    ;  d5.b Terrain layer
+    ;  d5.w Prev terrain flags
     ;  d7.w Map width (stamps)
     ;  a4   Entity
     ;  a5.l X velocity (mirror)
@@ -683,7 +694,7 @@ ECPhysicsBody_TerrainSearch_Up:
     ;  a6.l Y velocity (mirror)
     ; ======================================
 
-    PUSHM.L d2/d7
+    PUSHM.L d2/d6-d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -753,7 +764,7 @@ ECPhysicsBody_TerrainSearch_Up:
 
     @EndTerrain:
 
-    POPM.L  d2/d7
+    POPM.L  d2/d6-d7
 
     rts
 
@@ -771,7 +782,7 @@ ECPhysicsBody_TerrainSearch_Left:
     ;  d1.l Position Y (map space)
     ;  d2.l X velocity
     ;  d3.l Y velocity
-    ;  d5.b Terrain layer
+    ;  d5.w Prev terrain flags
     ;  d7.w Map width (stamps)
     ;  a4   Entity
     ;  a5.l X velocity (mirror)
@@ -786,7 +797,7 @@ ECPhysicsBody_TerrainSearch_Left:
     ;  a6.l Y velocity (mirror)
     ; ======================================
 
-    PUSHM.L d2/d7
+    PUSHM.L d2/d6-d7
 
     move.w d7, d2                       ; Map width (stamps)
 
@@ -856,6 +867,6 @@ ECPhysicsBody_TerrainSearch_Left:
 
     @EndTerrain:
 
-    POPM.L  d2/d7
+    POPM.L  d2/d6-d7
 
     rts
