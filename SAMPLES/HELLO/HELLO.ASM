@@ -11,8 +11,10 @@
     include 'samples/hello/system/header.asm'
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
+    include 'samples/hello/entities/enemy.asm'
     include 'samples/hello/entities/player.asm'
     include 'samples/hello/entities/lrswitch.asm'
+    include 'samples/hello/entities/motobug.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -50,6 +52,10 @@ Main:
     lea    palette_sonic, a0
     move.b #0x3, d0
     bsr    VDP_LoadPalette
+
+    lea    palette_motobug, a0
+    move.b #0x2, d0
+    bsr    VDP_LoadPalette
     
     @Lp:
 
@@ -75,6 +81,7 @@ Main:
 
     ; Loop forever
     bra    @Lp
+    rts
 
     ; Asset includes
 	include 'engine/assets.asm'

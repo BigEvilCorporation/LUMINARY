@@ -243,6 +243,15 @@ EPlayer_Update:
     ; Update animation from current state
     bsr    EPlayer_UpdateAnimation
 
+    ; Collision check against enemies
+    ENT_GETBOUNDS a0,d1,d2
+    PUSH.L a0
+    move.l a0, a2
+    bsr    ECEnemy_CheckHitAll
+    POP.L  a0
+
+    rts
+
     ; Debug draw
     ENT_GETCOMPONENT EPlayer,ECPhysicsBody,a0,a1
     move.w ECPhysicsBody_LastTerrainFlags(a1), d7
