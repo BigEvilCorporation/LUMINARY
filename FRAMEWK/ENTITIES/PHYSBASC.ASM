@@ -294,7 +294,6 @@ ECPhysBodyBasic_TerrainSearch_Down:
     ;  d1.l Position Y (map space)
     ;  d2.l X velocity
     ;  d3.l Y velocity
-    ;  d7.w Terrain height (map space, -1 if not found)
     ;  a5.l X velocity (mirror)
     ;  a6.l Y velocity (mirror)
     ; ======================================

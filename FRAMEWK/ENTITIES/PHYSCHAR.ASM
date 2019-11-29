@@ -555,8 +555,8 @@ ECPhysBodyChar_TerrainSearch_Down:
     cmp.l  d7, d1                       ; Check if on or under floor
     blt    @EndTerrain
     @SnapToFloor:
-    move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d1        ; - step height
+    move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     move.l #0x0, d3                     ; Zero Y velocity
     move.l #0x0, a6                     ; Zero Y velocity (mirror)
     move.w d6, ECPhysBodyChar_LastTerrainFlags(a3)   ; Store flags
@@ -658,8 +658,8 @@ ECPhysBodyChar_TerrainSearch_Right:
     cmp.l  d7, d0                       ; Check if left of wall
     blt    @EndTerrain
     @SnapToFloor:
-    move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d0        ; - step height
+    move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     move.l #0x0, d2                     ; Zero X velocity
     move.l #0x0, a5                     ; Zero X velocity (mirror)
     move.w d6, ECPhysBodyChar_LastTerrainFlags(a3)   ; Store flags
@@ -761,8 +761,8 @@ ECPhysBodyChar_TerrainSearch_Up:
     cmp.l  d7, d1                       ; Check if on or above ceiling
     bgt    @EndTerrain
     @SnapToFloor:
-    move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     addi.w #PHYS_STEP_HEIGHT, d1        ; + step height
+    move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     move.l #0x0, d3                     ; Zero Y velocity
     move.l #0x0, a6                     ; Zero Y velocity (mirror)
     move.w d6, ECPhysBodyChar_LastTerrainFlags(a3)   ; Store flags
@@ -864,8 +864,8 @@ ECPhysBodyChar_TerrainSearch_Left:
     cmp.l  d7, d0                       ; Check if left of wall
     bgt    @EndTerrain
     @SnapToFloor:
-    move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     addi.w #PHYS_STEP_HEIGHT, d0        ; + step height
+    move.l d7, d0                       ; Hit terrain, cap X and zero velocity
     move.l #0x0, d2                     ; Zero X velocity
     move.l #0x0, a5                     ; Zero X velocity (mirror)
     move.w d6, ECPhysBodyChar_LastTerrainFlags(a3)   ; Store flags
