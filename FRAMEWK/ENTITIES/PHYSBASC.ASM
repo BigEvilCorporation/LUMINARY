@@ -328,8 +328,8 @@ ECPhysBodyBasic_TerrainSearch_Down:
     cmp.l  d7, d1                       ; Check if on or under floor
     blt    @EndTerrain
     @SnapToFloor:
-    move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     subi.w #PHYS_STEP_HEIGHT, d1        ; - step height
+    move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     move.l #0x0, d3                     ; Zero Y velocity
     move.l #0x0, a6                     ; Zero Y velocity (mirror)
     move.w d6, ECPhysBodyBasic_LastTerrainFlags(a3)   ; Store flags
