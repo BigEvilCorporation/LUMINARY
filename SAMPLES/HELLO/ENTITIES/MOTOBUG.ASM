@@ -7,7 +7,7 @@
 ; ============================================================================================
 
 ; Motobug constants
-EMOTOBUG_VEL_X                          equ 0x00010000
+EMOTOBUG_VEL_X                          equ 0x0001
 EMOTOBUG_IDLE_TIME                      equ 60*3
 
 ; Motobug spawn data
@@ -17,8 +17,7 @@ EMOTOBUG_IDLE_TIME                      equ 60*3
 ; Motobug entity
     ENTITY_BEGIN EMotobug
 EMotobug_IdleTimer                      rs.w 1
-EMotobug_Direction                      rs.b 1
-	ENT_COMPONENT ECPhysBodyBasic
+EMotoBug_VelX                           rs.w 1
     ENT_COMPONENT ECSprite
     ENT_COMPONENT ECEnemy
     ENTITY_END
@@ -33,18 +32,13 @@ EMotobug_Initialise:
 
     ; Initial state
     move.w #0x0, EMotobug_IdleTimer(a0)
-    move.b #-1, EMotobug_Direction(a0)
+    move.w #-EMOTOBUG_VEL_X, EMotoBug_VelX(a0)
 
     ; Set palette
     ; TODO: Better palette management
-    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a1
+    ENT_GETCOMPONENT EMotobug,ECSprite,a0,a1
     move.w #0x2, d0
     SPRITE_COMPONENT_SETPALETTE_REG a1,d0
-
-    ; Init physics component
-    ENT_GETCOMPONENT EMotobug,ECPhysBodyBasic,a0,a1
-    move.l #EMOTOBUG_VEL_X, ECPhysBodyBasic_MaxVelX(a1)
-    move.l #-EMOTOBUG_VEL_X, ECPhysBodyBasic_MaxVelX(a1)
 
     ; Init enemy component
     ENT_GETCOMPONENT EMotobug,ECEnemy,a0,a1
@@ -68,35 +62,60 @@ EMotobug_Update:
     beq    @Moving
     subi.w #0x1, d0
     move.w d0, EMotobug_IdleTimer(a0)
-    bne    @End
+    beq    @TimerElapsed
+
+    rts
+
+    @TimerElapsed:
 
     ; Switch direction and start moving again
-    move.b EMotobug_Direction(a0), d0
-    ext.w  d0
-    mulu.w #-1, d0
-    move.l #EMOTOBUG_VEL_X, d1
-    move.b d0, EMotobug_Direction(a0)
-    bgt    @MoveRight
-    neg.l  d1
-    @MoveRight:
-    move.l d0, ECPhysBodyBasic_MaxVelX(a1)
+    move.w EMotoBug_VelX(a0), d0
+    neg.w  d0
+    move.w d0, EMotoBug_VelX(a0)
 
-    ; Set moving animation
+    ; Set sprite flip
+    ENT_GETCOMPONENT EMotobug,ECSprite,a0,a1
+    rol.w  #0x1, d0
+    eor.b  #0x1, d0
+    SPRITE_COMPONENT_SETFLIPX_REG a1,d0
+
+    ; Restart animation
+    move.l ECSprite_Animation(a1), a2
+    move.w SpriteAnim_DefaultSpeed(a2), ECSprite_AnimSpeed(a1)
 
     @Moving:
 
-    ; Move until no floor found
-    ENT_GETCOMPONENT EMotobug,ECPhysBodyBasic,a0,a1
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyBasic_LastTerrainFlags(a1)
-    beq    @End
+    ; Move
+    move.w EMotoBug_VelX(a0), d0
+    add.w  d0, Entity_PosX(a0)
+
+    ; Check floor
+    PUSH.L a0
+    move.l a0, a3
+    move.l RAM_SCENE_DATA, a4
+    move.l SceneData_ColMap(a4), a0
+    move.l SceneData_ColStampset(a4), a1
+    move.l SceneData_ColTileset(a4), a2
+    move.w SceneData_ColMapWidthStamps(a4), d2
+    bsr    PHYS_EntityFindFloor
+    POP.L  a0
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d3
+    beq    @NoTerrain
+
+    ; Snap to floor
+    move.w d7, Entity_PosY(a0)
+    
+    rts
+
+    @NoTerrain:
 
     ; No terrain, stop moving and initialise idle timer
     move.l #0x0, ECPhysBodyBasic_VelX(a1)
     move.w #EMOTOBUG_IDLE_TIME, EMotobug_IdleTimer(a0)
 
-    ; Set idle animation
-
-    @End:
+    ; Stop animation
+    ENT_GETCOMPONENT EMotobug,ECSprite,a0,a1
+    move.w #0x0, ECSprite_AnimSpeed(a1)
 
     rts
 
