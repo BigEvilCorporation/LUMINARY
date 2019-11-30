@@ -6,6 +6,10 @@
 ; SPRITE.ASM - Sprite entity component
 ; ============================================================================================
 
+ECSPRITE_STATE_FLAG_LOOP                 equ 0x0 ; Loop animation
+ECSPRITE_STATE_FLAG_DIRTY                equ 0x1 ; Anim changed, forcefully load frame
+ECSPRITE_STATE_FLAG_VISIBLE              equ 0x2 ; Sprite visible
+
     ; ======================================
     ; Sprite component
     ; ======================================
@@ -19,11 +23,12 @@ ECSprite_Sheet                          rs.l 1  ; Sprite sheet
 ECSprite_CurrentFrame                   rs.l 1  ; Current sprite frame
 ECSprite_VRAMHndl                       rs.l 1  ; VRAM allocation
 ECSprite_Animation                      rs.l 1  ; Current animation
-ECSprite_AnimSubFrame                   rs.l 1  ; Current subframe
+ECSprite_AnimSubFrame                   rs.l 1  ; Current subframe (16.16)
 ECSprite_AnimSpeed                      rs.w 1  ; Animation speed
-ECSprite_DrawFlags                      rs.w 1  ; Prio/pal/flip flags
-ECSprite_AnimLoop                       rs.b 1  ; Animation loop flag
-ECSprite_Dirty                          rs.b 1  ; Anim changed, forcefully load frame
+ECSprite_PosX                           rs.b 1  ; Relative position X
+ECSprite_PosY                           rs.b 1  ; Relative position Y
+ECSprite_DrawFlags                      rs.b 1  ; Prio/pal/flip flags
+ECSprite_StateFlags                      rs.b 1  ; ECSPRITE_STATE_FLAG_*
     ENTITY_COMPONENT_END
 
     ; ======================================
@@ -45,11 +50,13 @@ ECSprite_Initialise:
     ; ======================================
 
     ; Initialise from spawn params
-    move.w #0x0, ECSprite_DrawFlags(a0)
     move.l #0x0, ECSprite_VRAMHndl(a0)
     move.l #0x0, ECSprite_AnimSubFrame(a0)
     move.l #0x0, ECSprite_Animation(a0)
-    move.b #0x0, ECSprite_Dirty(a0)
+    move.b #0x0, ECSprite_PosX(a0)
+    move.b #0x0, ECSprite_PosY(a0)
+    move.b #0x0, ECSprite_DrawFlags(a0)
+    move.b #(1<<ECSPRITE_STATE_FLAG_VISIBLE), ECSprite_StateFlags(a0)
 
     ; Load animation
     move.l SDSprite_Animation(a1), a2
@@ -120,7 +127,7 @@ ECSprite_LoadSheet:
     ; Clear animation
     move.l #0x0, ECSprite_Animation(a0)
     move.w #0x0, ECSprite_AnimSpeed(a0)
-    move.b #0x0, ECSprite_AnimLoop(a0)
+    bclr   #ECSPRITE_STATE_FLAG_LOOP, ECSprite_StateFlags(a0)
 
     @NoSheetChange:
 
@@ -141,6 +148,7 @@ ECSprite_LoadAnimation:
     beq    @NoSheetChange
     move.l a1, ECSprite_Sheet(a0)
     move.l SpriteSheet_FirstFrame(a1), ECSprite_CurrentFrame(a0)
+    bset   #ECSPRITE_STATE_FLAG_DIRTY, ECSprite_StateFlags(a0)    ; Load frame on next render
     @NoSheetChange:
 
     ; Set animation
@@ -149,20 +157,21 @@ ECSprite_LoadAnimation:
 
     move.l a2, ECSprite_Animation(a0)                           ; Set anim
     move.l #0x0, ECSprite_AnimSubFrame(a0)                      ; Reset subframe
-    move.b #0x1, ECSprite_Dirty(a0)                             ; Load frame on next render
 
     cmpa.w #0x0, a2
     beq    @NoAnim
 
     move.w SpriteAnim_DefaultSpeed(a2), ECSprite_AnimSpeed(a0)  ; Set default speed
-    move.b SpriteAnim_DefaultLoop(a2), ECSprite_AnimLoop(a0)    ; Set default loop flag
+    move.b SpriteAnim_DefaultLoop(a2), d0                       ; Set default loop flag
+    andi.b #~(1<<ECSPRITE_STATE_FLAG_LOOP), ECSprite_StateFlags(a0)
+    or.b   d0, ECSprite_StateFlags(a0)
 
     rts
 
     @NoAnim:
 
     move.w #0x0, ECSprite_AnimSpeed(a0)                         ; Clear speed
-    move.b #0x0, ECSprite_AnimLoop(a0)                          ; Clear loop flag
+    bclr   #ECSPRITE_STATE_FLAG_LOOP, ECSprite_StateFlags(a0)     ; Clear loop flag        
 
     @NoAnimChange:
     
@@ -189,17 +198,39 @@ ECSprite_DrawAll:
     @SpriteLp:
     PUSHM.W d6-d7
 
+    ; Check visible
+    btst   #ECSPRITE_STATE_FLAG_VISIBLE, ECSprite_StateFlags(a3)
+    beq    @NextSprite
+
     movea.w Component_Owner(a3), a4     ; Get owning entity
     move.l ECSprite_CurrentFrame(a3), a0; Get sprite frame
     move.l ECSprite_VRAMHndl(a3), d2    ; Get VRAM handle
-    move.w ECSprite_DrawFlags(a3), d3   ; Get draw flags
+    move.b ECSprite_DrawFlags(a3), d3   ; Get draw flags
+    lsl.w  #0x8, d3                     ; To hardware format
     move.w Entity_PosX(a4), d0          ; Get pos
     move.w Entity_PosY(a4), d1
+
+    moveq  #0x0, d4                     ; Add component relative pos X
+    move.b ECSprite_PosX(a3), d4
+    btst   #VDP_SPRITE_FLAG_FLIPX, d3
+    beq    @NoflipX
+    neg.w  d4
+    @NoflipX:
+    add.w  d4, d0
+
+	moveq  #0x0, d4						; Add component relative pos Y
+    move.b ECSprite_PosY(a3), d4
+    btst   #VDP_SPRITE_FLAG_FLIPY, d3
+    beq    @NoflipY
+    neg.w  d4
+    @NoflipY:
+    add.w  d4, d1
 
     add.w  d6, d0                       ; Scroll space to sprite space
     sub.w  d7, d1
 
-    tst.b  ECSprite_Dirty(a3)           ; If dirty, skip straight to loading current frame
+    ; If dirty, skip straight to loading current frame
+    btst   #ECSPRITE_STATE_FLAG_DIRTY, ECSprite_StateFlags(a3)
     bne    @ForceLoadFrame
 
     ; Tick animation
@@ -225,7 +256,7 @@ ECSprite_DrawAll:
     ; Wrap frame idx and get next frame ptr from keyframe track
     moveq  #0x0, d6
     move.w SpriteAnim_Length(a1), d6    ; Wrap frame
-    divs   d6, d5
+    divs.w d6, d5
     swap   d5
 	lsl.w  #0x2, d5                     ; Frame to longs
     move.l SpriteAnim_KeyframeTrackFrameId(a1), a0 ; Get keyframe track
@@ -239,7 +270,7 @@ ECSprite_DrawAll:
 	
     ; Load new frame
     PUSHM.L d0-d3/a0-a3
-    move.b #0x0, ECSprite_Dirty(a3)     ; Clear dirty flag
+    bclr   #ECSPRITE_STATE_FLAG_DIRTY, ECSprite_StateFlags(a3) ; Clear dirty flag
     move.l ECSprite_VRAMHndl(a3), d0
     move.w SpriteFrame_SizeTiles(a1), d1
     move.l SpriteFrame_TileData(a1), a0 ; Load tiles to VRAM
@@ -255,6 +286,8 @@ ECSprite_DrawAll:
 
     ; Draw frame
     bsr    SPR_DrawFrame
+
+    @NextSprite:
     movea.w EntityBlock_Next(a3), a3    ; Next component
     cmp.w  #0x0, a3
     POPM.W d6-d7

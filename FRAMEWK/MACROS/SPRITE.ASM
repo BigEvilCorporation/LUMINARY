@@ -13,10 +13,10 @@ SPRITE_COMPONENT_SETPALETTE_REG: macro sprite,pal_idx
     ; sprite   - Address reg of sprite
     ; pal_idx  - Reg containing index (0-3)
     ; ======================================
-    andi.w #0x3, \pal_idx
-    ror.w  #VDP_SPRITE_FLAG_ROR_PAL, \pal_idx
-    andi.w #VDP_SPRITE_FLAG_NMASK_PAL, ECSprite_DrawFlags(\sprite)
-    or.w   \pal_idx, ECSprite_DrawFlags(\sprite)
+    andi.b #0x3, \pal_idx
+    ror.b  #VDP_SPRITE_FLAG_ROR_PAL, \pal_idx
+    andi.b #VDP_SPRITE_FLAG_NMASK_PAL>>8, ECSprite_DrawFlags(\sprite)
+    or.b   \pal_idx, ECSprite_DrawFlags(\sprite)
     endm
 
 SPRITE_COMPONENT_SETFLIPX_REG: macro sprite,enabled
@@ -26,10 +26,10 @@ SPRITE_COMPONENT_SETFLIPX_REG: macro sprite,enabled
     ; sprite   - Address reg of sprite
     ; enabled  - Reg containing 0 or 1
     ; ======================================
-    andi.w #0x1, \enabled
-    ror.w  #VDP_SPRITE_FLAG_ROR_FLIPX, \enabled
-    andi.w #VDP_SPRITE_FLAG_NMASK_FLIPX, ECSprite_DrawFlags(\sprite)
-    or.w   \enabled, ECSprite_DrawFlags(\sprite)
+    andi.b #0x1, \enabled
+    ror.b  #VDP_SPRITE_FLAG_ROR_FLIPX, \enabled
+    andi.b #VDP_SPRITE_FLAG_NMASK_FLIPX>>8, ECSprite_DrawFlags(\sprite)
+    or.b   \enabled, ECSprite_DrawFlags(\sprite)
     endm
 
 SPRITE_COMPONENT_SETFLIPY_REG: macro sprite,enabled
@@ -39,8 +39,8 @@ SPRITE_COMPONENT_SETFLIPY_REG: macro sprite,enabled
     ; sprite   - Address reg of sprite
     ; enabled  - Reg containing 0 or 1
     ; ======================================
-    andi.w #0x1, \enabled
-    ror.w  #VDP_SPRITE_FLAG_ROR_FLIPY, \enabled
-    andi.w #VDP_SPRITE_FLAG_NMASK_FLIPY, ECSprite_DrawFlags(\sprite)
-    or.w   \enabled, ECSprite_DrawFlags(\sprite)
+    andi.b #0x1, \enabled
+    ror.b  #VDP_SPRITE_FLAG_ROR_FLIPY, \enabled
+    andi.b #VDP_SPRITE_FLAG_NMASK_FLIPY>>8, ECSprite_DrawFlags(\sprite)
+    or.b   \enabled, ECSprite_DrawFlags(\sprite)
     endm
