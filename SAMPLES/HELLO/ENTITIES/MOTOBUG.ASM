@@ -9,6 +9,9 @@
 ; Motobug constants
 EMOTOBUG_VEL_X                          equ 0x0001
 EMOTOBUG_IDLE_TIME                      equ 60*3
+EMOTOBUG_EXHAUST_OFFS_X                 equ 0x18
+EMOTOBUG_EXHAUST_OFFS_Y                 equ 0x02
+EMOTOBUG_EXHAUST_OFFS_X_FRAME           equ 0x08
 
 ; Motobug spawn data
     ENTITY_SPAWN_DATA_BEGIN EMotobug
@@ -18,7 +21,8 @@ EMOTOBUG_IDLE_TIME                      equ 60*3
     ENTITY_BEGIN EMotobug
 EMotobug_IdleTimer                      rs.w 1
 EMotoBug_VelX                           rs.w 1
-    ENT_COMPONENT ECSprite
+    ENT_COMPONENT_NAMED ECSprite,SpriteBody
+    ENT_COMPONENT_NAMED ECSprite,SpriteExhaust
     ENT_COMPONENT ECEnemy
     ENTITY_END
 
@@ -36,13 +40,18 @@ EMotobug_Initialise:
 
     ; Set palette
     ; TODO: Better palette management
-    ENT_GETCOMPONENT EMotobug,ECSprite,a0,a1
+    ENT_GETCOMPONENT EMotobug,SpriteBody,a0,a1
     move.w #0x2, d0
     SPRITE_COMPONENT_SETPALETTE_REG a1,d0
 
     ; Init enemy component
     ENT_GETCOMPONENT EMotobug,ECEnemy,a0,a1
     move.l #EMotobug_OnHit, ECEnemy_CallbackOnHit(a1)
+
+    ; Offset exhaust
+    ENT_GETCOMPONENT EMotobug,SpriteExhaust,a0,a1
+    move.b #EMOTOBUG_EXHAUST_OFFS_X, ECSprite_PosX(a1)
+    move.b #EMOTOBUG_EXHAUST_OFFS_Y, ECSprite_PosY(a1)
 
     rts
 
@@ -73,15 +82,20 @@ EMotobug_Update:
     neg.w  d0
     move.w d0, EMotoBug_VelX(a0)
 
-    ; Set sprite flip
-    ENT_GETCOMPONENT EMotobug,ECSprite,a0,a1
+    ; Set sprite flip and restart animation
+    ENT_GETCOMPONENT EMotobug,SpriteBody,a0,a1
     rol.w  #0x1, d0
     eor.b  #0x1, d0
     SPRITE_COMPONENT_SETFLIPX_REG a1,d0
-
-    ; Restart animation
     move.l ECSprite_Animation(a1), a2
     move.w SpriteAnim_DefaultSpeed(a2), ECSprite_AnimSpeed(a1)
+
+    move.w EMotoBug_VelX(a0), d0
+    ENT_GETCOMPONENT EMotobug,SpriteExhaust,a0,a1
+    rol.w  #0x1, d0
+    eor.b  #0x1, d0
+    SPRITE_COMPONENT_SETFLIPX_REG a1,d0
+    bset   #ECSPRITE_STATE_FLAG_VISIBLE, ECSprite_StateFlags(a1)
 
     @Moving:
 
@@ -104,6 +118,20 @@ EMotobug_Update:
 
     ; Snap to floor
     move.w d7, Entity_PosY(a0)
+
+    ; Update exhaust pos
+    ; TODO: Use animation draw offsets
+    ENT_GETCOMPONENT EMotobug,SpriteExhaust,a0,a1
+    moveq  #0x0, d5
+    moveq  #0x0, d6
+    move.l ECSprite_Animation(a1), a3
+    move.w ECSprite_AnimSubFrame(a1), d5
+    move.w SpriteAnim_Length(a3), d6    ; Wrap frame
+    divs.w d6, d5
+    swap   d5
+    mulu   #EMOTOBUG_EXHAUST_OFFS_X_FRAME, d5
+    addi.b #EMOTOBUG_EXHAUST_OFFS_X, d5
+    move.b d5, ECSprite_PosX(a1)
     
     rts
 
@@ -114,8 +142,12 @@ EMotobug_Update:
     move.w #EMOTOBUG_IDLE_TIME, EMotobug_IdleTimer(a0)
 
     ; Stop animation
-    ENT_GETCOMPONENT EMotobug,ECSprite,a0,a1
+    ENT_GETCOMPONENT EMotobug,SpriteBody,a0,a1
     move.w #0x0, ECSprite_AnimSpeed(a1)
+
+    ; Hide exhaust
+    ENT_GETCOMPONENT EMotobug,SpriteExhaust,a0,a1
+    bclr   #ECSPRITE_STATE_FLAG_VISIBLE, ECSprite_StateFlags(a1)
 
     rts
 
