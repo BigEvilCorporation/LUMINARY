@@ -19,10 +19,7 @@ namespace luminary
 			PositionX,
 			PositionY,
 			SpriteSheet,
-			SpriteTileData,
-			SpriteTileCount,
-			SpriteLayout,
-			SpriteAnimation
+			SpriteAnimation,
 		};
 
 		struct ParamTag
