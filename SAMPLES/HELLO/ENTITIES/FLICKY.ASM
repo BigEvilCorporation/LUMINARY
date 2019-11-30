@@ -8,7 +8,7 @@
 
 ; Flicky constants
 EFLICKY_WIDTH                           equ 0x10
-EFLICKY_HEIGHT                          equ 0x18
+EFLICKY_HEIGHT                          equ 0x10
 EFLICKY_VEL_X                           equ 0x00020000
 EFLICKY_JUMP_VEL                        equ 0x00040000
 
@@ -84,7 +84,9 @@ EFlicky_Update:
 
     ; Set flying anim
     PUSH.L a0
+    move.b #0x1, d0
     ENT_GETCOMPONENT EFlicky,ECSprite,a0,a0
+    SPRITE_COMPONENT_SETFLIPX_REG a0,d0
     move.l #actor_flicky_spritesheet_fly, a1
     move.l #actor_flicky_sheet_fly_anim_fly, a2
     bsr    ECSprite_LoadAnimation
