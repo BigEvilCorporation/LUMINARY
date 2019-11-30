@@ -224,16 +224,16 @@ ECPhysBodyChar_StepAll:
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
     bne    @SearchQuadrant
     bsr    ECPhysBodyChar_TerrainSearch_Down
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
     bsr    ECPhysBodyChar_TerrainSearch_Right
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
     bsr    ECPhysBodyChar_TerrainSearch_Left
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
     bsr    ECPhysBodyChar_TerrainSearch_Up
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
 
     ; Already on ground, terrain lookup by quadrant
@@ -248,17 +248,17 @@ ECPhysBodyChar_StepAll:
     beq    @Left
     @Up:
     bsr    ECPhysBodyChar_TerrainSearch_Up
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @SearchWalls
     bra    @Down
     @Right:
     bsr    ECPhysBodyChar_TerrainSearch_Right
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
     bra    @Down
     @Left:
     bsr    ECPhysBodyChar_TerrainSearch_Left
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, ECPhysBodyChar_LastTerrainFlags(a3)
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
     bra    @Down
 

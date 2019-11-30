@@ -198,14 +198,14 @@ EPlayer_Initialise:
 
     ; Set palette
     ; TODO: Better palette management
-    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a2
+    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a1
     move.w #0x3, d0
-    SPRITE_COMPONENT_SETPALETTE_REG a2,d0
+    SPRITE_COMPONENT_SETPALETTE_REG a1,d0
 
     ; Init player's physics component
-    ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a0,a0
-    move.l #PLAYER_MAX_VEL_X, ECPhysBodyChar_MaxVelX(a0)
-    move.w #PLAYER_DECEL, ECPhysBodyChar_DecelX(a0)
+    ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a0,a1
+    move.l #PLAYER_MAX_VEL_X, ECPhysBodyChar_MaxVelX(a1)
+    move.w #PLAYER_DECEL, ECPhysBodyChar_DecelX(a1)
 
     rts
 
@@ -396,7 +396,7 @@ EPlayer_UpdateState:
     ; If velocity ground speed too low, or just landed, clear spin flag
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6
     beq    @EndSpinClear
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, EPlayer_TerrainFlagsPrev(a0) ; If hit ground this frame
+    btst   #COLLISION_FLAG_BIT_TERRAIN_B, EPlayer_TerrainFlagsPrev(a0) ; If hit ground this frame
     beq    @HitGround
     move.w ECPhysBodyChar_GroundSpeed(a1), d4                ; or if ground speed > threshold
     ABS.W  d4

@@ -229,7 +229,7 @@ ECPhysBodyBasic_WallSearch:
     move.l #1<<COLLISION_TEST_BIT_SOLID_L, d5
     move.b #0x0, d5       							; Terrain layer 0
     
-    ; Probe for floor
+    ; Probe for collision
     cmp.l  #0x0, a5
     ble    @SearchLeft
     add.w  Entity_ExtentsX(a4), d0      ; Centre to probe X offset
@@ -323,11 +323,8 @@ ECPhysBodyBasic_TerrainSearch_Down:
     sub.w  Entity_ExtentsY(a4), d7      ; Probe offset back to centre
     swap   d7                           ; To 16.16, cap fraction
     move.w #0x0, d7
-    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5 ; If already on terrain, stick to it
-    bne    @SnapToFloor
     cmp.l  d7, d1                       ; Check if on or under floor
     blt    @EndTerrain
-    @SnapToFloor:
     subi.w #PHYS_STEP_HEIGHT, d1        ; - step height
     move.l d7, d1                       ; Hit terrain, cap Y and zero velocity
     move.l #0x0, d3                     ; Zero Y velocity
