@@ -51,6 +51,9 @@ ECEnemy_CheckHitAll:
     beq    @NoEnemies
     @EnemyLp:
 
+    ; Get next, for list safety
+    movea.w EntityBlock_Next(a1), a4
+
     ; Get entity
     movea.w Component_Owner(a1), a0
 
@@ -62,13 +65,13 @@ ECEnemy_CheckHitAll:
 
     ; Hit detected, run callback
     move.l ECEnemy_CallbackOnHit(a1), a3
-    PUSHM.L d1-d4/a0-a2
+    PUSHM.L d1-d4/a0-a4
     jsr    (a3)
-    POPM.L  d1-d4/a0-a2
+    POPM.L  d1-d4/a0-a4
 
     @NextEnemy:
-    movea.w EntityBlock_Next(a1), a1    ; Next component
-    cmp.w  #0x0, a1
+    move.l a4, a1                       ; Next component
+    cmpa.w #0x0, a1
     bne    @EnemyLp
 
     @NoEnemies:

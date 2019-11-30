@@ -169,8 +169,46 @@ EMotobug_OnHit:
     ;   d6.b  Damage dealt to player
     ; ======================================
 
-    ; If player rolling, take damage
+    PUSH.L a1
 
-    ; If player not rolling, deal damage
+    ; If player spinning, take damage
+    btst   #PLAYER_FLAG_SPINNING, EPlayer_StateFlags(a2)
+    beq    @NotSpinning
+
+    ; Despawn
+    bsr    ENT_DespawnEntity
+
+    ; TODO: Spawn critter
+
+    @NotSpinning:
+
+    ; If player jumping, take damage and rebound player
+    btst   #PLAYER_FLAG_JUMPING, EPlayer_StateFlags(a2)
+    beq    @NotJumping
+    ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a2,a1
+    move.l ECPhysBodyChar_VelY(a1), d0
+    neg.l  d0
+    move.l d0, ECPhysBodyChar_VelY(a1)
+
+    ; Despawn
+    bsr    ENT_DespawnEntity
+
+    ; Spawn critter
+    PUSHM.L a0-a2
+    move.w Entity_PosX(a0), d0
+    move.w Entity_PosY(a0), d1
+    subi.w #EFLICKY_HEIGHT, d1
+    move.w #EFLICKY_WIDTH, d2
+    move.w #EFLICKY_HEIGHT, d3
+    lea    EFlicky_TypeDesc, a0
+    lea    EFlicky_Default_SpawnData, a1
+    bsr    ENT_SpawnEntity
+    POPM.L a0-a2
+    
+    @NotJumping:
+
+    ; If player not spinning, deal damage to player
+
+    POP.L  a1
 
     rts
