@@ -116,9 +116,9 @@ __SIZEOF_\__COMPONENT_NAME rs.b 0
     ENDIF
 	endm
 
-ENT_COMPONENT: macro component_name
+ENT_COMPONENT: macro component_typename
     ; ======================================
-    ; Allocates a named component within an
+    ; Allocates a component within an
     ; entity structure.
     ; (within ENTITY_BEGIN/ENTITY_END)
     ; ======================================
@@ -127,12 +127,33 @@ ENT_COMPONENT: macro component_name
     STRUCT_ALIGN
     dc.w   __RS                                         ; Fill in ComponentSlotDesc data
     dc.w   __COMPONENT_SPAWN_DATA_OFFSET
-    dc.l   EntityBlockList_\component_name
-    dc.l   \component_name\_Initialise
-    dc.l   \component_name\_Shutdown
+    dc.l   EntityBlockList_\component_typename
+    dc.l   \component_typename\_Initialise
+    dc.l   \component_typename\_Shutdown
     STRUCT_ALIGN
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
-__COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_name\__SPAWNDATA  ; Offset spawn data ptr
+__COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_typename\__SPAWNDATA  ; Offset spawn data ptr
+Entity_\__ENTITY_NAME\_Component_\component_typename rs.w 1 ; Struct space for component address
+    endm
+
+ENT_COMPONENT_NAMED: macro component_typename,component_name
+    ; ======================================
+    ; Allocates a named component within an
+    ; entity structure. Allows for multiple
+    ; components of the same type.
+    ; (within ENTITY_BEGIN/ENTITY_END)
+    ; ======================================
+    ; Name - Component name
+    ; ======================================
+    STRUCT_ALIGN
+    dc.w   __RS                                         ; Fill in ComponentSlotDesc data
+    dc.w   __COMPONENT_SPAWN_DATA_OFFSET
+    dc.l   EntityBlockList_\component_typename
+    dc.l   \component_typename\_Initialise
+    dc.l   \component_typename\_Shutdown
+    STRUCT_ALIGN
+__ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
+__COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_typename\__SPAWNDATA  ; Offset spawn data ptr
 Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1 ; Struct space for component address
     endm
 

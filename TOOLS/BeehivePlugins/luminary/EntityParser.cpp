@@ -32,6 +32,7 @@ static const std::string s_componentEnd = "ENTITY_COMPONENT_END";
 static const std::string s_componentSpawnBegin = "COMPONENT_SPAWN_DATA_BEGIN";
 static const std::string s_componentSpawnEnd = "COMPONENT_SPAWN_DATA_END";
 static const std::string s_componentDef = "ENT_COMPONENT";
+static const std::string s_componentNamedDef = "ENT_COMPONENT_NAMED";
 static const std::string s_macroStart = "macro";
 static const std::string s_macroEnd = "endm";
 static const std::string s_comment = ";";
@@ -41,6 +42,8 @@ static const std::string s_rsLong = "rs.l";
 static const std::string s_tagStart = "[TAGS=";
 static const std::string s_tagEnd = "]";
 static const std::string s_tagDelim = ",";
+static const std::vector<char> s_tokenDelim = { ' ', ',', '\t' };
+static const std::vector<char> s_lineEndings = { '\r', '\n' };
 
 namespace luminary
 {
@@ -194,7 +197,7 @@ namespace luminary
 
 			//Extract lines
 			std::vector<std::string> lines;
-			ion::string::Tokenise(contents, lines, "\r");
+			ion::string::Tokenise(contents, lines, s_lineEndings);
 
 			bool inEntitySpawnBlock = false;
 			bool inComponentSpawnBlock = false;
@@ -209,7 +212,7 @@ namespace luminary
 			{
 				//Tokenise
 				std::vector<std::string> words;
-				ion::string::TokeniseByWhitespace(lines[i], words);
+				ion::string::Tokenise(lines[i], words, s_tokenDelim);
 
 				if (words.size() > 0)
 				{
@@ -358,6 +361,7 @@ namespace luminary
 		}
 	}
 
+#pragma optimize("",off)
 	bool EntityParser::ParseEntity(const TextBlock& textBlock, Entity& entity)
 	{
 		entity.name = textBlock.name;
@@ -368,7 +372,14 @@ namespace luminary
 		{
 			size_t componentPos = std::string::npos;
 
-			if ((componentPos = ContainsToken(textBlock.block[i], s_componentDef)) >= 0)
+			if ((componentPos = ContainsToken(textBlock.block[i], s_componentNamedDef)) >= 0)
+			{
+				if (Component* component = ParseComponentDef(textBlock.block[i], componentPos))
+				{
+					entity.components.push_back(*component);
+				}
+			}
+			else if ((componentPos = ContainsToken(textBlock.block[i], s_componentDef)) >= 0)
 			{
 				if (Component* component = ParseComponentDef(textBlock.block[i], componentPos))
 				{
@@ -393,6 +404,7 @@ namespace luminary
 
 		return entity.name.size() > 0;
 	}
+#pragma optimize("",on)
 
 	void EntityParser::ParseStaticEntity(const TextBlock& textBlock, Entity& entity)
 	{
