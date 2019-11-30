@@ -8,8 +8,8 @@
 
     STRUCT_BEGIN Camera
     ; TODO: list node
-Camera_PosX                             rs.l 1  ; X position (16.16)
-Camera_PosY                             rs.l 1  ; Y position (16.16)
+Camera_PosX                             rs.l 1  ; X position (16.16) in sprite space
+Camera_PosY                             rs.l 1  ; Y position (16.16) in sprite space
 Camera_TargetEntity                     rs.l 1  ; Target entity
     STRUCT_END
 
@@ -45,26 +45,32 @@ CAM_UpdateAll:
     cmpa.w #0x0, a0
     beq    @NoCamera
 
+    move.l Camera_PosX(a0), d0
+    move.l Camera_PosY(a0), d1
+
     ; If camera has a target entity, grab its centre position
     move.l Camera_TargetEntity(a0), a1
     cmpa.w #0x0, a1
     beq    @NoTarget
-    ; TODO: Get centre pos
-    move.l Entity_PosX(a1), d0              ; Get entity pos
+    move.l Entity_PosX(a1), d0
     move.l Entity_PosY(a1), d1
-    subi.l #VDP_SPRITE_BORDER_X<<16, d0     ; To scroll space
-    subi.l #VDP_SPRITE_BORDER_Y<<16, d1
-    subi.l #(VDP_SCREEN_WIDTH_PX/2)<<16, d0 ; To screen centre
-    subi.l #(VDP_SCREEN_HEIGHT_PX/2)<<16, d1
-    move.l d0, Camera_PosX(a0)
-    move.l d1, Camera_PosY(a0)
     @NoTarget:
 
+    ; Clamp to bounds
+    CLAMP.L d0, #(VDP_SPRITE_BORDER_X+(VDP_SCREEN_WIDTH_PX/2))<<16, #0x7FFFFFFF
+    CLAMP.L d1, #(VDP_SPRITE_BORDER_Y+(VDP_SCREEN_HEIGHT_PX/2))<<16, #0x7FFFFFFF
+
+    move.l d0, Camera_PosX(a0)
+    move.l d1, Camera_PosY(a0)
+
     ; Apply to scroll
-    move.w Camera_PosX(a0), d0				; Invert X
-    neg.w  d0
+    swap d0
+    swap d1
+    subi.w #VDP_SPRITE_BORDER_X+(VDP_SCREEN_WIDTH_PX/2), d0 ; Sprite space to screen centre to scroll space
+    subi.w #VDP_SPRITE_BORDER_Y+(VDP_SCREEN_HEIGHT_PX/2), d1
+    neg.w  d0                           ; Invert X
     move.w d0, RAM_SCROLL_PLANE_A_X
-    move.w Camera_PosY(a0), RAM_SCROLL_PLANE_A_Y
+    move.w d1, RAM_SCROLL_PLANE_A_Y
 
     @NoCamera:
 

@@ -6,9 +6,10 @@
 ; SPRITE.ASM - Sprite entity component
 ; ============================================================================================
 
-ECSPRITE_STATE_FLAG_LOOP                 equ 0x0 ; Loop animation
-ECSPRITE_STATE_FLAG_DIRTY                equ 0x1 ; Anim changed, forcefully load frame
-ECSPRITE_STATE_FLAG_VISIBLE              equ 0x2 ; Sprite visible
+ECSPRITE_STATE_FLAG_LOOP                equ 0x0 ; Loop animation
+ECSPRITE_STATE_FLAG_DIRTY               equ 0x1 ; Anim changed, forcefully load frame
+ECSPRITE_STATE_FLAG_VISIBLE             equ 0x2 ; Sprite visible
+ECSPRITE_STATE_FLAG_ONSCREEN            equ 0x3 ; On screen last frame
 
     ; ======================================
     ; Sprite component
@@ -28,7 +29,7 @@ ECSprite_AnimSpeed                      rs.w 1  ; Animation speed
 ECSprite_PosX                           rs.b 1  ; Relative position X
 ECSprite_PosY                           rs.b 1  ; Relative position Y
 ECSprite_DrawFlags                      rs.b 1  ; Prio/pal/flip flags
-ECSprite_StateFlags                      rs.b 1  ; ECSPRITE_STATE_FLAG_*
+ECSprite_StateFlags                     rs.b 1  ; ECSPRITE_STATE_FLAG_*
     ENTITY_COMPONENT_END
 
     ; ======================================
@@ -56,7 +57,7 @@ ECSprite_Initialise:
     move.b #0x0, ECSprite_PosX(a0)
     move.b #0x0, ECSprite_PosY(a0)
     move.b #0x0, ECSprite_DrawFlags(a0)
-    move.b #(1<<ECSPRITE_STATE_FLAG_VISIBLE), ECSprite_StateFlags(a0)
+    move.b #(1<<ECSPRITE_STATE_FLAG_VISIBLE)|(1<<ECSPRITE_STATE_FLAG_ONSCREEN), ECSprite_StateFlags(a0)
 
     ; Load animation
     move.l SDSprite_Animation(a1), a2
@@ -185,49 +186,94 @@ ECSprite_DrawAll:
 	; No params
     ; ======================================
 
-    ; Get scroll
+    ; Get camera bounds
+    moveq  #0x0, d4
+    moveq  #0x0, d5
     moveq  #0x0, d6
     moveq  #0x0, d7
-    move.w RAM_SCROLL_PLANE_A_X, d6
-    move.w RAM_SCROLL_PLANE_A_Y, d7
 
+    move.l RAM_CAMERA_CURRENT, a0
+    cmpa.w #0x0, a0
+    beq    @NoCamera
+    move.w Camera_PosX(a0), d4
+    move.w Camera_PosY(a0), d5
+    move.w d4, d6
+    move.w d5, d7
+    @NoCamera:
+
+    subi.w #VDP_SCREEN_WIDTH_PX/2, d4     ; Left
+    addi.w #VDP_SCREEN_WIDTH_PX/2, d6     ; Right
+    subi.w #VDP_SCREEN_HEIGHT_PX/2, d5    ; Top
+    addi.w #VDP_SCREEN_HEIGHT_PX/2, d7    ; Bottom
+
+    ; Get sprite list
     ENT_COMPONENT_GET_LIST_HEAD ECSprite, a3
     cmp.w  #0x0, a3
     beq    @NoSprites
 
     @SpriteLp:
-    PUSHM.W d6-d7
+    PUSHM.W d4-d7
+
+    ; Clear on screen flag
+    bclr   #ECSPRITE_STATE_FLAG_ONSCREEN, ECSprite_StateFlags(a3)
 
     ; Check visible
     btst   #ECSPRITE_STATE_FLAG_VISIBLE, ECSprite_StateFlags(a3)
     beq    @NextSprite
 
     movea.w Component_Owner(a3), a4     ; Get owning entity
-    move.l ECSprite_CurrentFrame(a3), a0; Get sprite frame
-    move.l ECSprite_VRAMHndl(a3), d2    ; Get VRAM handle
     move.b ECSprite_DrawFlags(a3), d3   ; Get draw flags
     lsl.w  #0x8, d3                     ; To hardware format
-    move.w Entity_PosX(a4), d0          ; Get pos
-    move.w Entity_PosY(a4), d1
 
-    moveq  #0x0, d4                     ; Add component relative pos X
-    move.b ECSprite_PosX(a3), d4
+    ; Check on screen
+    move.w Entity_PosX(a4), d0          ; Get X pos
+
+    moveq  #0x0, d2                     ; Add component relative pos X
+    move.b ECSprite_PosX(a3), d2
     btst   #VDP_SPRITE_FLAG_FLIPX, d3
     beq    @NoflipX
-    neg.w  d4
+    neg.w  d2
     @NoflipX:
-    add.w  d4, d0
+    add.w  d2, d0
 
-	moveq  #0x0, d4						; Add component relative pos Y
-    move.b ECSprite_PosY(a3), d4
+    move.w d0, d2                       ; Get sprite left
+    sub.w  Entity_ExtentsX(a4), d2
+	cmp.w  d2, d6					    ; Check sprite left against right border
+	ble    @NextSprite
+	move.w d0, d2                       ; Get sprite right
+	add.w  Entity_ExtentsX(a4), d2
+	cmp.w  d2, d4					    ; Check sprite right against left border
+	bge    @NextSprite
+
+    move.w Entity_PosY(a4), d1          ; Get Y pos
+
+	moveq  #0x0, d2						; Add component relative pos Y
+    move.b ECSprite_PosY(a3), d2
     btst   #VDP_SPRITE_FLAG_FLIPY, d3
     beq    @NoflipY
-    neg.w  d4
+    neg.w  d2
     @NoflipY:
-    add.w  d4, d1
+    add.w  d2, d1
 
-    add.w  d6, d0                       ; Scroll space to sprite space
-    sub.w  d7, d1
+    move.w d1, d2                       ; Get sprite top
+    sub.w  Entity_ExtentsY(a4), d2
+	cmp.w  d2, d7					    ; Check sprite top against bottom border
+	ble    @NextSprite
+	move.w d1, d2                       ; Get sprite bottom
+	add.w  Entity_ExtentsY(a4), d2
+	cmp.w  d2, d5					    ; Check sprite bottom against top border
+	bge    @NextSprite
+
+    ; On screen
+    bset   #ECSPRITE_STATE_FLAG_ONSCREEN, ECSprite_StateFlags(a3)
+
+    move.l ECSprite_CurrentFrame(a3), a0; Get sprite frame
+    move.l ECSprite_VRAMHndl(a3), d2    ; Get VRAM handle
+
+    sub.w  d4, d0                       ; Camera space to sprite space
+    sub.w  d5, d1
+    addi.w #VDP_SPRITE_BORDER_X, d0
+    addi.w #VDP_SPRITE_BORDER_Y, d1
 
     ; If dirty, skip straight to loading current frame
     btst   #ECSPRITE_STATE_FLAG_DIRTY, ECSprite_StateFlags(a3)
@@ -290,7 +336,7 @@ ECSprite_DrawAll:
     @NextSprite:
     movea.w EntityBlock_Next(a3), a3    ; Next component
     cmp.w  #0x0, a3
-    POPM.W d6-d7
+    POPM.W d4-d7
     bne    @SpriteLp
 
     @NoSprites:
