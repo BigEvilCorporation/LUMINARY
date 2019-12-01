@@ -55,6 +55,7 @@
     include 'framewk/macros/entity.asm'
     include 'framewk/macros/entmgr.asm'
     include 'framewk/macros/sprite.asm'
+    include 'framewk/macros/vfx.asm'
 
     ; Game framework
     include 'framewk/camera.asm'
@@ -68,6 +69,7 @@
     include 'framewk/entities/physchar.asm'
     include 'framewk/entities/physutil.asm'
     include 'framewk/entities/sprite.asm'
+    include 'framewk/entities/vfx.asm'
 
     ; Memory maps
     include 'engine/memmap.asm'

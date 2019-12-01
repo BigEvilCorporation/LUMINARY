@@ -6,10 +6,11 @@
 ; SPRITE.ASM - Sprite entity component
 ; ============================================================================================
 
-ECSPRITE_STATE_FLAG_LOOP                equ 0x0 ; Loop animation
-ECSPRITE_STATE_FLAG_DIRTY               equ 0x1 ; Anim changed, forcefully load frame
+ECSPRITE_STATE_FLAG_PLAYING             equ 0x0 ; Anim playing
+ECSPRITE_STATE_FLAG_LOOPING             equ 0x1 ; Loop animation
 ECSPRITE_STATE_FLAG_VISIBLE             equ 0x2 ; Sprite visible
 ECSPRITE_STATE_FLAG_ONSCREEN            equ 0x3 ; On screen last frame
+ECSPRITE_STATE_FLAG_DIRTY               equ 0x4 ; Anim changed, forcefully load frame
 
     ; ======================================
     ; Sprite component
@@ -128,7 +129,7 @@ ECSprite_LoadSheet:
     ; Clear animation
     move.l #0x0, ECSprite_Animation(a0)
     move.w #0x0, ECSprite_AnimSpeed(a0)
-    bclr   #ECSPRITE_STATE_FLAG_LOOP, ECSprite_StateFlags(a0)
+    bclr   #ECSPRITE_STATE_FLAG_LOOPING, ECSprite_StateFlags(a0)
 
     @NoSheetChange:
 
@@ -164,15 +165,18 @@ ECSprite_LoadAnimation:
 
     move.w SpriteAnim_DefaultSpeed(a2), ECSprite_AnimSpeed(a0)  ; Set default speed
     move.b SpriteAnim_DefaultLoop(a2), d0                       ; Set default loop flag
-    andi.b #~(1<<ECSPRITE_STATE_FLAG_LOOP), ECSprite_StateFlags(a0)
+    andi.b #~(1<<ECSPRITE_STATE_FLAG_LOOPING), ECSprite_StateFlags(a0)
+    lsl.b  #ECSPRITE_STATE_FLAG_LOOPING, d0
     or.b   d0, ECSprite_StateFlags(a0)
+    bset   #ECSPRITE_STATE_FLAG_PLAYING, ECSprite_StateFlags(a0); Set playing
 
     rts
 
     @NoAnim:
 
     move.w #0x0, ECSprite_AnimSpeed(a0)                         ; Clear speed
-    bclr   #ECSPRITE_STATE_FLAG_LOOP, ECSprite_StateFlags(a0)     ; Clear loop flag        
+    bclr   #ECSPRITE_STATE_FLAG_PLAYING, ECSprite_StateFlags(a0); Clear playing flag
+    bclr   #ECSPRITE_STATE_FLAG_LOOPING, ECSprite_StateFlags(a0); Clear loop flag
 
     @NoAnimChange:
     
@@ -279,6 +283,10 @@ ECSprite_DrawAll:
     btst   #ECSPRITE_STATE_FLAG_DIRTY, ECSprite_StateFlags(a3)
     bne    @ForceLoadFrame
 
+    ; If anim not playing, skip frame advance
+    btst   #ECSPRITE_STATE_FLAG_PLAYING, ECSprite_StateFlags(a3)
+    beq    @NoAnim
+
     ; Tick animation
     move.l ECSprite_Animation(a3), a1
     cmpa.w #0x0, a1                     ; If no anim, don't fetch frame from keyframe track
@@ -304,6 +312,15 @@ ECSprite_DrawAll:
     move.w SpriteAnim_Length(a1), d6    ; Wrap frame
     divs.w d6, d5
     swap   d5
+
+    ; If not looping and this is the last frame, stop playback
+    btst   #ECSPRITE_STATE_FLAG_LOOPING, ECSprite_StateFlags(a3)
+    bne    @NotEnded
+    tst.b  d5
+    bne    @NotEnded
+    bclr   #ECSPRITE_STATE_FLAG_PLAYING, ECSprite_StateFlags(a3)
+    @NotEnded:
+
 	lsl.w  #0x2, d5                     ; Frame to longs
     move.l SpriteAnim_KeyframeTrackFrameId(a1), a0 ; Get keyframe track
     move.l (a0, d5), a0                 ; Get new frame

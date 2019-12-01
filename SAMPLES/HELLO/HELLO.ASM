@@ -16,6 +16,7 @@
     include 'samples/hello/entities/player.asm'
     include 'samples/hello/entities/lrswitch.asm'
     include 'samples/hello/entities/motobug.asm'
+    include 'samples/hello/effects/vfx.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0

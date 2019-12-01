@@ -193,6 +193,9 @@ EMotobug_OnHit:
     ; Despawn
     bsr    ENT_DespawnEntity
 
+    ; Spawn explosion
+    VFX_SPAWN VFXExplosion2,Entity_PosX(a0),Entity_PosY(a0)
+
     ; Spawn critter
     PUSHM.L a0-a2
     move.w Entity_PosX(a0), d0
