@@ -45,10 +45,10 @@ EntityTypeDesc_Update                   rs.l 1
     ; ======================================
     STRUCT_INHERIT EntityBase,EntityBlockData
 Entity_TypeDesc                         rs.l 1  ; Entity type
-Entity_PosX                             rs.l 1  ; World pos X (16.16)
-Entity_PosY                             rs.l 1  ; World pos Y (16.16)
-Entity_ExtentsX                         rs.w 1  ; Width in pixels
-Entity_ExtentsY                         rs.w 1  ; Height in pixels
+Entity_PosX                             rs.l 1  ; World centre pos X (16.16)
+Entity_PosY                             rs.l 1  ; World centre pos Y (16.16)
+Entity_ExtentsX                         rs.w 1  ; Half width in pixels
+Entity_ExtentsY                         rs.w 1  ; Half height in pixels
     STRUCT_END
 
     ; ======================================

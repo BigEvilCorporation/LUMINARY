@@ -57,7 +57,7 @@ ENTITY_END: macro
     ; ======================================
 __SIZEOF_\__ENTITY_NAME rs.b 0
     IF __SIZEOF_\__ENTITY_NAME>ENT_MGR_BLOCK_SIZE
-    DBG_STATIC_ERROR "Entity type \__ENTITY_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__ENTITY_NAME, BLDCONF_ENT_BLOCK_SIZE
+    DBG_STATIC_ERROR "Entity type \__ENTITY_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__ENTITY_NAME, ENT_MGR_BLOCK_SIZE
     ENDIF
 ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
 
@@ -112,7 +112,7 @@ ENTITY_COMPONENT_END: macro
     ; ======================================
 __SIZEOF_\__COMPONENT_NAME rs.b 0
     IF __SIZEOF_\__COMPONENT_NAME>ENT_MGR_BLOCK_SIZE
-    DBG_STATIC_ERROR "Component type \__COMPONENT_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__COMPONENT_NAME, BLDCONF_ENT_BLOCK_SIZE
+    DBG_STATIC_ERROR "Component type \__COMPONENT_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__COMPONENT_NAME, ENT_MGR_BLOCK_SIZE
     ENDIF
 	endm
 

@@ -44,3 +44,21 @@ SPRITE_COMPONENT_SETFLIPY_REG: macro sprite,enabled
     andi.b #VDP_SPRITE_FLAG_NMASK_FLIPY>>8, ECSprite_DrawFlags(\sprite)
     or.b   \enabled, ECSprite_DrawFlags(\sprite)
     endm
+
+SPRITE_COMPONENT_FLIPX: macro sprite
+    ; ======================================
+    ; Flip a sprite on the X axis
+    ; ======================================
+    ; sprite   - Address reg of sprite
+    ; ======================================
+    eor.b  #(1<<(VDP_SPRITE_FLAG_FLIPX))>>8, ECSprite_DrawFlags(\sprite)
+    endm
+
+SPRITE_COMPONENT_FLIPY: macro sprite
+    ; ======================================
+    ; Flip a sprite on the Y axis
+    ; ======================================
+    ; sprite   - Address reg of sprite
+    ; ======================================
+    eor.b  #(1<<(VDP_SPRITE_FLAG_FLIPY))>>8, ECSprite_DrawFlags(\sprite)
+    endm

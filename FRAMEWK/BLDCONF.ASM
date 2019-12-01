@@ -9,7 +9,7 @@
     IFND BLDCONF_FRAMEWORK_CUSTOM_DEFINED
 
 ; Entity/component system block size
-BLDCONF_ENT_MGR_BLOCK_SIZE              equ 32
+BLDCONF_ENT_MGR_BLOCK_SIZE              equ 40
 BLDCONF_ENT_MGR_BLOCK_MAX_BLOCKS        equ 256
 
 ; Scene config
