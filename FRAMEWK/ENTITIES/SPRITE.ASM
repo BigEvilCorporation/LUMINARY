@@ -150,13 +150,17 @@ ECSprite_LoadAnimation:
     beq    @NoSheetChange
     move.l a1, ECSprite_Sheet(a0)
     move.l SpriteSheet_FirstFrame(a1), ECSprite_CurrentFrame(a0)
-    bset   #ECSPRITE_STATE_FLAG_DIRTY, ECSprite_StateFlags(a0)    ; Load frame on next render
+    bset   #ECSPRITE_STATE_FLAG_DIRTY, ECSprite_StateFlags(a0)  ; Load frame on next render
     @NoSheetChange:
 
-    ; Set animation
+    ; If already playing and no anim change, don't reset
+    btst   #ECSPRITE_STATE_FLAG_PLAYING, ECSprite_StateFlags(a0)
+    beq    @Reset
     cmp.l  ECSprite_Animation(a0), a2
     beq    @NoAnimChange
+    @Reset:
 
+    ; Set animation
     move.l a2, ECSprite_Animation(a0)                           ; Set anim
     move.l #0x0, ECSprite_AnimSubFrame(a0)                      ; Reset subframe
 
@@ -232,8 +236,8 @@ ECSprite_DrawAll:
     ; Check on screen
     move.w Entity_PosX(a4), d0          ; Get X pos
 
-    moveq  #0x0, d2                     ; Add component relative pos X
-    move.b ECSprite_PosX(a3), d2
+    move.b ECSprite_PosX(a3), d2        ; Add component relative pos X
+    ext.w  d2
     btst   #VDP_SPRITE_FLAG_FLIPX, d3
     beq    @NoflipX
     neg.w  d2
@@ -251,8 +255,8 @@ ECSprite_DrawAll:
 
     move.w Entity_PosY(a4), d1          ; Get Y pos
 
-	moveq  #0x0, d2						; Add component relative pos Y
-    move.b ECSprite_PosY(a3), d2
+    move.b ECSprite_PosY(a3), d2        ; Add component relative pos Y
+    ext.w  d2
     btst   #VDP_SPRITE_FLAG_FLIPY, d3
     beq    @NoflipY
     neg.w  d2
