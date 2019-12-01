@@ -173,14 +173,7 @@ EMotobug_OnHit:
 
     ; If player spinning, take damage
     btst   #PLAYER_FLAG_SPINNING, EPlayer_StateFlags(a2)
-    beq    @NotSpinning
-
-    ; Despawn
-    bsr    ENT_DespawnEntity
-
-    ; TODO: Spawn critter
-
-    @NotSpinning:
+    bne    @Spinning
 
     ; If player jumping, take damage and rebound player
     btst   #PLAYER_FLAG_JUMPING, EPlayer_StateFlags(a2)
@@ -189,6 +182,8 @@ EMotobug_OnHit:
     move.l ECPhysBodyChar_VelY(a1), d0
     neg.l  d0
     move.l d0, ECPhysBodyChar_VelY(a1)
+
+    @Spinning:
 
     ; Despawn
     bsr    ENT_DespawnEntity
