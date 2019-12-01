@@ -28,6 +28,14 @@ EBUZZBOMB_STATE_PREPARING               equ 0x2 ; Preparing to fire
 EBUZZBOMB_STATE_ATTACKING               equ 0x3 ; Firing
 EBUZZBOMB_STATE_REVERSING               equ 0x4 ; Hovering before changing direction
 
+; Buzzbomb projectile constants
+EBUZZPROJECTILE_WIDTH                   equ 0x10
+EBUZZPROJECTILE_HEIGHT                  equ 0x10
+EBUZZPROJECTILE_VEL_X                   equ 0x0002
+EBUZZPROJECTILE_VEL_Y                   equ 0x0004
+EBUZZPROJECTILE_DESPAWN_DIST_X          equ VDP_SCREEN_WIDTH_PX*2
+EBUZZPROJECTILE_DESPAWN_DIST_Y          equ VDP_SCREEN_HEIGHT_PX*2
+
 ; Buzzbomb spawn data
     ENTITY_SPAWN_DATA_BEGIN EBuzzbomb
     ENTITY_SPAWN_DATA_END
@@ -43,6 +51,23 @@ EBuzzBomb_State                         rs.b 1
     ENT_COMPONENT_NAMED ECSprite,SpriteFire
     ENT_COMPONENT ECEnemy
     ENTITY_END
+
+; Buzzbomb projectile spawn data
+    ENTITY_SPAWN_DATA_BEGIN EBuzzProjectile
+    ENTITY_SPAWN_DATA_END
+
+; Buzzbomb projectile entity
+    ENTITY_BEGIN EBuzzProjectile
+    ENT_COMPONENT ECSprite
+    ENT_COMPONENT ECEnemy
+    ENTITY_END
+
+; Buzzbomb projectile default spawn data
+EBuzzProjectile_Default_SpawnData:
+	; ECSprite
+    dc.l   actor_buzzbomb_spritesheet_projectile
+    dc.l   actor_buzzbomb_sheet_projectile_anim_projectile
+	even
 
 EBuzzbomb_Initialise:
     ; ======================================
@@ -175,9 +200,33 @@ EBuzzbomb_Update:
     btst   #ECSPRITE_STATE_FLAG_PLAYING, ECSprite_StateFlags(a1)
     bne    @EndAttacking
     bclr   #ECSPRITE_STATE_FLAG_VISIBLE, ECSprite_StateFlags(a1)    ; Hide fire sprite
-                                                            ; Spawn projectile
 
-    PUSH.L a0                                               ; Start flying anim
+    PUSHM.L a0-a2                       ; Spawn projectile
+    move.l a0, a6
+    PUSH.L a6
+    move.w Entity_PosX(a0), d0
+    move.w Entity_PosY(a0), d1
+    move.w #EBUZZBOMB_FIRE_OFFS_X, d3
+    ENT_GETCOMPONENT EBuzzbomb,SpriteBody,a6,a1
+    btst   #VDP_SPRITE_FLAG_FLIPX-8, ECSprite_DrawFlags(a1)
+    beq    @NoFlip
+    move.w #-EBUZZBOMB_FIRE_OFFS_X, d3
+    @NoFlip:
+    add.w  d3, d0
+    addi.w #EBUZZBOMB_FIRE_OFFS_Y, d1
+    move.w #EBUZZPROJECTILE_WIDTH, d2
+    move.w #EBUZZPROJECTILE_HEIGHT, d3
+    lea    EBuzzProjectile_TypeDesc, a0
+    lea    EBuzzProjectile_Default_SpawnData, a1
+    bsr    ENT_SpawnEntity
+    POP.L  a6
+    ENT_GETCOMPONENT EBuzzbomb,SpriteBody,a6,a1 ; Match X flip
+    ENT_GETCOMPONENT EBuzzProjectile,ECSprite,a0,a2
+    move.b ECSprite_DrawFlags(a1), ECSprite_DrawFlags(a2)
+    POPM.L a0-a2
+                                                        
+
+    PUSH.L a0                           ; Start flying anim
     ENT_GETCOMPONENT EBuzzbomb,SpriteBody,a0,a0
     lea    actor_buzzbomb_spritesheet_fly, a1
     move.l #0x0, a2
@@ -280,5 +329,85 @@ EBuzzbomb_OnHit:
     ; If player not spinning, deal damage to player
 
     POP.L  a1
+
+    rts
+
+EBuzzProjectile_Initialise:
+    ; ======================================
+    ; EBuzzProjectile constructor
+    ; ======================================
+	; a0   Entity
+    ; a1   Entity spawn data
+    ; ======================================
+
+    ; Init enemy component
+    ENT_GETCOMPONENT EBuzzProjectile,ECEnemy,a0,a1
+    move.l #EBuzzProjectile_OnHit, ECEnemy_CallbackOnHit(a1)
+
+    rts
+
+EBuzzProjectile_Shutdown:
+    rts
+
+EBuzzProjectile_Update:
+    ; ======================================
+    ; EBuzzProjectile movement path update
+    ; ======================================
+	; a0   Entity
+    ; ======================================
+
+    ; Move
+    ENT_GETCOMPONENT EBuzzProjectile,ECSprite,a0,a1
+    move.w #EBUZZPROJECTILE_VEL_X, d0
+    btst   #VDP_SPRITE_FLAG_FLIPX-8, ECSprite_DrawFlags(a1)
+    bne    @Noflip
+    neg.w  d0
+    @Noflip:
+
+    add.w  d0, Entity_PosX(a0)
+    addi.w #EBUZZPROJECTILE_VEL_X, Entity_PosY(a0)
+
+    ; If out of camera distance, despawn
+    move.l RAM_CAMERA_CURRENT, a1
+    move.w Entity_PosX(a0), d0
+    move.w Camera_PosX(a1), d1
+    sub.w  d1, d0
+    ABS.W  d0
+    cmp.w  #EBUZZPROJECTILE_DESPAWN_DIST_X, d0
+    bge    @Despawn
+    move.w Entity_PosY(a0), d0
+    move.w Camera_PosY(a1), d1
+    sub.w  d1, d0
+    ABS.W  d0
+    cmp.w  #EBUZZPROJECTILE_DESPAWN_DIST_Y, d0
+    bge    @Despawn
+
+    rts
+    
+    @Despawn:
+
+    bsr    ENT_DespawnEntity
+    
+    rts
+
+EBuzzProjectile_OnHit:
+    ; ======================================
+    ; EBuzzbomb on player hit callback from
+    ; ECEnemy_CheckHit
+    ; ======================================
+    ; In:
+	;   a0    Entity
+    ;   a1    ECEnemy component
+    ;   a2    Player
+    ;   d1.ww Player top left bounds
+    ;   d2.ww Player bottom right bounds
+    ;   d3.ww Player top left bounds
+    ;   d4.ww Player bottom right bounds
+    ; Out:
+    ;   d5.b  Damage taken from player
+    ;   d6.b  Damage dealt to player
+    ; ======================================
+
+    ; Kill player always
 
     rts
