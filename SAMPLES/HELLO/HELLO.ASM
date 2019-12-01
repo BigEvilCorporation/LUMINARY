@@ -12,6 +12,7 @@
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
     include 'samples/hello/entities/enemy.asm'
+    include 'samples/hello/entities/buzzbomb.asm'
     include 'samples/hello/entities/flicky.asm'
     include 'samples/hello/entities/player.asm'
     include 'samples/hello/entities/ring.asm'
