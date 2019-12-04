@@ -63,14 +63,23 @@ CAM_UpdateAll:
     move.l d0, Camera_PosX(a0)
     move.l d1, Camera_PosY(a0)
 
-    ; Apply to scroll
+    ; Apply to plane A scroll
     swap d0
     swap d1
     subi.w #VDP_SPRITE_BORDER_X+(VDP_SCREEN_WIDTH_PX/2), d0 ; Sprite space to screen centre to scroll space
     subi.w #VDP_SPRITE_BORDER_Y+(VDP_SCREEN_HEIGHT_PX/2), d1
     neg.w  d0                           ; Invert X
-    move.w d0, RAM_SCROLL_PLANE_A_X
-    move.w d1, RAM_SCROLL_PLANE_A_Y
+    lea    RAM_STREAMING_MAP_A, a3
+    move.w d0, StreamingMap_ScrollX(a3)
+    move.w d1, StreamingMap_ScrollY(a3)
+
+    ; TODO: BG scroll settings
+    lea    RAM_STREAMING_MAP_B, a3
+    lsr.w  #0x1, d0
+    lsr.w  #0x4, d1
+    subi.w #0x20, d1
+    move.w d0, StreamingMap_ScrollX(a3)
+    move.w d1, StreamingMap_ScrollY(a3)
 
     @NoCamera:
 

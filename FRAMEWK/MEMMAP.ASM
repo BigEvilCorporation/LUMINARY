@@ -27,6 +27,7 @@ RAM_SCENE_DATA                          rs.l 1
 RAM_CAMERA_CURRENT                  	rs.l 1
     STRUCT_ALLOC Camera,RAM_CAMERA_DEFAULT
 
+    STRUCT_ALIGN
 RAM_GAME_START                          rs.b 0
 
     ; Keep entity table in upper 32kb, so movea.w

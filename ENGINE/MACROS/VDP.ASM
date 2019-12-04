@@ -48,24 +48,27 @@ VDP_WRAP_PLANE_Y: macro offsetreg
 	andi.w #VDP_PLANE_HEIGHT-1, \offsetreg
 	endm
 
-; Increments a plane A column on an existing VDP command+address longword
-; (and wraps around width), and writes new address to VDP control port.
-; Assumes plane A at 0xC000.
-VDP_VRAM_ADDR_INCREMENT_PLANE_A_X: macro destreg,tmpreg,vdp_ctrl_reg
+; Increments a plane A/B column on an existing VDP command+address longword,
+; and writes new address to VDP control port.
+; Assumes planes in 64x32 mode
+VDP_VRAM_ADDR_INCREMENT_PLANE_X: macro destreg,tmpreg,vdp_ctrl_reg
 	move.l \destreg, \tmpreg
-	addi.l #0x00020000, \tmpreg
-	andi.l #0x007FFFFF, \tmpreg
-	andi.l #0xFF800000, \destreg
-	or.l   \tmpreg, \destreg
+	addi.l #0x00020000, \tmpreg			; Advance addr by 1 col (2 bytes)
+	andi.l #0x007F0000, \tmpreg			; Wrap around 0x?000 - 0x?07F
+	andi.l #0xFF80FFFF, \destreg		; Mask addr from original command
+	or.l   \tmpreg, \destreg			; OR in new addr
 	move.l \destreg, (\vdp_ctrl_reg)
 	endm
 
-; Increments a plane A row on an existing VDP command+address longword
-; (and wraps around height), and writes new address to VDP control port.
-; Assumes plane A at 0xC000.
-VDP_VRAM_ADDR_INCREMENT_PLANE_A_Y: macro destreg,vdp_ctrl_reg
-	addi.l #0x00800000, \destreg
-	andi.l #0xCFFFFFFF, \destreg
+; Increments a plane A/B row on an existing VDP command+address longword,
+; and writes new address to VDP control port.
+; Assumes planes in 64x32 mode
+VDP_VRAM_ADDR_INCREMENT_PLANE_Y: macro destreg,tmpreg,vdp_ctrl_reg
+	move.l \destreg, \tmpreg
+	addi.l #0x00800000, \tmpreg			; Advance addr by 1 row (128 bytes)
+	andi.l #0x0FFF0000, \tmpreg			; Wrap around 0x?000 - 0x?FFF
+	andi.l #0xF000FFFF, \destreg		; Mask addr from original command
+	or.l   \tmpreg, \destreg			; OR in new addr
 	move.l \destreg, (\vdp_ctrl_reg)
 	endm
 

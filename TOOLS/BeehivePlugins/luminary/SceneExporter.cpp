@@ -240,7 +240,8 @@ namespace luminary
 
 			// SceneData_GfxTileset                    rs.l 1
 			// SceneData_GfxStampset                   rs.l 1
-			// SceneData_GfxMap                        rs.l 1
+			// SceneData_GfxMapFg                      rs.l 1
+			// SceneData_GfxMapBg                      rs.l 1
 			// SceneData_ColTileset                    rs.l 1
 			// SceneData_ColStampset                   rs.l 1
 			// SceneData_ColMap                        rs.l 1
@@ -248,8 +249,10 @@ namespace luminary
 			// SceneData_Entities                      rs.l 1
 			// SceneData_GfxTileCount                  rs.w 1
 			// SceneData_GfxStampCount                 rs.w 1
-			// SceneData_GfxMapWidthStamps             rs.w 1
-			// SceneData_GfxMapHeightStamps            rs.w 1
+			// SceneData_GfxMapFgWidthStamps           rs.w 1
+			// SceneData_GfxMapFgHeightStamps          rs.w 1
+			// SceneData_GfxMapBgWidthStamps           rs.w 1
+			// SceneData_GfxMapBgHeightStamps          rs.w 1
 			// SceneData_ColTileCount                  rs.w 1
 			// SceneData_ColStampCount                 rs.w 1
 			// SceneData_ColMapWidthStamps             rs.w 1
@@ -261,7 +264,8 @@ namespace luminary
 			stream << "SceneData_" << sceneName << ":" << std::endl;
 			stream << "\tdc.l " << sceneData.tilesetLabel << "\t; SceneData_GfxTileset" << std::endl;
 			stream << "\tdc.l " << sceneData.stampsetLabel << "\t; SceneData_GfxStampset" << std::endl;
-			stream << "\tdc.l " << sceneData.mapLabel << "\t; SceneData_GfxMap" << std::endl;
+			stream << "\tdc.l " << sceneData.mapFgLabel << "\t; SceneData_GfxMapFg" << std::endl;
+			stream << "\tdc.l " << sceneData.mapBgLabel << "\t; SceneData_GfxMapBg" << std::endl;
 			stream << "\tdc.l " << sceneData.collisionTilesetLabel << "\t; SceneData_ColTileset" << std::endl;
 			stream << "\tdc.l " << sceneData.collisionStampsetLabel << "\t; SceneData_ColStampset" << std::endl;
 			stream << "\tdc.l " << sceneData.collisionMapLabel << "\t; SceneData_ColMap" << std::endl;
@@ -270,8 +274,10 @@ namespace luminary
 			stream << "\tdc.l " << "SceneEntityDataDynamic_" << sceneName << "\t; SceneData_DynamicEntities" << std::endl;
 			stream << "\tdc.w " << sceneData.numTiles << "\t; SceneData_GfxTileCount" << std::endl;
 			stream << "\tdc.w " << sceneData.numStamps << "\t; SceneData_GfxStampCount" << std::endl;
-			stream << "\tdc.w " << sceneData.mapWidthStamps << "\t; SceneData_GfxMapWidthStamps" << std::endl;
-			stream << "\tdc.w " << sceneData.mapHeightStamps << "\t; SceneData_GfxMapHeightStamps" << std::endl;
+			stream << "\tdc.w " << sceneData.mapFgWidthStamps << "\t; SceneData_GfxMapFgWidthStamps" << std::endl;
+			stream << "\tdc.w " << sceneData.mapFgHeightStamps << "\t; SceneData_GfxMapFgHeightStamps" << std::endl;
+			stream << "\tdc.w " << sceneData.mapBgWidthStamps << "\t; SceneData_GfxMapBgWidthStamps" << std::endl;
+			stream << "\tdc.w " << sceneData.mapBgHeightStamps << "\t; SceneData_GfxMapBgHeightStamps" << std::endl;
 			stream << "\tdc.w " << sceneData.numCollisionTiles << "\t; SceneData_ColTileCount" << std::endl;
 			stream << "\tdc.w " << sceneData.numCollisionStamps << "\t; SceneData_ColStampCount" << std::endl;
 			stream << "\tdc.w " << sceneData.collisionMapWidthStamps << "\t; SceneData_ColMapWidthStamps" << std::endl;

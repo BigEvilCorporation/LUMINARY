@@ -24,7 +24,8 @@ namespace luminary
 		{
 			std::string tilesetLabel;
 			std::string stampsetLabel;
-			std::string mapLabel;
+			std::string mapFgLabel;
+			std::string mapBgLabel;
 			std::string collisionTilesetLabel;
 			std::string collisionStampsetLabel;
 			std::string collisionMapLabel;
@@ -34,8 +35,10 @@ namespace luminary
 
 			int numTiles;
 			int numStamps;
-			int mapWidthStamps;
-			int mapHeightStamps;
+			int mapFgWidthStamps;
+			int mapFgHeightStamps;
+			int mapBgWidthStamps;
+			int mapBgHeightStamps;
 			int numCollisionTiles;
 			int numCollisionStamps;
 			int collisionMapWidthStamps;

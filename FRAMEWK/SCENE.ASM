@@ -14,7 +14,8 @@ Scene_SpawnedEntities                   rs.w SCN_MAX_ENTITIES
     STRUCT_BEGIN SceneData
 SceneData_GfxTileset                    rs.l 1
 SceneData_GfxStampset                   rs.l 1
-SceneData_GfxMap                        rs.l 1
+SceneData_GfxMapFg                      rs.l 1
+SceneData_GfxMapBg                      rs.l 1
 SceneData_ColTileset                    rs.l 1
 SceneData_ColStampset                   rs.l 1
 SceneData_ColMap                        rs.l 1
@@ -23,8 +24,10 @@ SceneData_StaticEntities                rs.l 1
 SceneData_DynamicEntities               rs.l 1
 SceneData_GfxTileCount                  rs.w 1
 SceneData_GfxStampCount                 rs.w 1
-SceneData_GfxMapWidthStamps             rs.w 1
-SceneData_GfxMapHeightStamps            rs.w 1
+SceneData_GfxMapFgWidthStamps           rs.w 1
+SceneData_GfxMapFgHeightStamps          rs.w 1
+SceneData_GfxMapBgWidthStamps           rs.w 1
+SceneData_GfxMapBgHeightStamps          rs.w 1
 SceneData_ColTileCount                  rs.w 1
 SceneData_ColStampCount                 rs.w 1
 SceneData_ColMapWidthStamps             rs.w 1
@@ -56,15 +59,18 @@ SCN_LoadScene:
     move.l a0, RAM_SCENE_CURRENT
     move.l a1, RAM_SCENE_DATA
 
-    ; Pre-stream map
+    ; Pre-stream FG map
     PUSHM.L a0-a1
     move.w SceneData_GfxTileCount(a1), d0
     move.w SceneData_GfxStampCount(a1), d1
-    move.w SceneData_GfxMapWidthStamps(a1), d2
-    move.w SceneData_GfxMapHeightStamps(a1), d3
-    move.l SceneData_GfxTileset(a1), a2
-    move.l SceneData_GfxMap(a1), a0
-    move.l SceneData_GfxStampset(a1), a1
+    move.w SceneData_GfxMapFgWidthStamps(a1), d2
+    move.w SceneData_GfxMapFgHeightStamps(a1), d3
+    move.w SceneData_GfxMapBgWidthStamps(a1), d4
+    move.w SceneData_GfxMapBgHeightStamps(a1), d5
+    move.l SceneData_GfxStampset(a1), a2
+    move.l SceneData_GfxTileset(a1), a3
+    move.l SceneData_GfxMapFg(a1), a0
+    move.l SceneData_GfxMapBg(a1), a1
     bsr    MAP_PreLoad
     POPM.L a0-a1
 

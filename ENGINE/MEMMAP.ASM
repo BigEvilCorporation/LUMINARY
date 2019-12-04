@@ -27,15 +27,12 @@ RAM_SPRITE_NEXT_IDX                     rs.w 1
     ; VRAM manager
     STRUCT_ALLOC VRAMManager,RAM_VRAM_MANAGER
 
-    ; Current streaming map
-    STRUCT_ALLOC StreamingMap,RAM_STREAMING_MAP
+    ; Current streaming maps
+    STRUCT_ALLOC StreamingMap,RAM_STREAMING_MAP_A
+    STRUCT_ALLOC StreamingMap,RAM_STREAMING_MAP_B
 
-    ; Camera and scrolling
-RAM_SCROLL_PLANE_A_X                    rs.w 1
-RAM_SCROLL_PLANE_A_Y                    rs.w 1
-RAM_SCROLL_PLANE_B_X                    rs.w 1
-RAM_SCROLL_PLANE_B_Y                    rs.w 1
-RAM_MAP_STREAM_X                        rs.w 1
-RAM_MAP_STREAM_Y                        rs.w 1
+    ; Alternate map streaming updates each frame
+RAM_STREAMING_MAP_IDX                   rs.b 1
 
+    STRUCT_ALIGN
 RAM_FRAMEWORK_START                     rs.b 0
