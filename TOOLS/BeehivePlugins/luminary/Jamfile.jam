@@ -4,6 +4,8 @@ ApplyIonCore luminary ;
 ApplyIonIo luminary ;
 
 local LUMINARY_SRC = 
+	EntityExporter.cpp
+	EntityExporter.h
 	EntityParser.cpp
 	EntityParser.h
 	MapExporter.cpp

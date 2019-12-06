@@ -81,8 +81,29 @@ SCN_LoadScene:
     bsr    VDP_LoadPalettes
     POPM.L a0-a1
 
+    ; Initialise all static entities
+    move.w SceneData_StaticEntityCount(a1), d2
+    tst.w  d2
+    beq    @NoStaticEntities
+
+    move.l SceneData_StaticEntities(a1), a3
+    subi.w #0x1, d2
+
+    @StaticEntLp:
+    move.l (a3)+, a0                    ; Get entity
+    move.l Entity_TypeDesc(a0), a2      ; Get type desc
+    move.l EntityTypeDesc_Constructor(a2), a2; Get init func
+    PUSHM.L d2/a0-a3
+    jsr    (a2)                         ; Update
+    POPM.L  d2/a0-a3
+    dbra   d2, @StaticEntLp
+
+    @NoStaticEntities:
+
     ; Spawn all dynamic entities
     move.w SceneData_DynamicEntityCount(a1), d2
+    tst.w  d2
+    beq    @NoDynamicEntities
     cmp.w  #SCN_MAX_ENTITIES, d2
     bgt    @Err_TooManyEntities
 
@@ -105,6 +126,8 @@ SCN_LoadScene:
     move.w a4, (a3)+                        ; Store ptr
     adda.l #SIZEOF_SceneEntity, a2          ; Next entity
     dbra   d2, @EntityLp
+
+    @NoDynamicEntities:
 
     rts
 

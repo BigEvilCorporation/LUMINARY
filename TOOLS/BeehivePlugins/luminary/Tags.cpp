@@ -20,6 +20,8 @@ namespace luminary
 			{ "POSITION_Y", TagType::PositionY },
 			{ "SPRITE_SHEET" , TagType::SpriteSheet },
 			{ "SPRITE_ANIM", TagType::SpriteAnimation },
+			{ "ENTITY_DESC", TagType::EntityDesc },
+			{ "ENTITY_ARCHETYPE", TagType::EntityArchetype },
 		};
 
 		const std::string& GetTagName(TagType tagType)

@@ -15,9 +15,18 @@ SELayerSwitch_LayerB                    rs.b 1
 SELayerSwitch_Direction                 rs.b 1
     STATIC_ENTITY_END
 
+SELayerSwitch_Initialise:
+    ; ======================================
+    ; SELayerSwitch static initialise
+    ; ======================================
+	; a0   Entity
+    ; ======================================
+
+    rts
+
 SELayerSwitch_Update:
     ; ======================================
-    ; SELayerSwitch update
+    ; SELayerSwitch static update
     ; ======================================
 	; a0   Entity
     ; ======================================

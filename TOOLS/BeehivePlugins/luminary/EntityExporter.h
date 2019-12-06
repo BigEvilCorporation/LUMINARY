@@ -1,37 +1,25 @@
 // ============================================================================================
 // LUMINARY - a game engine and framework for the SEGA Mega Drive
 // ============================================================================================
-// Matt Phillips - Big Evil Corporation Ltd - 8th August 2019
+// Matt Phillips - Big Evil Corporation Ltd - 6th December 2019
 // ============================================================================================
-// Tags.h - Supported param tags
+// EntityExporter.h - Exports entities and archetypes
 // ============================================================================================
 
 #pragma once
 
 #include <string>
+#include <vector>
+
+#include "Types.h"
 
 namespace luminary
 {
-	namespace tags
+	class EntityExporter
 	{
-		enum class TagType
-		{
-			PositionX,
-			PositionY,
-			SpriteSheet,
-			SpriteAnimation,
-			EntityDesc,
-			EntityArchetype,
-		};
+	public:
+		EntityExporter();
 
-		struct ParamTag
-		{
-			std::string name;
-			TagType tagType;
-		};
-
-		const std::string& GetTagName(TagType tagType);
-		TagType FindTagType(const std::string& name);
-		const ParamTag* FindTag(const std::string& name);
-	}
+		bool ExportArchetypes(const std::string& filename, const std::vector<Archetype>& archetypes);
+	};
 }

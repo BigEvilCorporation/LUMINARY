@@ -14,10 +14,10 @@
     include 'samples/hello/entities/enemy.asm'
     include 'samples/hello/entities/buzzbomb.asm'
     include 'samples/hello/entities/flicky.asm'
-    include 'samples/hello/entities/player.asm'
-    include 'samples/hello/entities/ring.asm'
     include 'samples/hello/entities/lrswitch.asm'
     include 'samples/hello/entities/motobug.asm'
+    include 'samples/hello/entities/player.asm'
+    include 'samples/hello/entities/ring.asm'
     include 'samples/hello/effects/vfx.asm'
 
 DRAW_VRAM: macro
@@ -90,6 +90,9 @@ Main:
 
     ; Asset includes
 	include 'engine/assets.asm'
+
+    ; Entity archetypes
+    include 'samples/hello/data/entities/archtyps.asm'
 
     ; Scene data
     include 'samples/hello/data/scenes/chaptr01/include.asm'

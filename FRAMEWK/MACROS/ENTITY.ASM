@@ -88,7 +88,7 @@ __SIZEOF_\__ENTITY_NAME rs.b 0
 \__ENTITY_NAME\_TypeDesc:
     dc.w   0
     dc.l   0
-    dc.l   0
+    dc.l   \__ENTITY_NAME\_Initialise
     dc.l   0
     dc.l   \__ENTITY_NAME\_Update
     even

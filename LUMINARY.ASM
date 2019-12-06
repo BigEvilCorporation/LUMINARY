@@ -68,6 +68,7 @@
     include 'framewk/entities/physbasc.asm'
     include 'framewk/entities/physchar.asm'
     include 'framewk/entities/physutil.asm'
+    include 'framewk/entities/spawner.asm'
     include 'framewk/entities/sprite.asm'
     include 'framewk/entities/vfx.asm'
 

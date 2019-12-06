@@ -57,4 +57,12 @@ namespace luminary
 		std::vector<Component> components;
 		bool isStatic;
 	};
+
+	struct Archetype
+	{
+		std::string name;
+		std::string entityTypeName;
+		std::vector<Param> params;
+		std::vector<Component> components;
+	};
 }
