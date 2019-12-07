@@ -410,3 +410,20 @@ ENT_FindFirstOfType:
     @Found:
 
     rts
+
+ENT_DebugDrawMemory:
+    ; ======================================
+    ; Draw entity allocator debug info to
+    ; plane A
+    ; ======================================
+    ; d0.w Draw X pos (cells)
+    ; d1.w Draw Y pos (cells)
+    ; ======================================
+
+    lea    RAM_ENTITYMANAGER, a0
+    move.w #ENT_MGR_MAX_BLOCKS, d2
+    sub.w  EntityManager_BlocksFree(a0), d2
+    mulu.w #ENT_MGR_BLOCK_SIZE, d2
+    DBG_DRAW_WORD d0,d1,d2
+
+    rts

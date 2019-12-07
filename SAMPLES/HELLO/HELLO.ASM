@@ -76,6 +76,8 @@ Main:
     ; Draw
     bsr    ECSprite_DrawAll
 
+    bsr    ENT_DebugDrawMemory
+
     ; Wait vsync
     bsr    VDP_WaitVSync
 
