@@ -18,6 +18,7 @@
     ENT_COMPONENT_LIST ECSprite
     ENT_COMPONENT_LIST ECPhysBodyChar
     ENT_COMPONENT_LIST ECPhysBodyBasic
+    ENT_COMPONENT_LIST ECPlatform
 
     ; Scene
 RAM_SCENE_CURRENT                       rs.l 1

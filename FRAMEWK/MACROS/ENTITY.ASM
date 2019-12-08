@@ -128,8 +128,16 @@ ENT_COMPONENT: macro component_typename
     dc.w   __RS                                         ; Fill in ComponentSlotDesc data
     dc.w   __COMPONENT_SPAWN_DATA_OFFSET
     dc.l   EntityBlockList_\component_typename
+    IFD \component_typename\_Initialise
     dc.l   \component_typename\_Initialise
+    ELSE
+    dc.l   0
+    ENDIF
+    IFD \component_typename\_Shutdown
     dc.l   \component_typename\_Shutdown
+    ELSE
+    dc.l   0
+    ENDIF
     STRUCT_ALIGN
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
 __COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_typename\__SPAWNDATA  ; Offset spawn data ptr
@@ -208,3 +216,48 @@ ENT_GETBOUNDS: macro ent_addr,topleft_reg,bottomright_reg
 	add.w  Entity_ExtentsY(\ent_addr), \bottomright_reg ; Bottom bounds
 
 	endm
+
+ENT_CHECKCAMERABOUNDS: macro ent_addr,obj_x,obj_y,left,top,right,bottom,result,tmp_reg
+    ; ======================================
+    ; Checks and entity's bounds against
+    ; the camera rect.
+    ; ======================================
+    ; In:
+    ; ent_addr   - Entity address
+    ; obj_x.w    - Entity position X (object space)
+    ; obj_y.w    - Entity position X (object space)
+    ; left.w     - Camera left (object space)
+    ; top.w      - Camera top (object space)
+    ; right.w    - Camera right (object space)
+    ; bottom.w   - Camera bottom (object space)
+    ; tmp_reg    - Temp reg, will be trashed
+    ; ======================================
+    ; Out:
+    ; result.b   - Object in camera bounds
+    ; ======================================
+
+    moveq  #0x0, \result
+
+    move.w \obj_x, \tmp_reg             ; Get sprite left
+    sub.w  Entity_ExtentsX(\ent_addr), \tmp_reg
+	cmp.w  \tmp_reg, \right				; Check sprite left against right border
+	ble    @OutOfBounds\@
+	move.w \obj_x, \tmp_reg             ; Get sprite right
+	add.w  Entity_ExtentsX(\ent_addr), \tmp_reg
+	cmp.w  \tmp_reg, \left				; Check sprite right against left border
+	bge    @OutOfBounds\@
+
+    move.w \obj_y, \tmp_reg             ; Get sprite top
+    sub.w  Entity_ExtentsY(\ent_addr), \tmp_reg
+	cmp.w  \tmp_reg, \bottom			; Check sprite top against bottom border
+	ble    @OutOfBounds\@
+	move.w \obj_y, \tmp_reg             ; Get sprite bottom
+	add.w  Entity_ExtentsY(\ent_addr), \tmp_reg
+	cmp.w  \tmp_reg, \top   			; Check sprite bottom against top border
+	bge    @OutOfBounds\@
+
+    moveq  #0x1, \result                ; Success
+
+    @OutOfBounds\@:
+
+    endm

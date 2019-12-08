@@ -83,9 +83,12 @@ ENT_SpawnEntity:
     add.w  ComponentSlotDesc_SpawnDataOffset(a2), a1; Get component spawn data offset (within spawn data)
     move.w a0, (a3)                                 ; Set component ptr on entity
     move.l ComponentSlotDesc_Constructor(a2), a3    ; Get component constructor addr
+    cmpa.w #0x0, a3
+    beq    @NoConstructor
     PUSHM.L d0/a0-a5
     jsr    (a3)                                     ; Call component constructor
     POPM.L  d0/a0-a5
+    @NoConstructor:
     PUSHM.L d0/a0-a5
     move.l ComponentSlotDesc_LinkedList(a2), a1     ; Add to component list
     bsr    ENT_LinkEntityBlock
@@ -159,7 +162,10 @@ ENT_DespawnEntity:
     PUSHM.L d0/a0-a4
     move.l a3, a0
     move.l ComponentSlotDesc_Destructor(a2), a3
+    cmpa.w #0x0, a3
+    beq    @NoDestructor
     jsr    (a3)
+    @NoDestructor:
     POPM.L  d0/a0-a4
 
     adda.w #SIZEOF_ComponentSlotDesc, a2                        ; Next component

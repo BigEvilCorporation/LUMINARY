@@ -11,6 +11,7 @@
     include 'samples/hello/system/header.asm'
     include 'luminary.asm'
     include 'samples/hello/system/memmap.asm'
+    include 'samples/hello/entities/bridge.asm'
     include 'samples/hello/entities/enemy.asm'
     include 'samples/hello/entities/buzzbomb.asm'
     include 'samples/hello/entities/flicky.asm'
@@ -74,9 +75,7 @@ Main:
     bsr    MAP_UpdateStreaming
 
     ; Draw
-    bsr    ECSprite_DrawAll
-
-    bsr    ENT_DebugDrawMemory
+    bsr    Game_Render
 
     ; Wait vsync
     bsr    VDP_WaitVSync
@@ -88,6 +87,37 @@ Main:
 
     ; Loop forever
     bra    @Lp
+    rts
+
+Game_Render:
+
+    ; Get camera bounds
+    moveq  #0x0, d4
+    moveq  #0x0, d5
+    moveq  #0x0, d6
+    moveq  #0x0, d7
+
+    move.l RAM_CAMERA_CURRENT, a0
+    cmpa.w #0x0, a0
+    beq    @NoCamera
+    move.w Camera_PosX(a0), d4
+    move.w Camera_PosY(a0), d5
+    move.w d4, d6
+    move.w d5, d7
+    @NoCamera:
+
+    subi.w #VDP_SCREEN_WIDTH_PX/2, d4     ; Left
+    addi.w #VDP_SCREEN_WIDTH_PX/2, d6     ; Right
+    subi.w #VDP_SCREEN_HEIGHT_PX/2, d5    ; Top
+    addi.w #VDP_SCREEN_HEIGHT_PX/2, d7    ; Bottom
+
+    ; Draw objects
+    bsr    ECSprite_DrawAll
+    bsr    ECBridgeRenderer_DrawAll
+
+    ; Debug draw
+    bsr    ENT_DebugDrawMemory
+
     rts
 
     ; Asset includes

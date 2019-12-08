@@ -236,6 +236,33 @@ ECPhysBodyChar_StepAll:
     btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
 
+    ; Search platforms
+    PUSHM.L d0-d5/a0-a4
+    move.l a4, a0
+    bsr    PHYS_EntityFindPlatform
+    move.w d0, d6
+    POPM.L  d0-d5/a0-a4
+    cmp.w  #-1, d6
+    beq    @NoPlatform
+    INT_TO_FIXED16 d6
+    cmp.l  d6, d1                       ; Check if on or below platform
+    blt    @NoPlatform
+    move.l d6, d1
+    bset   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
+    bra    @EndTerrain
+    @NoPlatform:
+
+    ; ======================================
+    ; Searches for platforms downwards,
+    ; returns platform height and velocity.
+    ; ======================================
+    ; In:
+    ;  a0   Entity
+    ; Out:
+    ;  a3   Found ECPlatform component
+    ;  d0.w Platform height (or -1)
+    ; ======================================
+
     ; Already on ground, terrain lookup by quadrant
     @SearchQuadrant:
     move.w #0x0, ECPhysBodyChar_LastTerrainFlags(a3)
@@ -270,10 +297,6 @@ ECPhysBodyChar_StepAll:
     jsr    ECPhysBodyChar_WallSearch
 
     @EndTerrain:
-
-    ; If quadrant changed, search that direction immediately
-    ;cmp.b  ECPhysBodyChar_TerrainQuadrant(a3), d6
-    ;bne    @SearchQuadrant
 
     POPM.W  d5/d6
 
@@ -327,7 +350,6 @@ ECPhysBodyChar_Landed:
     bge    @LandedSideways
 
     ; Get angle of terrain on impact
-    ; TODO: Not the terrain angle, the movement angle from X/Y velocity
     move.w ECPhysBodyChar_LastTerrainFlags(a3), d5
     moveq  #0x0, d6
 

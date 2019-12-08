@@ -191,28 +191,11 @@ ECSprite_DrawAll:
     ; ======================================
     ; Draws all Sprite entity components
     ; ======================================
-	; No params
+	; d4.w Camera bounds left   (object space)
+    ; d5.w Camera bounds top    (object space)
+    ; d6.w Camera bounds right  (object space)
+    ; d7.w Camera bounds bottom (object space)
     ; ======================================
-
-    ; Get camera bounds
-    moveq  #0x0, d4
-    moveq  #0x0, d5
-    moveq  #0x0, d6
-    moveq  #0x0, d7
-
-    move.l RAM_CAMERA_CURRENT, a0
-    cmpa.w #0x0, a0
-    beq    @NoCamera
-    move.w Camera_PosX(a0), d4
-    move.w Camera_PosY(a0), d5
-    move.w d4, d6
-    move.w d5, d7
-    @NoCamera:
-
-    subi.w #VDP_SCREEN_WIDTH_PX/2, d4     ; Left
-    addi.w #VDP_SCREEN_WIDTH_PX/2, d6     ; Right
-    subi.w #VDP_SCREEN_HEIGHT_PX/2, d5    ; Top
-    addi.w #VDP_SCREEN_HEIGHT_PX/2, d7    ; Bottom
 
     ; Get sprite list
     ENT_COMPONENT_GET_LIST_HEAD ECSprite, a3
