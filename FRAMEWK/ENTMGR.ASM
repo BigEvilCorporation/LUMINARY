@@ -73,16 +73,16 @@ ENT_SpawnEntity:
 
     ; Alloc all component blocks and call constructors
     move.w EntityTypeDesc_NumComponents(a5), d0
-    move.l EntityTypeDesc_ComponentSlots(a5), a2
+    movea.w EntityTypeDesc_ComponentSlots(a5), a2
     subi.w #0x1, d0
     @ConstructorLp:
     PUSHM.L a1/a3                                   ; Backup entity and spawn data
     bsr    ENT_AllocEntityBlock                     ; Allocate block for component
     move.w a3, Component_Owner(a0)                  ; Set entity ptr on component
-    add.w  ComponentSlotDesc_AddrOffset(a2), a3     ; Get component ptr offset (within entity)
-    add.w  ComponentSlotDesc_SpawnDataOffset(a2), a1; Get component spawn data offset (within spawn data)
+    adda.w ComponentSlotDesc_AddrOffset(a2), a3     ; Get component ptr offset (within entity)
+    adda.w ComponentSlotDesc_SpawnDataOffset(a2), a1; Get component spawn data offset (within spawn data)
     move.w a0, (a3)                                 ; Set component ptr on entity
-    move.l ComponentSlotDesc_Constructor(a2), a3    ; Get component constructor addr
+    movea.w ComponentSlotDesc_Constructor(a2), a3    ; Get component constructor addr
     cmpa.w #0x0, a3
     beq    @NoConstructor
     PUSHM.L d0/a0-a5
@@ -104,7 +104,7 @@ ENT_SpawnEntity:
 
     ; Call constructor
     PUSH.L a0
-    move.l EntityTypeDesc_Constructor(a5), a3
+    movea.w EntityTypeDesc_Constructor(a5), a3
     jsr    (a3)
     POP.L  a0
 
@@ -134,19 +134,19 @@ ENT_DespawnEntity:
     bsr    ENT_UnlinkEntityBlock
 
     ; Call destructor
-    move.l Entity_TypeDesc(a0), a1
-    move.l EntityTypeDesc_Destructor(a1), a3
+    movea.w Entity_TypeDesc(a0), a1
+    movea.w EntityTypeDesc_Destructor(a1), a3
     PUSHM.L a0-a1
     jsr    (a3)
     POPM.L  a0-a1
 
     ; Free all components
     move.w EntityTypeDesc_NumComponents(a1), d0
-    move.l EntityTypeDesc_ComponentSlots(a1), a2
+    movea.w EntityTypeDesc_ComponentSlots(a1), a2
     subi.w #0x1, d0
     @ComponentLp:
     move.l a0, a3												; Get entity
-    add.w  ComponentSlotDesc_AddrOffset(a2), a3                 ; Get component addr offset
+    adda.w ComponentSlotDesc_AddrOffset(a2), a3                 ; Get component addr offset
     movea.w (a3), a3                                            ; Get component address
     bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a3) ; Clear alloc'd flag
     addi.w #0x1, EntityManager_BlocksFree(a4)                   ; Keep count
@@ -161,7 +161,7 @@ ENT_DespawnEntity:
     ; Call destructor
     PUSHM.L d0/a0-a4
     move.l a3, a0
-    move.l ComponentSlotDesc_Destructor(a2), a3
+    movea.w ComponentSlotDesc_Destructor(a2), a3
     cmpa.w #0x0, a3
     beq    @NoDestructor
     jsr    (a3)
@@ -357,8 +357,8 @@ ENT_UpdateAll:
 
     @StaticEntLp:
     move.l (a3)+, a0                    ; Get entity
-    move.l Entity_TypeDesc(a0), a1      ; Get type desc
-    move.l EntityTypeDesc_Update(a1), a1; Get update func
+    movea.w Entity_TypeDesc(a0), a1     ; Get type desc
+    movea.w EntityTypeDesc_Update(a1), a1; Get update func
     PUSHM.L d2/a0-a3
     jsr    (a1)                         ; Update
     POPM.L  d2/a0-a3
@@ -374,8 +374,8 @@ ENT_UpdateAll:
 
     @DynamicEntLp:
     movea.w EntityBlock_Next(a0), a2    ; Get next entity first, update can call destructor
-    move.l Entity_TypeDesc(a0), a1      ; Get type desc
-    move.l EntityTypeDesc_Update(a1), a1; Get update func
+    movea.w Entity_TypeDesc(a0), a1     ; Get type desc
+    movea.w EntityTypeDesc_Update(a1), a1; Get update func
     PUSHM.L a0-a2
     jsr    (a1)                         ; Update
     POPM.L  a0-a2
@@ -402,11 +402,11 @@ ENT_FindFirstOfType:
 
     lea     EntityBlockList_Entities, a1
     movea.w EntityBlockList_Head(a1), a1
-    cmp.w   #0x0, a1
+    cmp.w  #0x0, a1
     beq     @NoDynamicEntities
 
     @DynamicEntLp:
-    cmp.l  Entity_TypeDesc(a1), a0
+    cmp.w  Entity_TypeDesc(a1), a0
     beq    @Found
     movea.w EntityBlock_Next(a1), a1
     cmp.w  #0x0, a1

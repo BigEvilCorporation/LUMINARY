@@ -150,7 +150,7 @@ namespace luminary
 			//Export static entities
 				// EntityBlock_Flags                       rs.w 1
 				// EntityBlock_Next                        rs.w 1
-				// Entity_TypeDesc                         rs.l 1; Entity type
+				// Entity_TypeDesc                         rs.w 1; Entity type
 				// Entity_PosX                             rs.l 1; World pos X(16.16)
 				// Entity_PosY                             rs.l 1; World pos Y(16.16)
 				// Entity_ExtentsX                         rs.w 1; Width in pixels
@@ -166,7 +166,7 @@ namespace luminary
 
 				stream << "\tdc.w 0x0\t; EntityBlock_Flags" << std::endl;
 				stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
-				stream << "\tdc.l " << entity.name << "_Typedesc\t; Entity_TypeDesc" << std::endl;
+				stream << "\tdc.w " << entity.name << "_Typedesc\t; Entity_TypeDesc" << std::endl;
 				stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionX + extents.x)<<16) << "\t; Entity_PosX" << std::endl;
 				stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionY + extents.y)<<16) << "\t; Entity_PosY" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; Entity_ExtentsX" << std::endl;
@@ -228,7 +228,7 @@ namespace luminary
 
 				ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
 
-				stream << "\tdc.l " << entity.name << "_Typedesc\t; Entity descriptor" << std::endl;
+				stream << "\tdc.w " << entity.name << "_Typedesc\t; Entity descriptor" << std::endl;
 				stream << "\tdc.l " << spawnDataName.str() << "\t; Entity spawn data" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX + extents.x) << "\t; Position X" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY + extents.y) << "\t; Position Y" << std::endl;

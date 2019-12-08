@@ -38,7 +38,7 @@ SceneData_DynamicEntityCount            rs.w 1
     STRUCT_END
 
     STRUCT_BEGIN SceneEntity
-SceneEntity_EntityType                  rs.l 1
+SceneEntity_EntityType                  rs.w 1
 SceneEntity_SpawnData                   rs.l 1
 SceneEntity_PosX                        rs.w 1
 SceneEntity_PosY                        rs.w 1
@@ -91,8 +91,8 @@ SCN_LoadScene:
 
     @StaticEntLp:
     move.l (a3)+, a0                    ; Get entity
-    move.l Entity_TypeDesc(a0), a2      ; Get type desc
-    move.l EntityTypeDesc_Constructor(a2), a2; Get init func
+    movea.w Entity_TypeDesc(a0), a2      ; Get type desc
+    movea.w EntityTypeDesc_Constructor(a2), a2; Get init func
     PUSHM.L d2/a0-a3
     jsr    (a2)                         ; Update
     POPM.L  d2/a0-a3
@@ -113,7 +113,7 @@ SCN_LoadScene:
     @EntityLp:
     PUSHM.L d2/a0-a3
 
-    move.l SceneEntity_EntityType(a2), a0   ; Extract entity spawn data
+    movea.w SceneEntity_EntityType(a2), a0   ; Extract entity spawn data
     move.l SceneEntity_SpawnData(a2), a1
     move.w SceneEntity_PosX(a2), d0
     move.w SceneEntity_PosY(a2), d1

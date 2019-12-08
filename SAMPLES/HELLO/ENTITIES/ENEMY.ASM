@@ -10,7 +10,7 @@
     COMPONENT_SPAWN_DATA_END
     
     ENTITY_COMPONENT_BEGIN ECEnemy
-ECEnemy_CallbackOnHit                   rs.l 1
+ECEnemy_CallbackOnHit                   rs.w 1
     ENTITY_COMPONENT_END
 
 ECEnemy_Initialise:
@@ -64,7 +64,7 @@ ECEnemy_CheckHitAll:
     beq    @NextEnemy
 
     ; Hit detected, run callback
-    move.l ECEnemy_CallbackOnHit(a1), a3
+    movea.w ECEnemy_CallbackOnHit(a1), a3
     PUSHM.L d1-d4/a0-a4
     jsr    (a3)
     POPM.L  d1-d4/a0-a4

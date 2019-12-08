@@ -96,7 +96,7 @@ EBuzzbomb_Initialise:
 
     ; Init enemy component
     ENT_GETCOMPONENT EBuzzbomb,ECEnemy,a0,a1
-    move.l #EBuzzbomb_OnHit, ECEnemy_CallbackOnHit(a1)
+    move.w #EBuzzbomb_OnHit, ECEnemy_CallbackOnHit(a1)
 
     ; Offset wings
     ENT_GETCOMPONENT EBuzzbomb,SpriteWings,a0,a1
@@ -342,7 +342,7 @@ EBuzzProjectile_Initialise:
 
     ; Init enemy component
     ENT_GETCOMPONENT EBuzzProjectile,ECEnemy,a0,a1
-    move.l #EBuzzProjectile_OnHit, ECEnemy_CallbackOnHit(a1)
+    move.w #EBuzzProjectile_OnHit, ECEnemy_CallbackOnHit(a1)
 
     rts
 

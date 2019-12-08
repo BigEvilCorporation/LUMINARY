@@ -64,10 +64,10 @@ ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
     ; Fill in EntityTypeDesc data
 \__ENTITY_NAME\_TypeDesc:
     dc.w   ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT
-    dc.l   ENTITY_\__ENTITY_NAME\_COMPONENT_SLOTDESC_TABLE
-    dc.l   \__ENTITY_NAME\_Initialise
-    dc.l   \__ENTITY_NAME\_Shutdown
-    dc.l   \__ENTITY_NAME\_Update
+    dc.w   ENTITY_\__ENTITY_NAME\_COMPONENT_SLOTDESC_TABLE
+    dc.w   \__ENTITY_NAME\_Initialise
+    dc.w   \__ENTITY_NAME\_Shutdown
+    dc.w   \__ENTITY_NAME\_Update
     even
 	endm
 
@@ -87,10 +87,10 @@ __SIZEOF_\__ENTITY_NAME rs.b 0
     ; Fill in EntityTypeDesc data
 \__ENTITY_NAME\_TypeDesc:
     dc.w   0
-    dc.l   0
-    dc.l   \__ENTITY_NAME\_Initialise
-    dc.l   0
-    dc.l   \__ENTITY_NAME\_Update
+    dc.w   0
+    dc.w   \__ENTITY_NAME\_Initialise
+    dc.w   0
+    dc.w   \__ENTITY_NAME\_Update
     even
     endm
 
@@ -128,15 +128,15 @@ ENT_COMPONENT: macro component_typename
     dc.w   __RS                                         ; Fill in ComponentSlotDesc data
     dc.w   __COMPONENT_SPAWN_DATA_OFFSET
     dc.l   EntityBlockList_\component_typename
-    IFD \component_typename\_Initialise
-    dc.l   \component_typename\_Initialise
+    IFD    \component_typename\_Initialise
+    dc.w   \component_typename\_Initialise
     ELSE
-    dc.l   0
+    dc.w   0
     ENDIF
-    IFD \component_typename\_Shutdown
-    dc.l   \component_typename\_Shutdown
+    IFD    \component_typename\_Shutdown
+    dc.w   \component_typename\_Shutdown
     ELSE
-    dc.l   0
+    dc.w   0
     ENDIF
     STRUCT_ALIGN
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
@@ -157,8 +157,16 @@ ENT_COMPONENT_NAMED: macro component_typename,component_name
     dc.w   __RS                                         ; Fill in ComponentSlotDesc data
     dc.w   __COMPONENT_SPAWN_DATA_OFFSET
     dc.l   EntityBlockList_\component_typename
-    dc.l   \component_typename\_Initialise
-    dc.l   \component_typename\_Shutdown
+    IFD    \component_typename\_Initialise
+    dc.w   \component_typename\_Initialise
+    ELSE
+    dc.w   0
+    ENDIF
+    IFD    \component_typename\_Shutdown
+    dc.w   \component_typename\_Shutdown
+    ELSE
+    dc.w   0
+    ENDIF
     STRUCT_ALIGN
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
 __COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_typename\__SPAWNDATA  ; Offset spawn data ptr

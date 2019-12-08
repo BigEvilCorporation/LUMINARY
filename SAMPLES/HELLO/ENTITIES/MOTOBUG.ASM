@@ -46,7 +46,7 @@ EMotobug_Initialise:
 
     ; Init enemy component
     ENT_GETCOMPONENT EMotobug,ECEnemy,a0,a1
-    move.l #EMotobug_OnHit, ECEnemy_CallbackOnHit(a1)
+    move.w #EMotobug_OnHit, ECEnemy_CallbackOnHit(a1)
 
     ; Offset exhaust
     ENT_GETCOMPONENT EMotobug,SpriteExhaust,a0,a1
