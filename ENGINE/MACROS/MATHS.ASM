@@ -36,3 +36,18 @@ ABS: macro valuereg
 	neg.\0 \valuereg
 	@Pos\@:
 	endm
+
+MAX: macro value_a,value_b,output
+    ; ======================================
+    ; Returns the max of two values
+    ; ======================================
+    ; value_a    - Value 1
+    ; value_b    - Value 2
+    ; output     - Return value
+    ; ======================================
+	move.\0 \value_a, \output
+	cmp.\0  \value_a,\value_b
+	blt     @A\@
+	move.\0 \value_b, \output
+	@A\@:
+	endm

@@ -237,6 +237,7 @@ ECPhysBodyChar_StepAll:
     bne    @EndTerrain
 
     ; Search platforms
+    ; TODO: Both floor probes
     PUSHM.L d0-d5/a0-a4
     move.l a4, a0
     bsr    PHYS_EntityFindPlatform

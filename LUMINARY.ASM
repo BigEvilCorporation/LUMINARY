@@ -20,6 +20,7 @@
     include 'engine/macros/assets.asm'
     include 'engine/macros/debug.asm'
     include 'engine/macros/collisn.asm'
+    include 'engine/macros/fixed8.asm'
     include 'engine/macros/fixed16.asm'
     include 'engine/macros/interpts.asm'
     include 'engine/macros/linklist.asm'
