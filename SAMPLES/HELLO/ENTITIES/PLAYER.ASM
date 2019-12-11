@@ -30,7 +30,7 @@ PLAYER_DECEL                            equ 0x0C00
 PLAYER_DECEL_FORCED                     equ 0x7FFF
 PLAYER_DECEL_SPIN                       equ 0x0600
 PLAYER_SLOPE_FACTOR                     equ 0x2000>>PHYS_VEL_TO_GROUND_SPEED_SHIFT
-PLAYER_SLOPE_FACTOR_SPIN_UP             equ 0x1400>>PHYS_VEL_TO_GROUND_SPEED_SHIFT
+PLAYER_SLOPE_FACTOR_SPIN_UP             equ 0x1E00>>PHYS_VEL_TO_GROUND_SPEED_SHIFT
 PLAYER_SLOPE_FACTOR_SPIN_DN             equ 0x5000>>PHYS_VEL_TO_GROUND_SPEED_SHIFT
 PLAYER_JUMP_VEL                         equ 0x00068000
 PLAYER_MAX_VEL_X                 		equ 0x00060000
@@ -380,13 +380,15 @@ EPlayer_UpdateState:
     ; Update slope factor based on terrain angle sign
     moveq  #0x0, d7
     move.b d6, d7                       ; Extract angle from flags
-    subi.b #PHYS_TERRAIN_ANGLE_90, d7   ; -90 degrees
     add.w  d7, d7
     lea    sinetable, a4
     moveq  #0x0, d3
     move.w (a4,d7.w), d3
-    tst.w  d3
-    bge    @SlopeUp
+    move.w ECPhysBodyChar_GroundSpeed(a1), d4
+    andi.w #0x8000, d3                  ; Compare sign with ground speed
+    andi.w #0x8000, d4
+    cmp.w  d3, d4
+    bne    @SlopeUp
     move.w #PLAYER_SLOPE_FACTOR_SPIN_DN, ECPhysBodyChar_SlopeFact(a1)
     bra    @SlopeDown
     @SlopeUp:
