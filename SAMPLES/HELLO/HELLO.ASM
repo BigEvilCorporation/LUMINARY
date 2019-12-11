@@ -13,6 +13,7 @@
     include 'samples/hello/system/memmap.asm'
     include 'samples/hello/entities/bridge.asm'
     include 'samples/hello/entities/enemy.asm'
+    include 'samples/hello/entities/chopper.asm'
     include 'samples/hello/entities/buzzbomb.asm'
     include 'samples/hello/entities/flicky.asm'
     include 'samples/hello/entities/lrswitch.asm'
