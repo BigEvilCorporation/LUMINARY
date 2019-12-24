@@ -1,23 +1,23 @@
 ; ============================================================================================
 ; LUMINARY - a game engine and framework for the SEGA Mega Drive
 ; ============================================================================================
-; Matt Phillips - Big Evil Corporation Ltd - 4th August 2019
+; Matt Phillips - Big Evil Corporation Ltd - 22nd December 2019
 ; ============================================================================================
-; BOOTSTRP.ASM - First include file, includes bldconf, consts, and vector table
+; ASMOPTS.ASM - Assembler optimisation options and section directives
 ; ============================================================================================
-; See LUMINARY.ASM for example include order
+; !! MUST BE FIRST FILE INCLUDED !!
 ; ============================================================================================
 
-    ; Assembler sections and optimisation opts
-    include 'asmopts.asm'
+; Assembler optimisations
+    OPT op+,os+,ow+,oz+,oaq+,osq+,omq+
 
-    ; Build configs
-    include 'engine/bldconf.asm'
-    include 'framewk/bldconf.asm'
+;GROUP_SCRIPT_TABLE Group ; file('scriptbl.bin')
 
-    ; Constants
-    include 'engine/consts.asm'
-    include 'framewk/consts.asm'
+; Section layout
+    Section    SECTION_VECTOR_TABLE
+    Section    SECTION_HEADER
+    Section    SECTION_MAIN
+    Section    SECTION_SCRIPT_TABLE ;,GROUP_SCRIPT_TABLE
 
-    ; 68000 vector table
-    include 'engine/vectrtab.asm'
+; Begin main section
+    Section    SECTION_MAIN

@@ -15,6 +15,7 @@
     ENT_COMPONENT_LIST Entities
 
     ; Entity component lists
+    ENT_COMPONENT_LIST ECScript
     ENT_COMPONENT_LIST ECSprite
     ENT_COMPONENT_LIST ECPhysBodyChar
     ENT_COMPONENT_LIST ECPhysBodyBasic

@@ -7,9 +7,8 @@
 ; ============================================================================================
 
     ; Code includes
-    include 'bootstrp.asm'
-    include 'samples/hello/system/header.asm'
     include 'luminary.asm'
+    include 'samples/hello/system/header.asm'
     include 'samples/hello/system/memmap.asm'
     include 'samples/hello/entities/bridge.asm'
     include 'samples/hello/entities/enemy.asm'
@@ -69,6 +68,7 @@ Main:
 
     ; Update
     bsr    ENT_UpdateAll
+    bsr    ECScript_StepAll
     bsr    ECPhysBodyChar_StepAll
     bsr    ECPhysBodyBasic_StepAll
     bsr    CAM_UpdateAll

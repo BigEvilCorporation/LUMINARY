@@ -6,6 +6,9 @@
 ; HEADER.ASM - SEGA Mega Drive header
 ; ============================================================================================
 
+    PUSHS
+    Section    SECTION_HEADER
+
 	dc.b "SEGA MEGA DRIVE "                                                                 ; 16 bytes - Console name
 	dc.b "(C)EVIL 2018.MAY"                                                                 ; 16 bytes - Copyright holder and release date
 	dc.b "HELLO WORLD - LUMINARY ENGINE                   "                                 ; 48 bytes - Domestic name
@@ -26,6 +29,4 @@
 	                                                                                        ; ------------------------
 	                                                                                        ; 256 bytes total
 
-	IF !(*=0x200)
-	inform 2,"Header ends at incorrect address"
-    ENDIF
+	POPS

@@ -7,6 +7,7 @@
 ; ============================================================================================
 ; Include files from game project the following order:
 ;
+;  - asmopts.asm
 ;  - bootstrp.asm
 ;  - game/header.asm
 ;  - luminary.asm (this file)
@@ -15,6 +16,9 @@
 ;  - Everything else...
 ;
 ; ============================================================================================
+
+    ; Bootstrap
+    include 'bootstrp.asm'
 
     ; Engine macros
     include 'engine/macros/assets.asm'
@@ -55,6 +59,7 @@
     ; Game framework macros
     include 'framewk/macros/entity.asm'
     include 'framewk/macros/entmgr.asm'
+    include 'framewk/macros/script.asm'
     include 'framewk/macros/sprite.asm'
     include 'framewk/macros/vfx.asm'
 
@@ -65,12 +70,17 @@
     include 'framewk/geometry.asm'
     include 'framewk/scene.asm'
 
+    ; Script system
+    include 'framewk/script/script.asm'
+    include 'framewk/script/builtin.asm'
+
     ; Entities and components
     include 'framewk/entities/physbasc.asm'
     include 'framewk/entities/physchar.asm'
     include 'framewk/entities/physutil.asm'
     include 'framewk/entities/platform.asm'
     include 'framewk/entities/spawner.asm'
+    include 'framewk/entities/script.asm'
     include 'framewk/entities/sprite.asm'
     include 'framewk/entities/vfx.asm'
 

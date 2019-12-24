@@ -8,6 +8,9 @@
 ; Must reside at 0x0000 in ROM
 ; ============================================================================================
 
+	PUSHS
+    Section    SECTION_VECTOR_TABLE
+
 	dc.l   STACK_TOP                    ; Initial stack pointer value
 	dc.l   Bootstrap                    ; Start of program
 	dc.l   INT_Exception                ; Bus error
@@ -72,3 +75,5 @@
 	dc.l   INT_Null                     ; Unused (reserved)
 	dc.l   INT_Null                     ; Unused (reserved)
 	dc.l   INT_Null                     ; Unused (reserved)
+
+	POPS
