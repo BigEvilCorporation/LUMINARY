@@ -10,6 +10,9 @@
 
 #include <ion/core/Types.h>
 
+#include <string>
+#include <vector>
+
 namespace luminary
 {
 	enum class ParamSize
