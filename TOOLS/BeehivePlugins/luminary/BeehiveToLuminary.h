@@ -25,9 +25,9 @@ namespace luminary
 	{
 		const SpriteSheet* FindSpriteSheet(const Actor& actor, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectVariable* variable);
 		const SpriteAnimation* FindSpriteAnim(const Actor& actor, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectArchetype* archetype, const GameObjectVariable& variable, std::string& sheetName);
-		void ExportParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor);
-		void ExportArchetype(const Project& project, const GameObjectArchetype& srcArchetype, luminary::Archetype& archetype);
+		void ExportParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses);
+		void ExportArchetype(const Project& project, const GameObjectArchetype& srcArchetype, const luminary::ScriptAddressMap& scriptAddresses, luminary::Archetype& archetype);
 		void ConvertScriptEntity(const GameObjectType& gameObjectType, luminary::Entity& entity);
-		void ExportEntity(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, luminary::Entity& entity);
+		void ExportEntity(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity);
 	}
 }

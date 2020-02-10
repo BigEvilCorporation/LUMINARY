@@ -12,6 +12,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace luminary
 {
@@ -68,4 +69,12 @@ namespace luminary
 		std::vector<Param> params;
 		std::vector<Component> components;
 	};
+
+	struct ScriptAddress
+	{
+		std::string routineName;
+		int routineAddress;
+	};
+
+	typedef std::map<std::string, std::vector<luminary::ScriptAddress>> ScriptAddressMap;
 }

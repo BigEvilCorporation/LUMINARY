@@ -7,7 +7,10 @@
 ; ============================================================================================
 
     COMPONENT_SPAWN_DATA_BEGIN ECScript
-SDScript_ScriptData                     rs.l 1
+SDScript_ScriptData                     rs.l 1  ; [TAGS=SCRIPT_DATA]
+SDScript_FuncStart                      rs.w 1  ; [TAGS=SCRIPTFUNC_OnStart]
+SDScript_FuncShutdown                   rs.w 1  ; [TAGS=SCRIPTFUNC_OnShutdown]
+SDScript_FuncUpdate                     rs.w 1  ; [TAGS=SCRIPTFUNC_OnUpdate]
     COMPONENT_SPAWN_DATA_END
     
     ENTITY_COMPONENT_BEGIN ECScript

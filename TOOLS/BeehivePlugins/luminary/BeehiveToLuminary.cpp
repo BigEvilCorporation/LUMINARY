@@ -9,6 +9,8 @@
 #include "BeehiveToLuminary.h"
 #include "Tags.h"
 
+#include <ion/core/utils/STL.h>
+
 namespace luminary
 {
 	namespace beehive
@@ -74,10 +76,12 @@ namespace luminary
 			return spriteAnim;
 		}
 
-		void ExportParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor)
+		void ExportParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses)
 		{
 			param.name = variable.m_name;
 			param.value = "0x0";
+
+			std::string scriptRoutine;
 
 			//Search for supported tags
 			if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityDesc)))
@@ -151,6 +155,27 @@ namespace luminary
 					}
 				}
 			}
+			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::ScriptData)))
+			{
+				param.value = std::string("scriptdata_") + gameObjectType.GetName();
+			}
+			else if (variable.FindTagValue("SCRIPTFUNC", scriptRoutine))
+			{
+				ScriptAddressMap::const_iterator it = scriptAddresses.find(gameObjectType.GetName());
+				if (it != scriptAddresses.end())
+				{
+					for (auto address : it->second)
+					{
+						if (address.routineName == scriptRoutine)
+						{
+							std::stringstream stream;
+							stream << "0x" << SSTREAM_HEX4(address.routineAddress);
+							param.value = stream.str();
+							break;
+						}
+					}
+				}
+			}
 			else
 			{
 				param.value = variable.m_value;
@@ -179,7 +204,7 @@ namespace luminary
 			}
 		}
 
-		void ExportArchetype(const Project& project, const GameObjectArchetype& srcArchetype, luminary::Archetype& archetype)
+		void ExportArchetype(const Project& project, const GameObjectArchetype& srcArchetype, const luminary::ScriptAddressMap& scriptAddresses, luminary::Archetype& archetype)
 		{
 			if (const GameObjectType* gameObjectType = project.GetGameObjectType(srcArchetype.typeId))
 			{
@@ -226,7 +251,7 @@ namespace luminary
 						param = &archetype.components[componentIdx].spawnData.params[paramIdx];
 					}
 
-					ExportParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, actor);
+					ExportParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, actor, scriptAddresses);
 				}
 			}
 		}
@@ -284,7 +309,7 @@ namespace luminary
 			}
 		}
 
-		void ExportEntity(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, luminary::Entity& entity)
+		void ExportEntity(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity)
 		{
 			//Type name
 			entity.name = gameObjectType.GetName();
@@ -347,7 +372,7 @@ namespace luminary
 					param = &entity.components[componentIdx].spawnData.params[paramIdx];
 				}
 
-				ExportParam(*param, *variable, gameObjectType, nullptr, &gameObject, actor);
+				ExportParam(*param, *variable, gameObjectType, nullptr, &gameObject, actor, scriptAddresses);
 			}
 		}
 	}

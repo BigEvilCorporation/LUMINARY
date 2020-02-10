@@ -27,6 +27,8 @@ namespace luminary
 	const std::string g_compilerArg = "-m68000 -O3 -Wall -fno-builtin -nostdlib -n -fno-inline -fpack-struct -fpie -x c++ -c";
 	const std::string g_objcopyExe = "m68k-elf-objcopy.exe";
 	const std::string g_objcopyArg = "-O binary";
+	const std::string g_symbolReadExe = "m68k-elf-objdump.exe";
+	const std::string g_symbolReadArg = "-t";
 
 	const std::string g_header =
 		"// ============================================================================================\n"
@@ -182,12 +184,36 @@ namespace luminary
 
 	std::string ScriptCompiler::GenerateCompileCommand(const std::string& filename, const std::string& compilerDir, const std::string& includeDirs)
 	{
-		return compilerDir + "\\" + g_compilerExe + " " + g_compilerArg + " -B" + compilerDir + " -I" + includeDirs + " " + filename;
+		std::string filenameNoExt = ion::string::RemoveSubstring(filename, ".cpp");
+		return compilerDir + "\\" + g_compilerExe + " " + g_compilerArg + " -B" + compilerDir + " -I" + includeDirs + " " + filename + " -o " + filenameNoExt + ".o";
 	}
 
 	std::string ScriptCompiler::GenerateObjCopyCommand(const std::string& filename, const std::string& compilerDir)
 	{
 		std::string filenameNoExt = ion::string::RemoveSubstring(filename, ".cpp");
 		return compilerDir + "\\" + g_objcopyExe + " " + g_objcopyArg + " " + filenameNoExt + ".o " + filenameNoExt + ".bin";
+	}
+
+	std::string ScriptCompiler::GenerateSymbolReadCommand(const std::string& filename, const std::string& compilerDir)
+	{
+		std::string filenameNoExt = ion::string::RemoveSubstring(filename, ".cpp");
+		return compilerDir + "\\" + g_symbolReadExe + " " + g_symbolReadArg + " " + filenameNoExt + ".o ";
+	}
+
+	int ScriptCompiler::FindFunctionOffset(const std::vector<std::string>& symbolOutput, const std::string& className, const std::string& routineName)
+	{
+		for (auto line : symbolOutput)
+		{
+			//TODO: A bit primitive, will have many edge cases
+			if (line.find(className) != std::string::npos && line.find(routineName) != std::string::npos)
+			{
+				std::vector<std::string> tokens;
+				ion::string::TokeniseByWhitespace(line, tokens);
+				std::string addressHexText = tokens[0];
+				return std::stoul(addressHexText, nullptr, 16);
+			}
+		}
+
+		return -1;
 	}
 }
