@@ -22,6 +22,7 @@ namespace luminary
 			{ "SPRITE_ANIM", TagType::SpriteAnimation },
 			{ "ENTITY_DESC", TagType::EntityDesc },
 			{ "ENTITY_ARCHETYPE", TagType::EntityArchetype },
+			{ "SCRIPT_DATA", TagType::ScriptData },
 		};
 
 		const std::string& GetTagName(TagType tagType)

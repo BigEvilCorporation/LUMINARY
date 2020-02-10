@@ -4,6 +4,8 @@ ApplyIonCore luminary ;
 ApplyIonIo luminary ;
 
 local LUMINARY_SRC = 
+	BeehiveToLuminary.cpp
+	BeehiveToLuminary.h
 	EntityExporter.cpp
 	EntityExporter.h
 	EntityParser.cpp

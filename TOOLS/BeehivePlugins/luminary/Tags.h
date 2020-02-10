@@ -22,6 +22,7 @@ namespace luminary
 			SpriteAnimation,
 			EntityDesc,
 			EntityArchetype,
+			ScriptData,
 		};
 
 		struct ParamTag

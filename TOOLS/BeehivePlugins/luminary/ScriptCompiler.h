@@ -11,6 +11,7 @@
 #include "Types.h"
 
 #include <string>
+#include <vector>
 
 namespace luminary
 {
@@ -18,10 +19,13 @@ namespace luminary
 	{
 	public:
 		bool GenerateEntityCppHeader(const Entity& entity, const std::string& outputDir);
+		bool GenerateEntityCppBoilerplate(const Entity& entity, const std::string& outputDir);
 	};
 
 	class ScriptCompiler
 	{
-
+	public:
+		std::string GenerateCompileCommand(const std::string& filename, const std::string& compilerDir, const std::string& includeDirs);
+		std::string GenerateObjCopyCommand(const std::string& filename, const std::string& compilerDir);
 	};
 }
