@@ -24,9 +24,9 @@ namespace luminary
 	};
 
 	const std::string g_compilerExe = "m68k-elf-gcc.exe";
-	const std::string g_compilerArg = "-m68000 -O3 -Wall -fno-builtin -nostdlib -n -fno-inline -fpack-struct -fpie -x c++ -c";
+	const std::string g_compilerArg = "-m68000 -O3 -Wall -fno-builtin -nostdlib -n -fno-inline -fpie -x c++ -c";
 	const std::string g_objcopyExe = "m68k-elf-objcopy.exe";
-	const std::string g_objcopyArg = "-O binary";
+	const std::string g_objcopyArg = "-j .text -O binary";
 	const std::string g_symbolReadExe = "m68k-elf-objdump.exe";
 	const std::string g_symbolReadArg = "-t";
 
@@ -74,7 +74,7 @@ namespace luminary
 			{
 				if (exportedComponentHeaders.find(entity.components[i].name) == exportedComponentHeaders.end())
 				{
-					stream << "struct " << entity.components[i].name << " : BlockHeader" << std::endl;
+					stream << "struct " << entity.components[i].name << " : ComponentBase" << std::endl;
 					stream << "{" << std::endl;
 
 					int structSize = 0;

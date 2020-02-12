@@ -134,3 +134,6 @@ Game_Render:
     include 'samples/hello/data/sprites/sprites.asm'
     include 'samples/hello/data/anims/sprtanms.asm'
     include 'samples/hello/data/palettes/sprtpals.asm'
+
+    ; Script data
+    include 'samples/hello/scripts/scripts.asm'

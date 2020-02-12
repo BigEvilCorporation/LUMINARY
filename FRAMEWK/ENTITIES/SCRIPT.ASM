@@ -32,7 +32,10 @@ ECScript_Initialise:
     
     ; Set script data
     move.l SDScript_ScriptData(a1), ScriptState_Data(a0)
-    
+    move.l SDScript_FuncStart(a1), ScriptState_FuncStart(a0)
+    move.l SDScript_FuncShutdown(a1), ScriptState_FuncShutdown(a0)
+    move.l SDScript_FuncUpdate(a1), ScriptState_FuncUpdate(a0)
+
     ; Run script
     bsr    ScriptState_Run
     
@@ -62,6 +65,7 @@ ECScript_StepAll:
 
     @ScriptLp:
     lea    ECScript_ScriptState(a3), a0 ; Get script
+    movea.w Component_Owner(a3), a1     ; Get owning entity
     PUSH.L a3
     bsr    ScriptState_Update           ; Tick
     POP.L  a3

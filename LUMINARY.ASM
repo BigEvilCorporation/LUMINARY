@@ -59,7 +59,6 @@
     ; Game framework macros
     include 'framewk/macros/entity.asm'
     include 'framewk/macros/entmgr.asm'
-    include 'framewk/macros/script.asm'
     include 'framewk/macros/sprite.asm'
     include 'framewk/macros/vfx.asm'
 
@@ -72,7 +71,6 @@
 
     ; Script system
     include 'framewk/script/script.asm'
-    include 'framewk/script/builtin.asm'
 
     ; Entities and components
     include 'framewk/entities/physbasc.asm'
