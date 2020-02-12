@@ -26,6 +26,9 @@ ECScript_Initialise:
     ; ======================================
     
     PUSH.L a0
+
+    ; Get owning entity
+    movea.w Component_Owner(a0), a2
     
     ; Get state
     lea    ECScript_ScriptState(a0), a0
@@ -37,6 +40,7 @@ ECScript_Initialise:
     move.l SDScript_FuncUpdate(a1), ScriptState_FuncUpdate(a0)
 
     ; Run script
+    move.l a2, a1
     bsr    ScriptState_Run
     
     POP.L  a0

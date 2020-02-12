@@ -112,12 +112,8 @@ namespace luminary
 				}
 			}
 
-			stream << "struct " << entity.name << std::endl;
+			stream << "struct Components" << std::endl;
 			stream << "{" << std::endl;
-			stream << "\tEntity& entity;" << std::endl << std::endl;
-
-			stream << "\tstruct" << std::endl;
-			stream << "\t{" << std::endl;
 
 			std::set<std::string> exportedHndls;
 
@@ -136,10 +132,15 @@ namespace luminary
 
 				exportedHndls.insert(nameNumbered);
 
-				stream << "\t\tComponentHndl " << nameNumbered << ";" << std::endl;
+				stream << "\tComponentHndl " << nameNumbered << ";" << std::endl;
 			}
 
-			stream << "\t} components;" << std::endl << std::endl;
+			stream << "};" << std::endl << std::endl;
+
+			stream << "struct " << entity.name << std::endl;
+			stream << "{" << std::endl;
+			stream << "\tEntity& entity;" << std::endl;
+			stream << "\tComponents& components;" << std::endl << std::endl;
 
 			stream << g_getComponentFunc << std::endl << std::endl;
 			
