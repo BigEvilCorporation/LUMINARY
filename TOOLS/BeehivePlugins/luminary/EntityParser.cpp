@@ -361,7 +361,6 @@ namespace luminary
 		}
 	}
 
-#pragma optimize("",off)
 	bool EntityParser::ParseEntity(const TextBlock& textBlock, Entity& entity)
 	{
 		entity.name = textBlock.name;
@@ -370,7 +369,7 @@ namespace luminary
 		//Find components, and parse params
 		for (int i = 0; i < textBlock.block.size(); i++)
 		{
-			size_t componentPos = std::string::npos;
+			int componentPos = -1;
 
 			if ((componentPos = ContainsToken(textBlock.block[i], s_componentNamedDef)) >= 0)
 			{
@@ -404,7 +403,6 @@ namespace luminary
 
 		return entity.name.size() > 0;
 	}
-#pragma optimize("",on)
 
 	void EntityParser::ParseStaticEntity(const TextBlock& textBlock, Entity& entity)
 	{

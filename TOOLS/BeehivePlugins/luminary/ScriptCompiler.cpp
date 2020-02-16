@@ -137,10 +137,41 @@ namespace luminary
 
 			stream << "};" << std::endl << std::endl;
 
-			stream << "struct " << entity.name << std::endl;
+			stream << "struct " << entity.name << " : Entity" << std::endl;
 			stream << "{" << std::endl;
-			stream << "\tEntity& entity;" << std::endl;
-			stream << "\tComponents& components;" << std::endl << std::endl;
+			
+			int structSize = 0;
+
+			for (int i = 0; i < entity.params.size(); i++)
+			{
+				std::string paramName = ion::string::RemoveSubstring(entity.params[i].name, entity.name + "_");
+				paramName[0] = ion::string::ToLower(paramName)[0];
+
+				switch (entity.params[i].size)
+				{
+				case ParamSize::Byte:
+					stream << "\tunsigned char " << paramName << ";" << std::endl;
+					structSize += 1;
+					break;
+				case ParamSize::Word:
+					stream << "\tunsigned short " << paramName << ";" << std::endl;
+					structSize += 2;
+					break;
+				case ParamSize::Long:
+					stream << "\tunsigned int " << paramName << ";" << std::endl;
+					structSize += 4;
+					break;
+				}
+			}
+
+			if (structSize & 1)
+			{
+				stream << "\tunsigned char padding;" << std::endl;
+			}
+
+			stream << std::endl;
+
+			stream << "\tComponents components;" << std::endl << std::endl;
 
 			stream << g_getComponentFunc << std::endl << std::endl;
 			
