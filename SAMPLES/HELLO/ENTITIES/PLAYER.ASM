@@ -175,6 +175,7 @@ EPlayer_TerrainFlagsPrev                rs.w 1
 EPlayer_StateFlags                      rs.b 1
 	ENT_COMPONENT ECPhysBodyChar
     ENT_COMPONENT ECSprite
+    ENT_COMPONENT ECScript
     ENTITY_END
 
 EPlayer_Initialise:

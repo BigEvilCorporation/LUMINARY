@@ -18,16 +18,17 @@ actor_crate_sheet_crate_frame_0_header:
 	dc.l actor_crate_sheet_crate_frame_0_subsprite_dimensions_bits	; SpriteFrame_LayoutTable
 	dc.l actor_crate_sheet_crate_frame_0_subsprite_pos_offsets	; SpriteFrame_PosOffsetTable
 
+actor_crate_sheet_crate_frametable:
 actor_crate_sheet_crate_frame_0_size_b		equ 0x0320	; Size in bytes
 actor_crate_sheet_crate_frame_0_size_t		equ 0x0019	; Size in tiles
 actor_crate_sheet_crate_frame_0_size_subsprites		equ 0x0004	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_crate_sheet_crate_frame_0_subsprite_pos_offsets:
-	dc.l 0x00000000, 0x00080000
-	dc.l 0x00000020, 0x00000020
-	dc.l 0x0020FFE0, 0xFFF8FFE0
-	dc.l 0x00000020, 0x00000020
+	dc.l 0xFFECFFEC, 0xFFF4FFEC, 0xFFECFFF4, 0xFFF4FFF4
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
+	dc.l 0x0020FFE0, 0xFFF8FFE0, 0x00200008, 0xFFF80008
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
 	Even
 
 ; Subsprite dimension bits (for sprite descs)

@@ -7,11 +7,51 @@
 ; ============================================================================================
 
 
+	include 'SAMPLES\HELLO\DATA\SPRITES\bridge.ASM'
+	even
+
 	include 'SAMPLES\HELLO\DATA\SPRITES\nymn.ASM'
+	even
+
 	include 'SAMPLES\HELLO\DATA\SPRITES\test3.ASM'
+	even
+
+	include 'SAMPLES\HELLO\DATA\SPRITES\flicky.ASM'
+	even
+
 	include 'SAMPLES\HELLO\DATA\SPRITES\test2.ASM'
+	even
+
 	include 'SAMPLES\HELLO\DATA\SPRITES\crate.ASM'
+	even
+
 	include 'SAMPLES\HELLO\DATA\SPRITES\test5.ASM'
+	even
+
+	include 'SAMPLES\HELLO\DATA\SPRITES\explosn.ASM'
+	even
+
+	include 'SAMPLES\HELLO\DATA\SPRITES\ring.ASM'
+	even
+
 	include 'SAMPLES\HELLO\DATA\SPRITES\test6.ASM'
+	even
+
+	include 'SAMPLES\HELLO\DATA\SPRITES\sonic.ASM'
+	even
+
 	include 'SAMPLES\HELLO\DATA\SPRITES\test4.ASM'
+	even
+
+	include 'SAMPLES\HELLO\DATA\SPRITES\chopper.ASM'
+	even
+
+	include 'SAMPLES\HELLO\DATA\SPRITES\buzzbomb.ASM'
+	even
+
+	include 'SAMPLES\HELLO\DATA\SPRITES\motobug.ASM'
+	even
+
 	include 'SAMPLES\HELLO\DATA\SPRITES\test.ASM'
+	even
+

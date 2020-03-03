@@ -67,16 +67,17 @@ actor_nymn_sheet_jump_frame_7_header:
 	dc.l actor_nymn_sheet_jump_frame_7_subsprite_dimensions_bits	; SpriteFrame_LayoutTable
 	dc.l actor_nymn_sheet_jump_frame_7_subsprite_pos_offsets	; SpriteFrame_PosOffsetTable
 
+actor_nymn_sheet_jump_frametable:
 actor_nymn_sheet_jump_frame_0_size_b		equ 0x0320	; Size in bytes
 actor_nymn_sheet_jump_frame_0_size_t		equ 0x0019	; Size in tiles
 actor_nymn_sheet_jump_frame_0_size_subsprites		equ 0x0004	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_nymn_sheet_jump_frame_0_subsprite_pos_offsets:
-	dc.l 0x00080008, 0x00100008
-	dc.l 0x00000020, 0x00000020
-	dc.l 0x0020FFE0, 0xFFF8FFE0
-	dc.l 0x00000020, 0x00000020
+	dc.l 0xFFECFFF0, 0xFFF4FFF0, 0xFFECFFF0, 0xFFF4FFF0
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
+	dc.l 0x0020FFE0, 0xFFF8FFE0, 0x00200008, 0xFFF80008
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
 	Even
 
 ; Subsprite dimension bits (for sprite descs)
@@ -91,12 +92,12 @@ actor_nymn_sheet_jump_frame_1_size_b		equ 0x0320	; Size in bytes
 actor_nymn_sheet_jump_frame_1_size_t		equ 0x0019	; Size in tiles
 actor_nymn_sheet_jump_frame_1_size_subsprites		equ 0x0004	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_nymn_sheet_jump_frame_1_subsprite_pos_offsets:
-	dc.l 0x00080008, 0x00100008
-	dc.l 0x00000020, 0x00000020
-	dc.l 0x0020FFE0, 0xFFF8FFE0
-	dc.l 0x00000020, 0x00000020
+	dc.l 0xFFECFFF0, 0xFFF4FFF0, 0xFFECFFF0, 0xFFF4FFF0
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
+	dc.l 0x0020FFE0, 0xFFF8FFE0, 0x00200008, 0xFFF80008
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
 	Even
 
 ; Subsprite dimension bits (for sprite descs)
@@ -111,12 +112,12 @@ actor_nymn_sheet_jump_frame_2_size_b		equ 0x0320	; Size in bytes
 actor_nymn_sheet_jump_frame_2_size_t		equ 0x0019	; Size in tiles
 actor_nymn_sheet_jump_frame_2_size_subsprites		equ 0x0004	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_nymn_sheet_jump_frame_2_subsprite_pos_offsets:
-	dc.l 0x00080008, 0x00100008
-	dc.l 0x00000020, 0x00000020
-	dc.l 0x0020FFE0, 0xFFF8FFE0
-	dc.l 0x00000020, 0x00000020
+	dc.l 0xFFECFFF0, 0xFFF4FFF0, 0xFFECFFF0, 0xFFF4FFF0
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
+	dc.l 0x0020FFE0, 0xFFF8FFE0, 0x00200008, 0xFFF80008
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
 	Even
 
 ; Subsprite dimension bits (for sprite descs)
@@ -131,12 +132,12 @@ actor_nymn_sheet_jump_frame_3_size_b		equ 0x0320	; Size in bytes
 actor_nymn_sheet_jump_frame_3_size_t		equ 0x0019	; Size in tiles
 actor_nymn_sheet_jump_frame_3_size_subsprites		equ 0x0004	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_nymn_sheet_jump_frame_3_subsprite_pos_offsets:
-	dc.l 0x00080008, 0x00100008
-	dc.l 0x00000020, 0x00000020
-	dc.l 0x0020FFE0, 0xFFF8FFE0
-	dc.l 0x00000020, 0x00000020
+	dc.l 0xFFECFFF0, 0xFFF4FFF0, 0xFFECFFF0, 0xFFF4FFF0
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
+	dc.l 0x0020FFE0, 0xFFF8FFE0, 0x00200008, 0xFFF80008
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
 	Even
 
 ; Subsprite dimension bits (for sprite descs)
@@ -151,10 +152,10 @@ actor_nymn_sheet_jump_frame_4_size_b		equ 0x0280	; Size in bytes
 actor_nymn_sheet_jump_frame_4_size_t		equ 0x0014	; Size in tiles
 actor_nymn_sheet_jump_frame_4_size_subsprites		equ 0x0002	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_nymn_sheet_jump_frame_4_subsprite_pos_offsets:
-	dc.l 0x00080008, 0x00100008
-	dc.l 0x00000020, 0x00000020
+	dc.l 0xFFECFFF0, 0xFFF4FFF0, 0xFFECFFF0, 0xFFF4FFF0
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
 	Even
 
 ; Subsprite dimension bits (for sprite descs)
@@ -167,10 +168,10 @@ actor_nymn_sheet_jump_frame_5_size_b		equ 0x0280	; Size in bytes
 actor_nymn_sheet_jump_frame_5_size_t		equ 0x0014	; Size in tiles
 actor_nymn_sheet_jump_frame_5_size_subsprites		equ 0x0002	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_nymn_sheet_jump_frame_5_subsprite_pos_offsets:
-	dc.l 0x00080008, 0x00100008
-	dc.l 0x00000020, 0x00000020
+	dc.l 0xFFECFFF0, 0xFFF4FFF0, 0xFFECFFF0, 0xFFF4FFF0
+	dc.l 0x00000020, 0x00000020, 0x0000FFF8, 0x0000FFF8
 	Even
 
 ; Subsprite dimension bits (for sprite descs)
@@ -183,10 +184,10 @@ actor_nymn_sheet_jump_frame_6_size_b		equ 0x0280	; Size in bytes
 actor_nymn_sheet_jump_frame_6_size_t		equ 0x0014	; Size in tiles
 actor_nymn_sheet_jump_frame_6_size_subsprites		equ 0x0002	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_nymn_sheet_jump_frame_6_subsprite_pos_offsets:
-	dc.l 0x00080008, 0x00100008
-	dc.l 0x00200000, 0xFFF80000
+	dc.l 0xFFECFFF0, 0xFFF4FFF0, 0xFFECFFF0, 0xFFF4FFF0
+	dc.l 0x00200000, 0xFFF80000, 0x00200000, 0xFFF80000
 	Even
 
 ; Subsprite dimension bits (for sprite descs)
@@ -199,10 +200,10 @@ actor_nymn_sheet_jump_frame_7_size_b		equ 0x0280	; Size in bytes
 actor_nymn_sheet_jump_frame_7_size_t		equ 0x0014	; Size in tiles
 actor_nymn_sheet_jump_frame_7_size_subsprites		equ 0x0002	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_nymn_sheet_jump_frame_7_subsprite_pos_offsets:
-	dc.l 0x00080008, 0x00100008
-	dc.l 0x00200000, 0xFFF80000
+	dc.l 0xFFECFFF0, 0xFFF4FFF0, 0xFFECFFF0, 0xFFF4FFF0
+	dc.l 0x00200000, 0xFFF80000, 0x00200000, 0xFFF80000
 	Even
 
 ; Subsprite dimension bits (for sprite descs)

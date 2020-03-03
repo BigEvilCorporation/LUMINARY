@@ -18,13 +18,14 @@ actor_test_sheet_test_frame_0_header:
 	dc.l actor_test_sheet_test_frame_0_subsprite_dimensions_bits	; SpriteFrame_LayoutTable
 	dc.l actor_test_sheet_test_frame_0_subsprite_pos_offsets	; SpriteFrame_PosOffsetTable
 
+actor_test_sheet_test_frametable:
 actor_test_sheet_test_frame_0_size_b		equ 0x0080	; Size in bytes
 actor_test_sheet_test_frame_0_size_t		equ 0x0004	; Size in tiles
 actor_test_sheet_test_frame_0_size_subsprites		equ 0x0001	; Size in subsprites
 
-; Subsprite offsets from 0,0 (in pixels) - unflipped (ww) and flipped X (ww)
+; Subsprite offsets (deltas) (in pixels) - unflipped (ww), flipped X (ww), flipped Y (ww), flipped XY (ww)
 actor_test_sheet_test_frame_0_subsprite_pos_offsets:
-	dc.l 0x00000000, 0x00000000
+	dc.l 0xFFF8FFF8, 0xFFF8FFF8, 0xFFF8FFF8, 0xFFF8FFF8
 	Even
 
 ; Subsprite dimension bits (for sprite descs)

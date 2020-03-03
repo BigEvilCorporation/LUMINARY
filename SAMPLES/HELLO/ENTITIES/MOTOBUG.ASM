@@ -20,10 +20,11 @@ EMOTOBUG_EXHAUST_OFFS_X_FRAME           equ 0x08
 ; Motobug entity
     ENTITY_BEGIN EMotobug
 EMotobug_IdleTimer                      rs.w 1
-EMotoBug_VelX                           rs.w 1
+EMotobug_VelX                           rs.w 1
     ENT_COMPONENT_NAMED ECSprite,SpriteBody
     ENT_COMPONENT_NAMED ECSprite,SpriteExhaust
     ENT_COMPONENT ECEnemy
+    ENT_COMPONENT ECScript
     ENTITY_END
 
 EMotobug_Initialise:

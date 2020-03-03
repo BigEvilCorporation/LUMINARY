@@ -19,6 +19,10 @@ stampset_tst1:
 	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\GSTAMPS.BIN'
 	even
 
+map_tst1_bg:
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\GBG.BIN'
+	even
+
 map_tst1_tst1:
 	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\GTST1.BIN'
 	even
@@ -29,6 +33,10 @@ collision_tileset_tst1:
 
 collision_stampset_tst1:
 	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\CSTAMPS.BIN'
+	even
+
+collision_map_tst1_bg:
+	incbin 'SAMPLES\HELLO\DATA\SCENES\CHAPTR01\CBG.BIN'
 	even
 
 collision_map_tst1_tst1:
