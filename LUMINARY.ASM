@@ -71,6 +71,7 @@
 
     ; Script system
     include 'framewk/script/script.asm'
+    include 'framewk/script/engine.asm'
 
     ; Entities and components
     include 'framewk/entities/physbasc.asm'

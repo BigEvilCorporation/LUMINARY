@@ -81,7 +81,7 @@ namespace luminary
 			param.name = variable.m_name;
 			param.value = "0x0";
 
-			std::string scriptRoutine;
+			std::string scriptAddress;
 
 			//Search for supported tags
 			if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityDesc)))
@@ -159,17 +159,34 @@ namespace luminary
 			{
 				param.value = std::string("scriptdata_") + gameObjectType.GetName();
 			}
-			else if (variable.FindTagValue("SCRIPTFUNC", scriptRoutine))
+			else if (variable.FindTagValue("SCRIPTFUNC", scriptAddress))
 			{
 				ScriptAddressMap::const_iterator it = scriptAddresses.find(gameObjectType.GetName());
 				if (it != scriptAddresses.end())
 				{
 					for (auto address : it->second)
 					{
-						if (address.routineName == scriptRoutine)
+						if (address.name == scriptAddress)
 						{
 							std::stringstream stream;
-							stream << "0x" << SSTREAM_HEX4(address.routineAddress);
+							stream << "0x" << SSTREAM_HEX4(address.address);
+							param.value = stream.str();
+							break;
+						}
+					}
+				}
+			}
+			else if (variable.FindTagValue("SCRIPTGLOBAL", scriptAddress))
+			{
+				ScriptAddressMap::const_iterator it = scriptAddresses.find(gameObjectType.GetName());
+				if (it != scriptAddresses.end())
+				{
+					for (auto address : it->second)
+					{
+						if (address.name == scriptAddress)
+						{
+							std::stringstream stream;
+							stream << "0x" << SSTREAM_HEX4(address.address);
 							param.value = stream.str();
 							break;
 						}

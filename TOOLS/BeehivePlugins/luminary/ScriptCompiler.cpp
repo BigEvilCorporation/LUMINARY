@@ -25,7 +25,7 @@ namespace luminary
 	};
 
 	const std::string g_compilerExe = "m68k-elf-gcc.exe";
-	const std::string g_compilerArg = "-m68000 -O3 -Wall -fno-builtin -nostdlib -n -fno-inline -fpie -x c++ -c";
+	const std::string g_compilerArg = "-m68000 -O3 -Wall -fno-builtin -nostdlib -n -fno-inline -fpie -x c++ -c -Wl,-N";
 	const std::string g_objcopyExe = "m68k-elf-objcopy.exe";
 	const std::string g_objcopyArg = "-j .text -O binary";
 	const std::string g_symbolReadExe = "m68k-elf-objdump.exe";
@@ -52,9 +52,9 @@ namespace luminary
 
 	const std::vector<ScriptFunc> g_scriptFuncs =
 	{
-		{ "void", "OnStart", "" },
-		{ "void", "OnShutdown", "" },
-		{ "void", "OnUpdate", "" },
+		{ "void", "OnStart", "const Engine& engine, const Scene& scene" },
+		{ "void", "OnShutdown", "const Engine& engine, const Scene& scene" },
+		{ "void", "OnUpdate", "const Engine& engine, const Scene& scene" },
 	};
 
 	bool ScriptTranspiler::GenerateEntityCppHeader(const Entity& entity, const std::string& outputDir)
@@ -245,12 +245,32 @@ namespace luminary
 		return GetBinPath(compilerDir) + "\\" + g_symbolReadExe + " " + g_symbolReadArg + " " + filenameNoExt + ".o ";
 	}
 
-	int ScriptCompiler::FindFunctionOffset(const std::vector<std::string>& symbolOutput, const std::string& className, const std::string& routineName)
+	int ScriptCompiler::FindFunctionOffset(const std::vector<std::string>& symbolOutput, const std::string& className, const std::string& name)
 	{
 		for (auto line : symbolOutput)
 		{
 			//TODO: A bit primitive, will have many edge cases
-			if (line.find(className) != std::string::npos && line.find(routineName) != std::string::npos)
+			if (line.find(className) != std::string::npos && line.find(name) != std::string::npos)
+			{
+				std::vector<std::string> tokens;
+				ion::string::TokeniseByWhitespace(line, tokens);
+				std::string addressHexText = tokens[0];
+				return std::stoul(addressHexText, nullptr, 16);
+			}
+		}
+
+		return -1;
+	}
+
+	int ScriptCompiler::FindGlobalVarOffset(const std::vector<std::string>& symbolOutput, const std::string& typeName)
+	{
+		for (auto line : symbolOutput)
+		{
+			//TODO: A bit primitive, will have many edge cases
+			std::string searchTermRef = "static const " + typeName + "&";
+			std::string searchTermPtr = "static const " + typeName + "*";
+
+			if (line.find(searchTermRef) != std::string::npos || line.find(searchTermPtr) != std::string::npos)
 			{
 				std::vector<std::string> tokens;
 				ion::string::TokeniseByWhitespace(line, tokens);

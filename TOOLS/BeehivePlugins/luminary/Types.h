@@ -72,8 +72,8 @@ namespace luminary
 
 	struct ScriptAddress
 	{
-		std::string routineName;
-		int routineAddress;
+		std::string name;
+		int address;
 	};
 
 	typedef std::map<std::string, std::vector<luminary::ScriptAddress>> ScriptAddressMap;

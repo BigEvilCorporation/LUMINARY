@@ -23,9 +23,11 @@ ScriptState_Run:
 
     move.l ScriptState_Data(a0), a3
     adda.w ScriptState_FuncStart(a0), a3
+    PUSH.L RAM_SCENE_DATA               ; Scene& scene
+    pea    ScriptGlobal_Engine          ; Engine& engine
     PUSH.L a1                           ; this
     jsr    (a3)                         ; ::Start()
-    POP.L  a1
+    adda.l #0xC, sp
 
     rts
 
@@ -39,9 +41,10 @@ ScriptState_Update:
 
     move.l ScriptState_Data(a0), a3
     adda.w ScriptState_FuncUpdate(a0), a3
-
+    PUSH.L RAM_SCENE_DATA               ; Scene& scene
+    pea    ScriptGlobal_Engine          ; Engine& engine
     PUSH.L a1                           ; this
     jsr    (a3)                         ; ::Update()
-    POP.L  a1
+    adda.l #0xC, sp
 
     rts

@@ -90,11 +90,11 @@ SCN_LoadScene:
     subi.w #0x1, d2
 
     @StaticEntLp:
-    move.l (a3)+, a0                    ; Get entity
-    movea.w Entity_TypeDesc(a0), a2      ; Get type desc
-    movea.w EntityTypeDesc_Constructor(a2), a2; Get init func
+    move.l (a3)+, a0                     		; Get entity
+    movea.w Entity_TypeDesc(a0), a2      		; Get type desc
+    movea.w EntityTypeDesc_Constructor(a2), a2	; Get init func
     PUSHM.L d2/a0-a3
-    jsr    (a2)                         ; Update
+    jsr    (a2)                          		; Call init func
     POPM.L  d2/a0-a3
     dbra   d2, @StaticEntLp
 
