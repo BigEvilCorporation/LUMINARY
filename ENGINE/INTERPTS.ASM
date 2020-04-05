@@ -13,10 +13,46 @@ INT_Null:
     rte
 
 ; ======================================
-; INT_Exception - CPU error
+; Error exceptions
 ; ======================================
-INT_Exception:
-    DBG_RAISE_ERROR "INT_Exception"
+INT_Exc_BusError:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_BUS
+    rte
+
+INT_Exc_AddrError:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_ADDRESS
+    rte
+
+INT_Exc_IllegalInstr:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_INSTRUCTION
+    rte
+
+INT_Exc_DivZero:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_DIVZERO
+    rte
+
+INT_Exc_CHK:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_CHK
+    rte
+
+INT_Exc_TRAPV:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_TRAPV
+    rte
+
+INT_Exc_Privilege:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_PRIVILEGE
+    rte
+
+INT_Exc_UnhandledInt:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_UNHANDLEDINT
+    rte
+
+INT_Exc_UnhandledTrap:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_UNHANDLEDTRAP
+    rte
+
+INT_Exc_UnhandledExc:
+    ERR_EXCEPTION ERR_EXCEPTIONTYPE_UNKNOWN
     rte
 
 ; ======================================
