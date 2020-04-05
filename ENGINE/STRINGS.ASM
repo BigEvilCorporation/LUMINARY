@@ -6,6 +6,39 @@
 ; STRINGS.ASM - String manipulation
 ; ============================================================================================
 
+STR_ConcatA:
+	; ======================================
+    ; Concatenates two ASCII strings
+    ; ======================================
+    ; In:
+	; a0   String to append to
+	; a1   String to append
+    ; ======================================
+    ; Out:
+    ; a0   String address
+	; a1   String end address
+    ; ======================================
+
+	move.l a0, a2
+
+	; Find end of string A
+	@FindTermLp:
+	tst.b  (a0)
+	beq    @FoundEnd
+	adda.l #0x1, a0
+	bra    @FindTermLp
+	@FoundEnd:
+
+	; Copy string B until end
+	@CopyLp:
+	move.b (a1)+, (a0)+
+	bne    @CopyLp
+
+	move.l a0, a1	; String end
+	move.l a2, a0	; String start
+
+	rts
+
 STR_ItoA_Hex_b:
     ; ======================================
     ; Converts a byte to hex ASCII
@@ -135,5 +168,36 @@ STR_ItoA_Hex_l
 	dbra   d2, @NybbleLp	; Loop
 
 	@End:
+
+	rts
+
+STR_Concat_ItoA_Hex_l
+    ; ======================================
+    ; Converts a longword to hex ASCII and
+	; concatenates to end of exist string
+    ; ======================================
+    ; In:
+	; a0   String to append to
+	; d0.l Number to convert
+    ; ======================================
+    ; Out:
+    ; a0   String address
+    ; a1   String end address
+    ; ======================================
+
+	move.l a0, a2
+
+	; Find end of string
+	@FindTermLp:
+	tst.b  (a0)
+	beq    @FoundEnd
+	adda.l #0x1, a0
+	bra    @FindTermLp
+	@FoundEnd:
+
+	; Concat ItoA
+	bsr    STR_ItoA_Hex_l
+
+	move.l a2, a0
 
 	rts

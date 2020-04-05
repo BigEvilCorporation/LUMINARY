@@ -74,6 +74,19 @@ STACK_ALLOC: macro bytes,addr_reg
 	sub.l  #\bytes, sp
     move.l sp, \addr_reg
 	endm
+
+STACK_ALLOC_STRING: macro bytes,addr_reg
+    ; ======================================
+    ; Allocate bytes from stack for string
+    ; use (terminates first byte)
+    ; ======================================
+    ; bytes    - Bytes to alloc
+    ; addr_reg - Dest address reg
+    ; ======================================
+	sub.l  #\bytes, sp
+    move.l sp, \addr_reg
+    move.b #0x0, (\addr_reg)
+	endm
 	
 STACK_FREE: macro bytes
     ; ======================================

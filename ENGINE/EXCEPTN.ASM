@@ -32,18 +32,26 @@ ERR_EXCEPTION_HEADERPOSX		equ 0x02
 ERR_EXCEPTION_HEADERPOSY		equ 0x01
 ERR_EXCEPTION_MSGPOSX			equ 0x02
 ERR_EXCEPTION_MSGPOSY			equ 0x03
-ERR_EXCEPTION_REGPOSX			equ 0x02
-ERR_EXCEPTION_REGPOSY			equ 0x05
-ERR_EXCEPTION_STACKPOSX			equ 0x014
+ERR_EXCEPTION_REGDPOSX			equ 0x02
+ERR_EXCEPTION_REGDPOSY			equ 0x05
+ERR_EXCEPTION_REGAPOSX			equ 0x0F
+ERR_EXCEPTION_REGAPOSY			equ 0x05
+ERR_EXCEPTION_REGSPOSX			equ 0x02
+ERR_EXCEPTION_REGSPOSY			equ 0x0F
+ERR_EXCEPTION_STACKPOSX			equ 0x01C
 ERR_EXCEPTION_STACKPOSY			equ 0x05
 ERR_EXCEPTION_FOOTER1POSX		equ 0x02
 ERR_EXCEPTION_FOOTER1POSY		equ 0x18
 ERR_EXCEPTION_FOOTER2POSX		equ 0x02
 ERR_EXCEPTION_FOOTER2POSY		equ 0x1A
 ERR_EXCEPTION_LINESPACE			equ 0x01
-ERR_EXCEPTION_REGCOUNT			equ 0x12	; 18 regs (a0-a6 + d0-d7 + SP + SR + PC)
+ERR_EXCEPTION_REGCOUNTD			equ 0x08	; 8x D regs (d0-d7)
+ERR_EXCEPTION_REGCOUNTA			equ 0x07	; 7x A regs (a0-a6)
+ERR_EXCEPTION_REGCOUNTS			equ 0x03	; 3x S regs (SP + SR + PC)
 ERR_EXCEPTION_MAXSTACK			equ 0x10
+ERR_EXCEPTION_REG_STRLEN		equ 0x04
 ERR_EXCEPTION_ERROR_STRLEN		equ 0x18
+ERR_EXCEPTION_HEART_SYMBOL		equ STR_ASCII_START+(SIZEOF_debug_font/SIZE_TILE_B)
 
 ERR_EXCEPTIONTYPE_ADDRESS		equ 0x0
 ERR_EXCEPTIONTYPE_BUS			equ 0x1
@@ -56,26 +64,26 @@ ERR_EXCEPTIONTYPE_UNHANDLEDINT	equ 0x7
 ERR_EXCEPTIONTYPE_UNHANDLEDTRAP	equ 0x8
 ERR_EXCEPTIONTYPE_UNKNOWN		equ 0x9
 
-	; 8 byte strings
+	; 4 byte strings
 ERR_Exception_RegNames:
-	dc.b "D0: ",0,0,0,0
-	dc.b "D1: ",0,0,0,0
-	dc.b "D2: ",0,0,0,0
-	dc.b "D3: ",0,0,0,0
-	dc.b "D4: ",0,0,0,0
-	dc.b "D5: ",0,0,0,0
-	dc.b "D6: ",0,0,0,0
-	dc.b "D7: ",0,0,0,0
-	dc.b "A0: ",0,0,0,0
-	dc.b "A1: ",0,0,0,0
-	dc.b "A2: ",0,0,0,0
-	dc.b "A3: ",0,0,0,0
-	dc.b "A4: ",0,0,0,0
-	dc.b "A5: ",0,0,0,0
-	dc.b "A6: ",0,0,0,0
-	dc.b "SP: ",0,0,0,0
-	dc.b "SR: ",0,0,0,0
-	dc.b "PC: ",0,0,0,0
+	dc.b "D0 ",0
+	dc.b "D1 ",0
+	dc.b "D2 ",0
+	dc.b "D3 ",0
+	dc.b "D4 ",0
+	dc.b "D5 ",0
+	dc.b "D6 ",0
+	dc.b "D7 ",0
+	dc.b "A0 ",0
+	dc.b "A1 ",0
+	dc.b "A2 ",0
+	dc.b "A3 ",0
+	dc.b "A4 ",0
+	dc.b "A5 ",0
+	dc.b "A6 ",0
+	dc.b "SP ",0
+	dc.b "SR ",0
+	dc.b "PC ",0
 	even
 
 ERR_Exception_Header:
@@ -87,7 +95,7 @@ ERR_Exception_Footer_1:
 	even
 
 ERR_Exception_Footer_2:
-	dc.b "Really sorry about this <3",0
+	dc.b "Really sorry about this ",ERR_EXCEPTION_HEART_SYMBOL,0
 	even
 	
 	; 32 byte strings
@@ -108,6 +116,16 @@ ERR_Exception_Str_Stack:
 	dc.b "Stack:",0
 	even
 
+ERR_Heart:
+    dc.l 0x03303330
+    dc.l 0x35232243
+    dc.l 0x35222243
+    dc.l 0x32222243
+	dc.l 0x03222430
+    dc.l 0x00344300
+    dc.l 0x00033000
+    dc.l 0x00000000
+
 ERR_HandleException:
 
 	;==============================================================
@@ -115,11 +133,16 @@ ERR_HandleException:
 	; Re-initialise VDP, load font
 	bsr     ERR_ResetForError
 
+	; Load heart symbol
+    lea    ERR_Heart, a0
+    move.w #SIZEOF_debug_font/SIZE_TILE_B, d0
+	move.w #0x1, d1
+    bsr    VDP_LoadTiles
+
 	;==============================================================
 
 	; Draw error header
 	lea    ERR_Exception_Header, a0
-	adda.l d0, a0
 	move.w #ERR_EXCEPTION_HEADERPOSX, d0
 	move.w #ERR_EXCEPTION_HEADERPOSY, d1
 	bsr    DBG_DrawString
@@ -138,40 +161,103 @@ ERR_HandleException:
 
 	;==============================================================
 	
-	; Draw all regs
-	move.w  #ERR_EXCEPTION_REGPOSY, d6
-	move.l  #0x0, d7
-	@RegLoop:
+	; Draw D regs
+	move.w  #ERR_EXCEPTION_REGDPOSY, d6
+	lea     ERR_Exception_RegNames, a5
+	moveq   #0x0, d7
+	@DRegLoop:
 	
 	; Get next reg value
 	move.l  (sp)+, d0
 
 	; Alloc string space
-	STACK_ALLOC 0x10, a4
+	STACK_ALLOC_STRING 0x10, a0
 	
 	; Copy reg name
-	move.l  d7, d1
-	mulu    #0x8, d1
-	move.l  d1, a5
-	move.l  ERR_Exception_RegNames(a5), (a4)+	; String first 4 bytes
+	move.l  a5, a1
+	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
+	bsr     STR_ConcatA
 	
 	; Reg value to string
-	move.l  a4, a0
-	jsr     STR_ItoA_Hex_l
-	sub.l   #SIZE_LONG, a4				; String addr back to reg name offset
+	jsr     STR_Concat_ItoA_Hex_l
 	
-	move.w  #ERR_EXCEPTION_REGPOSX, d0	; X coord
-	move.w  d6, d1						; Y coord
-	addi.w  #ERR_EXCEPTION_LINESPACE, d6; Next line
-	move.l  a4, a0						; String address
+	move.w  #ERR_EXCEPTION_REGDPOSX, d0		; X coord
+	move.w  d6, d1							; Y coord
+	addi.w  #ERR_EXCEPTION_LINESPACE, d6	; Next line
 	bsr     DBG_DrawString
 	
 	; Free string space
 	STACK_FREE 0x10
 	
 	addq.l  #0x1, d7
-	cmp.l   #ERR_EXCEPTION_REGCOUNT, d7
-	bne     @RegLoop
+	cmp.l   #ERR_EXCEPTION_REGCOUNTD, d7
+	bne     @DRegLoop
+
+	;==============================================================
+
+	; Draw A regs
+	move.w  #ERR_EXCEPTION_REGAPOSY, d6
+	moveq   #0x0, d7
+	@ARegLoop:
+	
+	; Get next reg value
+	move.l  (sp)+, d0
+
+	; Alloc string space
+	STACK_ALLOC_STRING 0x10, a0
+	
+	; Copy reg name
+	move.l  a5, a1
+	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
+	bsr     STR_ConcatA
+	
+	; Reg value to string
+	jsr     STR_Concat_ItoA_Hex_l
+	
+	move.w  #ERR_EXCEPTION_REGAPOSX, d0		; X coord
+	move.w  d6, d1							; Y coord
+	addi.w  #ERR_EXCEPTION_LINESPACE, d6	; Next line
+	bsr     DBG_DrawString
+	
+	; Free string space
+	STACK_FREE 0x10
+	
+	addq.l  #0x1, d7
+	cmp.l   #ERR_EXCEPTION_REGCOUNTA, d7
+	bne     @ARegLoop
+
+	;==============================================================
+
+	; Draw S regs
+	move.w  #ERR_EXCEPTION_REGSPOSY, d6
+	moveq   #0x0, d7
+	@SRegLoop:
+	
+	; Get next reg value
+	move.l  (sp)+, d0
+
+	; Alloc string space
+	STACK_ALLOC_STRING 0x10, a0
+	
+	; Copy reg name
+	move.l  a5, a1
+	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
+	bsr     STR_ConcatA
+	
+	; Reg value to string
+	jsr     STR_Concat_ItoA_Hex_l
+	
+	move.w  #ERR_EXCEPTION_REGSPOSX, d0		; X coord
+	move.w  d6, d1							; Y coord
+	addi.w  #ERR_EXCEPTION_LINESPACE, d6	; Next line
+	bsr     DBG_DrawString
+	
+	; Free string space
+	STACK_FREE 0x10
+	
+	addq.l  #0x1, d7
+	cmp.l   #ERR_EXCEPTION_REGCOUNTS, d7
+	bne     @SRegLoop
 
 	;==============================================================
 

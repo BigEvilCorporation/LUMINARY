@@ -25,6 +25,9 @@ ERR_ResetForError:
     lea    default_vdp_regs, a0
     bsr    VDP_LoadRegisters
 
+    ; Clear VRAM
+    bsr    VRAM_Clear
+
     ; Reset scroll
     VDP_SET_VRAM_WRITE VRAM_ADDR_HSCROLL
     move.w #0x0000, PORT_VDP_DATA

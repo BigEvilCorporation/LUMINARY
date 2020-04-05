@@ -9,15 +9,15 @@
 ASSET_INCLUDE_BIN: macro name,path
 \name:
     incbin \path
-    even
 \name\_end
+    even
 SIZEOF_\name\ equ \name\_end-\name
     endm
 
 ASSET_INCLUDE_ASM: macro name,path
 \name:
     include \path
-    even
 \name\_end
+    even
 SIZEOF_\name\ equ \name\_end-\name
     endm

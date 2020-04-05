@@ -15,12 +15,18 @@ VRAM_Clear:
 
     VDP_SET_VRAM_WRITE 0x0000
 
-    movea  #0x0, a0
-    movea  PORT_VDP_CONTROL, a5
+    move.l #PORT_VDP_DATA, a5
     moveq  #0x0, d1
-    move.w #VRAM_SIZE_L-1, d0
+    move.w #(VRAM_SIZE_L/8)-1, d0
     @Lp:
-    move.l d1, a5
+    move.l d1, (a5)
+	move.l d1, (a5)
+	move.l d1, (a5)
+	move.l d1, (a5)
+	move.l d1, (a5)
+	move.l d1, (a5)
+	move.l d1, (a5)
+	move.l d1, (a5)
     dbra   d0, @Lp
 
     rts
