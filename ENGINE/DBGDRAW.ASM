@@ -38,3 +38,43 @@ DBG_DrawString:
     @End:
 
     rts
+
+DBG_DrawString_Pal:
+    ; ======================================
+    ; Draws debug text string to plane A,
+    ; with variable palette.
+    ; Not corrected for scrolling.
+    ; Assumes 2 byte VDP autoincrement.
+    ; ======================================
+    ; a0   String
+    ; d0.w X coord (plane A cells)
+    ; d1.w Y coord (plane A cells)
+    ; d2.b Palette idx
+    ; ======================================
+
+    ; Coord to plane offset, set address for writing
+    VRAM_CELL_COORDS_TO_BYTES d0, d1, d3
+    VDP_SETADDRESS d3, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
+
+    ; Palette to bits
+    andi.w #0x3, d2
+    lsl.w  #0x8, d2
+    lsl.w  #0x5, d2
+
+    ; Get font addr
+    move.l RAM_DBG_FONT_VRAM, d0
+
+    ; Loop until terminator
+    @CharLp:
+    moveq  #0x0, d3
+    move.b (a0)+, d3
+    beq    @End
+    sub.b  #STR_ASCII_START, d3         ; Tile idx = char - ascii start + font addr
+    add.w  d0, d3
+    or.w   d2, d3
+    move.w d3, PORT_VDP_DATA
+    bra    @CharLp                      
+
+    @End:
+
+    rts

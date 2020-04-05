@@ -41,6 +41,8 @@
     include 'engine/collisn.asm'
     include 'engine/dbgdraw.asm'
     include 'engine/error.asm'
+    include 'engine/exceptn.asm'
+    include 'engine/font.asm'
     include 'engine/gamepad.asm'
     include 'engine/interpts.asm'
     include 'engine/map.asm'

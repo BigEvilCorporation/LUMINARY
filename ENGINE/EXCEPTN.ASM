@@ -31,13 +31,13 @@ ERR_EXCEPTION: macro error_type
 ERR_EXCEPTION_HEADERPOSX		equ 0x02
 ERR_EXCEPTION_HEADERPOSY		equ 0x01
 ERR_EXCEPTION_MSGPOSX			equ 0x02
-ERR_EXCEPTION_MSGPOSY			equ 0x03
+ERR_EXCEPTION_MSGPOSY			equ 0x05
 ERR_EXCEPTION_REGDPOSX			equ 0x02
-ERR_EXCEPTION_REGDPOSY			equ 0x05
+ERR_EXCEPTION_REGDPOSY			equ 0x07
 ERR_EXCEPTION_REGAPOSX			equ 0x0F
-ERR_EXCEPTION_REGAPOSY			equ 0x05
+ERR_EXCEPTION_REGAPOSY			equ 0x07
 ERR_EXCEPTION_REGSPOSX			equ 0x02
-ERR_EXCEPTION_REGSPOSY			equ 0x0F
+ERR_EXCEPTION_REGSPOSY			equ 0x11
 ERR_EXCEPTION_STACKPOSX			equ 0x01C
 ERR_EXCEPTION_STACKPOSY			equ 0x05
 ERR_EXCEPTION_FOOTER1POSX		equ 0x02
@@ -113,17 +113,17 @@ ERR_Exception_Msgs:
 	even
 
 ERR_Exception_Str_Stack:
-	dc.b "Stack:",0
+	dc.b "Stack",0
 	even
 
 ERR_Heart:
-    dc.l 0x03303330
-    dc.l 0x35232243
-    dc.l 0x35222243
-    dc.l 0x32222243
-	dc.l 0x03222430
-    dc.l 0x00344300
-    dc.l 0x00033000
+    dc.l 0x04404440
+    dc.l 0x46343354
+    dc.l 0x46333354
+    dc.l 0x43333354
+	dc.l 0x04333540
+    dc.l 0x00455400
+    dc.l 0x00044000
     dc.l 0x00000000
 
 ERR_HandleException:
@@ -145,7 +145,8 @@ ERR_HandleException:
 	lea    ERR_Exception_Header, a0
 	move.w #ERR_EXCEPTION_HEADERPOSX, d0
 	move.w #ERR_EXCEPTION_HEADERPOSY, d1
-	bsr    DBG_DrawString
+	move.b #ERR_TEXT_PAL_TITLE, d2
+	bsr    DBG_DrawString_Pal
 
 	; Pop error type
 	moveq  #0x0, d0
@@ -157,7 +158,8 @@ ERR_HandleException:
 	adda.l d0, a0
 	move.w #ERR_EXCEPTION_MSGPOSX, d0
 	move.w #ERR_EXCEPTION_MSGPOSY, d1
-	bsr    DBG_DrawString
+	move.b #ERR_TEXT_PAL_LABEL, d2
+	bsr    DBG_DrawString_Pal
 
 	;==============================================================
 	
@@ -167,25 +169,29 @@ ERR_HandleException:
 	moveq   #0x0, d7
 	@DRegLoop:
 	
+	; Draw reg name
+	move.l  a5, a0
+	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
+	move.w  #ERR_EXCEPTION_REGDPOSX, d0		; X coord
+	move.w  d6, d1							; Y coord
+	move.b #ERR_TEXT_PAL_LABEL, d2
+	bsr    DBG_DrawString_Pal
+
 	; Get next reg value
 	move.l  (sp)+, d0
 
 	; Alloc string space
 	STACK_ALLOC_STRING 0x10, a0
 	
-	; Copy reg name
-	move.l  a5, a1
-	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
-	bsr     STR_ConcatA
-	
 	; Reg value to string
 	jsr     STR_Concat_ItoA_Hex_l
 	
-	move.w  #ERR_EXCEPTION_REGDPOSX, d0		; X coord
+	; Draw reg value
+	move.w  #ERR_EXCEPTION_REGDPOSX+ERR_EXCEPTION_REG_STRLEN-1, d0		; X coord
 	move.w  d6, d1							; Y coord
 	addi.w  #ERR_EXCEPTION_LINESPACE, d6	; Next line
 	bsr     DBG_DrawString
-	
+
 	; Free string space
 	STACK_FREE 0x10
 	
@@ -200,25 +206,29 @@ ERR_HandleException:
 	moveq   #0x0, d7
 	@ARegLoop:
 	
+	; Draw reg name
+	move.l  a5, a0
+	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
+	move.w  #ERR_EXCEPTION_REGAPOSX, d0		; X coord
+	move.w  d6, d1							; Y coord
+	move.b #ERR_TEXT_PAL_LABEL, d2
+	bsr    DBG_DrawString_Pal
+
 	; Get next reg value
 	move.l  (sp)+, d0
 
 	; Alloc string space
 	STACK_ALLOC_STRING 0x10, a0
 	
-	; Copy reg name
-	move.l  a5, a1
-	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
-	bsr     STR_ConcatA
-	
 	; Reg value to string
 	jsr     STR_Concat_ItoA_Hex_l
 	
-	move.w  #ERR_EXCEPTION_REGAPOSX, d0		; X coord
+	; Draw reg value
+	move.w  #ERR_EXCEPTION_REGAPOSX+ERR_EXCEPTION_REG_STRLEN-1, d0		; X coord
 	move.w  d6, d1							; Y coord
 	addi.w  #ERR_EXCEPTION_LINESPACE, d6	; Next line
 	bsr     DBG_DrawString
-	
+
 	; Free string space
 	STACK_FREE 0x10
 	
@@ -233,25 +243,29 @@ ERR_HandleException:
 	moveq   #0x0, d7
 	@SRegLoop:
 	
+	; Draw reg name
+	move.l  a5, a0
+	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
+	move.w  #ERR_EXCEPTION_REGSPOSX, d0		; X coord
+	move.w  d6, d1							; Y coord
+	move.b #ERR_TEXT_PAL_LABEL, d2
+	bsr    DBG_DrawString_Pal
+
 	; Get next reg value
 	move.l  (sp)+, d0
 
 	; Alloc string space
 	STACK_ALLOC_STRING 0x10, a0
 	
-	; Copy reg name
-	move.l  a5, a1
-	adda.l  #ERR_EXCEPTION_REG_STRLEN, a5	; Next reg string
-	bsr     STR_ConcatA
-	
 	; Reg value to string
 	jsr     STR_Concat_ItoA_Hex_l
 	
-	move.w  #ERR_EXCEPTION_REGSPOSX, d0		; X coord
+	; Draw reg value
+	move.w  #ERR_EXCEPTION_REGSPOSX+ERR_EXCEPTION_REG_STRLEN-1, d0		; X coord
 	move.w  d6, d1							; Y coord
 	addi.w  #ERR_EXCEPTION_LINESPACE, d6	; Next line
 	bsr     DBG_DrawString
-	
+
 	; Free string space
 	STACK_FREE 0x10
 	
@@ -265,7 +279,8 @@ ERR_HandleException:
 	lea     ERR_EXCEPTION_STR_STACK, a0
 	move.w  #ERR_EXCEPTION_STACKPOSX, d0
 	move.w  #ERR_EXCEPTION_STACKPOSY, d1
-	bsr     DBG_DrawString
+	move.b #ERR_TEXT_PAL_LABEL, d2
+	bsr    DBG_DrawString_Pal
 
 	; Unwind stack
 	move.w  #ERR_EXCEPTION_STACKPOSY+2, d6
