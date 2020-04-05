@@ -21,5 +21,8 @@ namespace luminary
 		EntityExporter();
 
 		bool ExportArchetypes(const std::string& filename, const std::vector<Archetype>& archetypes);
+
+		static const int s_debugNameLen = 16;
+		static std::string CreateDebugNameData(const std::string& name, int maxLength);
 	};
 }

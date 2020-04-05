@@ -6,6 +6,21 @@
 ; STRINGS.ASM - String manipulation
 ; ============================================================================================
 
+STR_CopyA:
+	; ======================================
+    ; Copy a null terminated ASCII string
+    ; ======================================
+    ; In:
+	; a0   Destination
+	; a1   String to copy
+    ; ======================================
+
+	@CopyLp:
+	move.b (a1)+, (a0)+
+	bne    @CopyLp
+
+	rts
+
 STR_ConcatA:
 	; ======================================
     ; Concatenates two ASCII strings

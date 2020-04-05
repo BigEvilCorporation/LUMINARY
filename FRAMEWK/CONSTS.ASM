@@ -11,6 +11,9 @@ ENT_MGR_BLOCK_SIZE                      equ BLDCONF_ENT_MGR_BLOCK_SIZE
 ENT_MGR_MAX_BLOCKS                      equ BLDCONF_ENT_MGR_BLOCK_MAX_BLOCKS
 ENT_MGR_BLOCK_FLAG_ALLOCATED            equ 0x1
 
+; Entities
+ENT_DEBUG_NAME_LEN                      equ 0x10
+
 ; Scene manager
 SCN_MAX_ENTITIES                        equ BLDCONF_SCN_MAX_ENTITIES
 

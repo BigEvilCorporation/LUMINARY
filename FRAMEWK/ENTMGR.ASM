@@ -66,6 +66,15 @@ ENT_SpawnEntity:
     POPM.W  d0-d1
     move.l a0, a3
 
+    IFND FINAL
+    ; Set debug name
+    PUSHM.L a0-a1
+    lea    EntityBlock_DebugName(a0), a0
+    lea    EntitySpawnData_DebugName(a1), a1
+    bsr    STR_CopyA
+    POPM.L a0-a1
+	ENDIF
+
     ; Call base constructor
     bsr    Entity_Initialise
     
@@ -82,7 +91,7 @@ ENT_SpawnEntity:
     adda.w ComponentSlotDesc_AddrOffset(a2), a3     ; Get component ptr offset (within entity)
     adda.w ComponentSlotDesc_SpawnDataOffset(a2), a1; Get component spawn data offset (within spawn data)
     move.w a0, (a3)                                 ; Set component ptr on entity
-    movea.w ComponentSlotDesc_Constructor(a2), a3    ; Get component constructor addr
+    movea.w ComponentSlotDesc_Constructor(a2), a3   ; Get component constructor addr
     cmpa.w #0x0, a3
     beq    @NoConstructor
     PUSHM.L d0/a0-a5

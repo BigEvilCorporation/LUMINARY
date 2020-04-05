@@ -14,7 +14,7 @@
     ; ======================================
 ENTITY_SPAWN_DATA_BEGIN: macro entity_name
 __ENTITY_NAME equs "\entity_name\" 
-    RSSET  0
+    RSSET  SIZEOF_EntitySpawnDataBase
     endm
 
 ENTITY_SPAWN_DATA_END: macro
@@ -29,11 +29,13 @@ __SIZEOF_\__ENTITY_NAME\__SPAWNDATA     rs.b 0
     ; Name - Entity name
     ; ======================================
 COMPONENT_SPAWN_DATA_BEGIN: macro component_name
-    ENTITY_SPAWN_DATA_BEGIN \component_name
+__COMPONENT_NAME equs "\component_name\" 
+    RSSET  0
     endm
 
 COMPONENT_SPAWN_DATA_END: macro
-    ENTITY_SPAWN_DATA_END
+    STRUCT_ALIGN
+__SIZEOF_\__COMPONENT_NAME\__SPAWNDATA     rs.b 0
     endm
 
 ENTITY_BEGIN: macro name

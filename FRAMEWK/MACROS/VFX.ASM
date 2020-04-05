@@ -17,6 +17,9 @@
     ; ======================================
 VFX_DEFINE: macro name,sprite_sheet,sprite_anim,palette_idx,width,height
 VFX_\name\_SpawnData:
+    IFND FINAL
+    dc.b   "VFX",0,0,0,0,0,0,0,0,0,0,0,0,0
+	ENDIF
     dc.b   \palette_idx                 ; Palette idx
     even
     ; SDSprite

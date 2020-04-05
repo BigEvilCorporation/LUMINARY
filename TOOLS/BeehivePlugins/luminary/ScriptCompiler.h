@@ -27,9 +27,9 @@ namespace luminary
 	public:
 		std::string GetBinPath(const std::string& compilerDir);
 		std::string GetLibExecPath(const std::string& compilerDir, const std::string& compilerVer);
-		std::string GenerateCompileCommand(const std::string& filename, const std::string& compilerDir, const std::string& includeDirs);
-		std::string GenerateObjCopyCommand(const std::string& filename, const std::string& compilerDir);
-		std::string GenerateSymbolReadCommand(const std::string& filename, const std::string& compilerDir);
+		std::string GenerateCompileCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir, const std::string& includeDirs, const std::vector<std::string>& defines);
+		std::string GenerateObjCopyCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir);
+		std::string GenerateSymbolReadCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir);
 		int FindFunctionOffset(const std::vector<std::string>& symbolOutput, const std::string& className, const std::string& name);
 		int FindGlobalVarOffset(const std::vector<std::string>& symbolOutput, const std::string& typeName);
 	};

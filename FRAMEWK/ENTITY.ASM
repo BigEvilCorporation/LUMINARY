@@ -11,6 +11,9 @@
     ; by ENTITY_BEGIN/ENTITY_END.
     ; ======================================
     STRUCT_BEGIN EntityBlockData
+    IFND FINAL
+EntityBlock_DebugName                   rs.b ENT_DEBUG_NAME_LEN
+	ENDIF
 EntityBlock_Flags                       rs.w 1
 EntityBlock_Next                        rs.w 1
     STRUCT_END
@@ -57,6 +60,15 @@ Entity_ExtentsY                         rs.w 1  ; Half height in pixels
     ; ======================================
     STRUCT_INHERIT ComponentBase,EntityBlockData
 Component_Owner                         rs.w 1  ; Owning entity
+    STRUCT_END
+
+    ; ======================================
+    ; Entity spawn data base structure
+    ; ======================================
+    STRUCT_BEGIN EntitySpawnDataBase
+    IFND FINAL
+EntitySpawnData_DebugName               rs.b ENT_DEBUG_NAME_LEN
+	ENDIF
     STRUCT_END
 
 Entity_Initialise:

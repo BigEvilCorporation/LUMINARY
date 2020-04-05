@@ -227,22 +227,28 @@ namespace luminary
 			+ compilerDir + "\\libexec\\gcc\\m68k-elf\\" + compilerVer;
 	}
 
-	std::string ScriptCompiler::GenerateCompileCommand(const std::string& filename, const std::string& compilerDir, const std::string& includeDirs)
+	std::string ScriptCompiler::GenerateCompileCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir, const std::string& includeDirs, const std::vector<std::string>& defines)
 	{
-		std::string filenameNoExt = ion::string::RemoveSubstring(filename, ".cpp");
-		return GetBinPath(compilerDir) + "\\" + g_compilerExe + " " + g_compilerArg + " -B" + compilerDir + " -I" + includeDirs + " " + filename + " -o " + filenameNoExt + ".o";
+		std::string cmdLine = GetBinPath(compilerDir) + "\\" + g_compilerExe + " " + g_compilerArg + " -B" + compilerDir + " -I" + includeDirs;
+
+		for (auto define : defines)
+		{
+			cmdLine += " -D" + define;
+		}
+			
+		cmdLine += " " + filename + " -o " + outname + ".o";
+
+		return cmdLine;
 	}
 
-	std::string ScriptCompiler::GenerateObjCopyCommand(const std::string& filename, const std::string& compilerDir)
+	std::string ScriptCompiler::GenerateObjCopyCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir)
 	{
-		std::string filenameNoExt = ion::string::RemoveSubstring(filename, ".cpp");
-		return GetBinPath(compilerDir) + "\\" + g_objcopyExe + " " + g_objcopyArg + " " + filenameNoExt + ".o " + filenameNoExt + ".bin";
+		return GetBinPath(compilerDir) + "\\" + g_objcopyExe + " " + g_objcopyArg + " " + outname + ".o " + outname + ".bin";
 	}
 
-	std::string ScriptCompiler::GenerateSymbolReadCommand(const std::string& filename, const std::string& compilerDir)
+	std::string ScriptCompiler::GenerateSymbolReadCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir)
 	{
-		std::string filenameNoExt = ion::string::RemoveSubstring(filename, ".cpp");
-		return GetBinPath(compilerDir) + "\\" + g_symbolReadExe + " " + g_symbolReadArg + " " + filenameNoExt + ".o ";
+		return GetBinPath(compilerDir) + "\\" + g_symbolReadExe + " " + g_symbolReadArg + " " + outname + ".o ";
 	}
 
 	int ScriptCompiler::FindFunctionOffset(const std::vector<std::string>& symbolOutput, const std::string& className, const std::string& name)

@@ -8,6 +8,7 @@
 // ============================================================================================
 
 #include "SceneExporter.h"
+#include "EntityExporter.h"
 
 #include <ion/io/File.h>
 #include <ion/core/utils/STL.h>
@@ -83,6 +84,14 @@ namespace luminary
 					//Export to file
 					stream << spawnDataName.str() << ":" << std::endl;
 
+					// IFND FINAL
+					// SpawnData_DebugName                     rs.b ENT_DEBUG_NAME_LEN
+					// ENDIF
+
+					stream << "\tIFND FINAL" << std::endl;
+					stream << "\tdc.b " << EntityExporter::CreateDebugNameData(entity.name, EntityExporter::s_debugNameLen) << std::endl;
+					stream << "\tENDIF" << std::endl;
+
 					//Export entity spawn data
 					for (int j = 0; j < entity.spawnData.params.size(); j++)
 					{
@@ -148,6 +157,9 @@ namespace luminary
 			stream << std::endl;
 
 			//Export static entities
+				// IFND FINAL
+				// EntityBlock_DebugName                   rs.b ENT_DEBUG_NAME_LEN (16)
+				// ENDIF
 				// EntityBlock_Flags                       rs.w 1
 				// EntityBlock_Next                        rs.w 1
 				// Entity_TypeDesc                         rs.w 1; Entity type
@@ -164,6 +176,9 @@ namespace luminary
 
 				ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
 
+				stream << "\tIFND FINAL" << std::endl;
+				stream << "\tdc.b " << EntityExporter::CreateDebugNameData(entity.name, EntityExporter::s_debugNameLen) << std::endl;
+				stream << "\tENDIF" << std::endl;
 				stream << "\tdc.w 0x0\t; EntityBlock_Flags" << std::endl;
 				stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
 				stream << "\tdc.w " << entity.name << "_Typedesc\t; Entity_TypeDesc" << std::endl;

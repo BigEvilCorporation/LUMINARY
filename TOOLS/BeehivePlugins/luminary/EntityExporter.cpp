@@ -17,6 +17,25 @@ namespace luminary
 
 	}
 
+	std::string EntityExporter::CreateDebugNameData(const std::string& name, int maxLength)
+	{
+		if (name.size() > maxLength)
+		{
+			return "\"" + name.substr(0, maxLength) + "\"";
+		}
+		else
+		{
+			std::string out = "\"" + name + "\"";
+
+			for (int i = 0; i < maxLength - name.size(); i++)
+			{
+				out += ",0";
+			}
+
+			return out;
+		}
+	}
+
 	bool EntityExporter::ExportArchetypes(const std::string& filename, const std::vector<Archetype>& archetypes)
 	{
 		ion::io::File file(filename, ion::io::File::eOpenWrite);
@@ -30,6 +49,14 @@ namespace luminary
 
 				//Export to file
 				stream << "Archetype_" << archetype.entityTypeName << "_" << archetype.name << ":" << std::endl;
+
+				// IFND FINAL
+				// SpawnData_DebugName                     rs.b ENT_DEBUG_NAME_LEN
+				// ENDIF
+
+				stream << "\tIFND FINAL" << std::endl;
+				stream << "\tdc.b " << EntityExporter::CreateDebugNameData(archetype.name, s_debugNameLen) << std::endl;
+				stream << "\tENDIF" << std::endl;
 
 				//Export entity params
 				for (int j = 0; j < archetype.params.size(); j++)
