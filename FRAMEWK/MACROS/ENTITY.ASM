@@ -7,6 +7,23 @@
 ; ============================================================================================
 
     ; ======================================
+    ; Injects an entity debug name into
+    ; structure (IF !FINAL)
+    ; ======================================
+    ; Name - Entity/archetype/spawndata name
+    ; ======================================
+ENTITY_DEBUG_NAME: macro name
+    IFND FINAL
+__NAME__ substr ,ENT_DEBUG_NAME_LEN,"\name\"    ; Truncate debug name to 16 chars
+__NAMELEN__ = strlen("\__NAME__\")                 ; Get new length
+    dc.b   "\__NAME__\"                         ; Name data
+    IF __NAMELEN__<ENT_DEBUG_NAME_LEN           ; If too short
+    dcb.b (ENT_DEBUG_NAME_LEN-__NAMELEN__),0    ; Pad to 16
+    ENDIF
+    ENDIF
+    endm
+
+    ; ======================================
     ; Begins definition of a named entity's
     ; spawn data
     ; ======================================
@@ -20,6 +37,17 @@ __ENTITY_NAME equs "\entity_name\"
 ENTITY_SPAWN_DATA_END: macro
     STRUCT_ALIGN
 __SIZEOF_\__ENTITY_NAME\__SPAWNDATA     rs.b 0
+    endm
+
+    ; ======================================
+    ; Defines a block of named entity spawn
+    ; data
+    ; ======================================
+    ; Name - Spawn data name
+    ; ======================================
+ENTITY_SPAWN_DATA: macro label
+\label\:
+    ENTITY_DEBUG_NAME \label\
     endm
 
     ; ======================================
