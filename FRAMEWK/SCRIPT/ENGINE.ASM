@@ -32,11 +32,13 @@ ScriptFunc_FindFloor:
     ; returns terrain height and flags.
     ; Terrain layer 0 only.
     ; ======================================
-    ; short FindFloor(const Entity& entity, const Scene& scene)
+    ; short FindFloor(const Entity& entity, const Scene& scene, short& terrainFlags)
     ; ======================================
 
     SCRIPTFUNC_GETPARAM 0, a3                           ; const Entity& entity
     SCRIPTFUNC_GETPARAM 1, a4                           ; const Scene& scene
+
+    PUSHM.L a0-a4
     
     ; Check floor
     move.l SceneData_ColMap(a4), a0
@@ -49,5 +51,10 @@ ScriptFunc_FindFloor:
     beq    @NoTerrain
     move.w d7, d0                                       ; Return val
     @NoTerrain:
+
+    POPM.L a0-a4
+
+    SCRIPTFUNC_GETPARAM 2, a5                           ; short& terrainFlags
+    move.w d3, (a5)
     
     rts
