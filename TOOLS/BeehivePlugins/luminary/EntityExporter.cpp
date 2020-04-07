@@ -173,7 +173,7 @@ namespace luminary
 		return stream.str();
 	}
 
-	std::string EntityExporter::ExportEntitySpawnTableData(const std::string& label, const Entity& entity, std::map<std::string, ExportedSpawnData>& exportedSpawnDatas)
+	std::string EntityExporter::ExportEntitySpawnTableData(const std::string& spawnDataName, const Entity& entity, std::map<std::string, ExportedSpawnData>& exportedSpawnDatas)
 	{
 		std::stringstream stream;
 
@@ -213,11 +213,11 @@ namespace luminary
 		else
 		{
 			//Export to file
-			stream << label << ":" << std::endl;
-			stream << EntityExporter::ExportSpawnParamsData(label, entity.spawnData.params, entity.components);
+			stream << spawnDataName << ":" << std::endl;
+			stream << EntityExporter::ExportSpawnParamsData(entity.name, entity.spawnData.params, entity.components);
 
 			ExportedSpawnData exportedData;
-			exportedData.labelName = label;
+			exportedData.labelName = spawnDataName;
 			exportedData.data = spawnDataBlock;
 			exportedSpawnDatas.insert(std::make_pair(entity.spawnData.name, exportedData));
 		}
