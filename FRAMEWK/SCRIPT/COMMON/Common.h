@@ -44,6 +44,12 @@ struct Entity : BlockHeader
 	Fixed16 positionY;
 	unsigned short extentsX;
 	unsigned short extentsY;
+
+	template <typename T>
+	inline __attribute__((always_inline)) T& GetComponent(ComponentHndl hndl)
+	{
+		return *((T*)((unsigned int)0x00FF0000 | (unsigned int)hndl));
+	}
 };
 
 struct ComponentBase : BlockHeader
