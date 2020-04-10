@@ -33,6 +33,7 @@ static const std::string s_componentSpawnBegin = "COMPONENT_SPAWN_DATA_BEGIN";
 static const std::string s_componentSpawnEnd = "COMPONENT_SPAWN_DATA_END";
 static const std::string s_componentDef = "ENT_COMPONENT";
 static const std::string s_componentNamedDef = "ENT_COMPONENT_NAMED";
+static const std::string s_scriptFuncDef = "SCRIPT_FUNC";
 static const std::string s_macroStart = "macro";
 static const std::string s_macroEnd = "endm";
 static const std::string s_comment = ";";
@@ -374,24 +375,30 @@ namespace luminary
 		entity.name = textBlock.name;
 		entity.isStatic = false;
 
-		//Find components, and parse params
+		//Find components and script functions, and parse params
 		for (int i = 0; i < textBlock.block.size(); i++)
 		{
-			int componentPos = -1;
+			int tokenPos = -1;
 
-			if ((componentPos = ContainsToken(textBlock.block[i], s_componentNamedDef)) >= 0)
+			if ((tokenPos = ContainsToken(textBlock.block[i], s_componentNamedDef)) >= 0)
 			{
-				if (Component* component = ParseComponentDef(textBlock.block[i], componentPos))
+				if (Component* component = ParseComponentDef(textBlock.block[i], tokenPos))
 				{
 					entity.components.push_back(*component);
 				}
 			}
-			else if ((componentPos = ContainsToken(textBlock.block[i], s_componentDef)) >= 0)
+			else if ((tokenPos = ContainsToken(textBlock.block[i], s_componentDef)) >= 0)
 			{
-				if (Component* component = ParseComponentDef(textBlock.block[i], componentPos))
+				if (Component* component = ParseComponentDef(textBlock.block[i], tokenPos))
 				{
 					entity.components.push_back(*component);
 				}
+			}
+			else if ((tokenPos = ContainsToken(textBlock.block[i], s_scriptFuncDef)) >= 0)
+			{
+				ScriptFunc scriptFunc = ParseScriptFuncDef(textBlock.block[i], tokenPos);
+				scriptFunc.scope = entity.name;
+				entity.scriptFuncs.push_back(scriptFunc);
 			}
 			else
 			{
@@ -434,10 +441,21 @@ namespace luminary
 		//Parse params
 		for (int i = 0; i < textBlock.block.size(); i++)
 		{
-			Param param;
-			if (ParseParam(textBlock.block[i], param))
+			int tokenPos = 0;
+
+			if ((tokenPos = ContainsToken(textBlock.block[i], s_scriptFuncDef)) >= 0)
 			{
-				component.params.push_back(param);
+				ScriptFunc scriptFunc = ParseScriptFuncDef(textBlock.block[i], tokenPos);
+				scriptFunc.scope = component.name;
+				component.scriptFuncs.push_back(scriptFunc);
+			}
+			else
+			{
+				Param param;
+				if (ParseParam(textBlock.block[i], param))
+				{
+					component.params.push_back(param);
+				}
 			}
 		}
 
@@ -503,7 +521,7 @@ namespace luminary
 		}
 	}
 
-	Component* EntityParser::ParseComponentDef(const std::vector<std::string>& line, size_t pos)
+	Component* EntityParser::ParseComponentDef(const std::vector<std::string>& line, int pos)
 	{
 		Component* component = nullptr;
 
@@ -523,6 +541,30 @@ namespace luminary
 		}
 
 		return component;
+	}
+
+	ScriptFunc EntityParser::ParseScriptFuncDef(const std::vector<std::string>& line, int pos)
+	{
+		ScriptFunc scriptFunc;
+
+		//Expecting at least 4 tokens - macro, routine, return value, name, and optional params
+		if (line.size() >= 3)
+		{
+			scriptFunc.routine = line[1];
+			scriptFunc.returnType = line[2];
+			scriptFunc.name = line[3];
+
+			if (line.size() >= 5)
+			{
+				//Read all func params
+				for (int i = 4; i < line.size(); i += 2)
+				{
+					scriptFunc.params.push_back(std::make_pair(line[i], line[i + 1]));
+				}
+			}
+		}
+
+		return scriptFunc;
 	}
 
 	SpawnData* EntityParser::FindComponentSpawnData(const std::string& componentName)

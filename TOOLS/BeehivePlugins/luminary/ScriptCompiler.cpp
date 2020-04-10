@@ -17,7 +17,7 @@
 
 namespace luminary
 {
-	struct ScriptFunc
+	struct ScriptEntryPoint
 	{
 		std::string returnType;
 		std::string methodName;
@@ -29,7 +29,7 @@ namespace luminary
 	const std::string g_objcopyExe = "m68k-elf-objcopy.exe";
 	const std::string g_objcopyArg = "-j .text -O binary";
 	const std::string g_symbolReadExe = "m68k-elf-objdump.exe";
-	const std::string g_symbolReadArg = "-t";
+	const std::string g_symbolReadArg = "-t -r -C";
 
 	const std::string g_header =
 		"// ============================================================================================\n"
@@ -41,21 +41,97 @@ namespace luminary
 		"// ============================================================================================\n";
 
 
-	const std::string g_commonInclude = "#include <Common.h>";
+	const std::string g_commonInclude = "Common.h";
+	const std::string g_componentsInclude = "Components.h";
 
-	const std::string g_getComponentFunc =
-		"\ttemplate <typename T>\n"
-		"\tinline __attribute__((always_inline)) T& GetComponent(ComponentHndl hndl)\n"
-		"\t{\n"
-		"\t\treturn *((T*)((unsigned int)0x00FF0000 | (unsigned int)hndl));\n"
-		"\t}";
-
-	const std::vector<ScriptFunc> g_scriptFuncs =
+	const std::vector<ScriptEntryPoint> g_scriptFuncs =
 	{
 		{ "void", "OnStart", "const Engine& engine, const Scene& scene" },
 		{ "void", "OnShutdown", "const Engine& engine, const Scene& scene" },
 		{ "void", "OnUpdate", "const Engine& engine, const Scene& scene" },
 	};
+
+	bool ScriptTranspiler::GenerateComponentCppHeader(const std::vector<Component>& components, const std::string& outputDir)
+	{
+		std::string filename = outputDir + "\\" + g_componentsInclude;
+
+		ion::io::File file(filename, ion::io::File::eOpenWrite);
+		if (file.IsOpen())
+		{
+			std::stringstream stream;
+			std::set<std::string> exportedComponentHeaders;
+
+			for (int i = 0; i < components.size(); i++)
+			{
+				if (exportedComponentHeaders.find(components[i].name) == exportedComponentHeaders.end())
+				{
+					stream << "struct " << components[i].name << " : ComponentBase" << std::endl;
+					stream << "{" << std::endl;
+
+					int structSize = 0;
+
+					for (int j = 0; j < components[i].params.size(); j++)
+					{
+						std::string paramName = ion::string::RemoveSubstring(components[i].params[j].name, components[i].name + "_");
+						paramName[0] = ion::string::ToLower(paramName)[0];
+
+						switch (components[i].params[j].size)
+						{
+							case ParamSize::Byte:
+								stream << "\tunsigned char " << paramName << ";" << std::endl;
+								structSize += 1;
+								break;
+							case ParamSize::Word:
+								stream << "\tunsigned short " << paramName << ";" << std::endl;
+								structSize += 2;
+								break;
+							case ParamSize::Long:
+								stream << "\tunsigned int " << paramName << ";" << std::endl;
+								structSize += 4;
+								break;
+						}
+					}
+
+					if (structSize & 1)
+					{
+						stream << "\tunsigned char padding;" << std::endl;
+					}
+
+					if (components[i].scriptFuncs.size() > 0)
+					{
+						stream << std::endl;
+
+						for (int j = 0; j < components[i].scriptFuncs.size(); j++)
+						{
+							stream << "\t" << components[i].scriptFuncs[j].returnType << " " << components[i].scriptFuncs[j].name << "(";
+
+							for (int k = 0; k < components[i].scriptFuncs[j].params.size(); k++)
+							{
+								stream << components[i].scriptFuncs[j].params[k].first << " "<< components[i].scriptFuncs[j].params[k].second;
+
+								if (k != components[i].scriptFuncs[j].params.size() - 1)
+								{
+									stream << ", ";
+								}
+							}
+
+							stream << ");" << std::endl;
+						}
+					}
+
+					stream << "};" << std::endl << std::endl;
+
+					exportedComponentHeaders.insert(components[i].name);
+				}
+			}
+
+			file.Write(stream.str().c_str(), stream.str().size());
+			file.Close();
+			return true;
+		}
+
+		return false;
+	}
 
 	bool ScriptTranspiler::GenerateEntityCppHeader(const Entity& entity, const std::string& outputDir)
 	{
@@ -67,54 +143,14 @@ namespace luminary
 			std::stringstream stream;
 
 			stream << g_header << std::endl << std::endl;
-			stream << g_commonInclude << std::endl << std::endl;
+			stream << "#include <" << g_commonInclude + ">" << std::endl;
+			stream << "#include <" << g_componentsInclude + ">" << std::endl << std::endl;
 
-			std::set<std::string> exportedComponentHeaders;
-
-			for (int i = 0; i < entity.components.size(); i++)
-			{
-				if (exportedComponentHeaders.find(entity.components[i].name) == exportedComponentHeaders.end())
-				{
-					stream << "struct " << entity.components[i].name << " : ComponentBase" << std::endl;
-					stream << "{" << std::endl;
-
-					int structSize = 0;
-
-					for (int j = 0; j < entity.components[i].params.size(); j++)
-					{
-						std::string paramName = ion::string::RemoveSubstring(entity.components[i].params[j].name, entity.components[i].name + "_");
-						paramName[0] = ion::string::ToLower(paramName)[0];
-
-						switch (entity.components[i].params[j].size)
-						{
-						case ParamSize::Byte:
-							stream << "\tunsigned char " << paramName << ";" << std::endl;
-							structSize += 1;
-							break;
-						case ParamSize::Word:
-							stream << "\tunsigned short " << paramName << ";" << std::endl;
-							structSize += 2;
-							break;
-						case ParamSize::Long:
-							stream << "\tunsigned int " << paramName << ";" << std::endl;
-							structSize += 4;
-							break;
-						}
-					}
-
-					if (structSize & 1)
-					{
-						stream << "\tunsigned char padding;" << std::endl;
-					}
-
-					stream << "};" << std::endl << std::endl;
-
-					exportedComponentHeaders.insert(entity.components[i].name);
-				}
-			}
-
-			stream << "struct Components" << std::endl;
+			stream << "struct " << entity.name << " : Entity" << std::endl;
 			stream << "{" << std::endl;
+
+			stream << "\tstruct Components" << std::endl;
+			stream << "\t{" << std::endl;
 
 			std::set<std::string> exportedHndls;
 
@@ -133,13 +169,10 @@ namespace luminary
 
 				exportedHndls.insert(nameNumbered);
 
-				stream << "\tComponentHndl " << nameNumbered << ";" << std::endl;
+				stream << "\t\tComponentHndl " << nameNumbered << ";" << std::endl;
 			}
 
-			stream << "};" << std::endl << std::endl;
-
-			stream << "struct " << entity.name << " : Entity" << std::endl;
-			stream << "{" << std::endl;
+			stream << "\t};" << std::endl << std::endl;
 			
 			int structSize = 0;
 
@@ -173,8 +206,6 @@ namespace luminary
 			stream << std::endl;
 
 			stream << "\tComponents components;" << std::endl << std::endl;
-
-			stream << g_getComponentFunc << std::endl << std::endl;
 			
 			for (auto func : g_scriptFuncs)
 			{
@@ -215,6 +246,65 @@ namespace luminary
 		return false;
 	}
 
+	bool ScriptTranspiler::GenerateGlobalOffsetTable(const std::vector<Entity>& entities, const std::vector<Component>& components, std::vector<ScriptFunc>& table, const std::string& asmFilename)
+	{
+		int scriptFuncIdx = 0;
+
+		for (auto entity : entities)
+		{
+			for (auto scriptFunc : entity.scriptFuncs)
+			{
+				table.push_back(scriptFunc);
+				table.back().tableOffset = scriptFuncIdx++;
+			}
+		}
+
+		for (auto entity : entities)
+		{
+			for (auto scriptFunc : entity.scriptFuncs)
+			{
+				table.push_back(scriptFunc);
+				table.back().tableOffset = scriptFuncIdx++;
+			}
+		}
+
+		for (auto component : components)
+		{
+			for (auto scriptFunc : component.scriptFuncs)
+			{
+				table.push_back(scriptFunc);
+				table.back().tableOffset = scriptFuncIdx++;
+			}
+		}
+
+		ion::io::File file(asmFilename, ion::io::File::eOpenWrite);
+		if (file.IsOpen())
+		{
+			std::stringstream stream;
+
+			for (auto scriptFunc : table)
+			{
+				stream << "\t dc.l " << scriptFunc.routine << "\t\t; " << scriptFunc.returnType << " " << scriptFunc.scope << "::" << scriptFunc.name << "(";
+
+				for (int i = 0; i < scriptFunc.params.size(); i++)
+				{
+					stream << scriptFunc.params[i].first << " " << scriptFunc.params[i].second;
+
+					if (i != scriptFunc.params.size() - 1)
+						stream << ", ";
+				}
+
+				stream << ")" << std::endl;
+			}
+
+			file.Write(stream.str().c_str(), stream.str().size());
+			file.Close();
+			return true;
+		}
+
+		return false;
+	}
+
 	std::string ScriptCompiler::GetBinPath(const std::string& compilerDir)
 	{
 		return ion::io::FileDevice::GetDefault()->GetMountPoint() + "\\" + ion::io::FileDevice::GetDefault()->GetDirectory() + "\\" + compilerDir + "\\" + "bin";
@@ -227,9 +317,14 @@ namespace luminary
 			+ compilerDir + "\\libexec\\gcc\\m68k-elf\\" + compilerVer;
 	}
 
-	std::string ScriptCompiler::GenerateCompileCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir, const std::string& includeDirs, const std::vector<std::string>& defines)
+	std::string ScriptCompiler::GenerateCompileCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir, const std::vector<std::string>& includeDirs, const std::vector<std::string>& defines)
 	{
-		std::string cmdLine = GetBinPath(compilerDir) + "\\" + g_compilerExe + " " + g_compilerArg + " -B" + compilerDir + " -I" + includeDirs;
+		std::string cmdLine = GetBinPath(compilerDir) + "\\" + g_compilerExe + " " + g_compilerArg + " -B" + compilerDir;
+
+		for (auto include : includeDirs)
+		{
+			cmdLine += " -I" + include;
+		}
 
 		for (auto define : defines)
 		{
@@ -249,6 +344,16 @@ namespace luminary
 	std::string ScriptCompiler::GenerateSymbolReadCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir)
 	{
 		return GetBinPath(compilerDir) + "\\" + g_symbolReadExe + " " + g_symbolReadArg + " " + outname + ".o ";
+	}
+
+	int ScriptCompiler::FindGlobalOffsetTableOffset(const std::vector<std::string>& symbolOutput)
+	{
+		return 0;
+	}
+
+	int ScriptCompiler::ReadRelocationTable(const std::vector<std::string>& symbolOutput, std::vector<std::pair<u32, std::string>>& relocationTable)
+	{
+		return 0;
 	}
 
 	int ScriptCompiler::FindFunctionOffset(const std::vector<std::string>& symbolOutput, const std::string& className, const std::string& name)

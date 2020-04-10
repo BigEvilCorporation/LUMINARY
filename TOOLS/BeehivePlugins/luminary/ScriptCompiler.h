@@ -18,8 +18,10 @@ namespace luminary
 	class ScriptTranspiler
 	{
 	public:
+		bool GenerateComponentCppHeader(const std::vector<Component>& components, const std::string& outputDir);
 		bool GenerateEntityCppHeader(const Entity& entity, const std::string& outputDir);
 		bool GenerateEntityCppBoilerplate(const Entity& entity, const std::string& outputDir);
+		bool GenerateGlobalOffsetTable(const std::vector<Entity>& entities, const std::vector<Component>& components, std::vector<ScriptFunc>& table, const std::string& asmFilename);
 	};
 
 	class ScriptCompiler
@@ -27,9 +29,11 @@ namespace luminary
 	public:
 		std::string GetBinPath(const std::string& compilerDir);
 		std::string GetLibExecPath(const std::string& compilerDir, const std::string& compilerVer);
-		std::string GenerateCompileCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir, const std::string& includeDirs, const std::vector<std::string>& defines);
+		std::string GenerateCompileCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir, const std::vector<std::string>& includeDirs, const std::vector<std::string>& defines);
 		std::string GenerateObjCopyCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir);
 		std::string GenerateSymbolReadCommand(const std::string& filename, const std::string& outname, const std::string& compilerDir);
+		int FindGlobalOffsetTableOffset(const std::vector<std::string>& symbolOutput);
+		int ReadRelocationTable(const std::vector<std::string>& symbolOutput, std::vector<std::pair<u32,std::string>>& relocationTable);
 		int FindFunctionOffset(const std::vector<std::string>& symbolOutput, const std::string& className, const std::string& name);
 		int FindGlobalVarOffset(const std::vector<std::string>& symbolOutput, const std::string& typeName);
 	};

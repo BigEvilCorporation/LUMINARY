@@ -49,7 +49,8 @@ namespace luminary
 		void ParseSpawnData(const TextBlock& textBlock, SpawnData& spawnData);
 		bool ParseParam(const std::vector<std::string>& line, Param& param);
 		void ParseTags(const std::string& tagLine, Param& param);
-		Component* ParseComponentDef(const std::vector<std::string>& line, size_t pos);
+		Component* ParseComponentDef(const std::vector<std::string>& line, int pos);
+		ScriptFunc ParseScriptFuncDef(const std::vector<std::string>& line, int pos);
 		SpawnData* FindComponentSpawnData(const std::string& componentName);
 		SpawnData* FindEntitySpawnData(const std::string& entityName);
 	};

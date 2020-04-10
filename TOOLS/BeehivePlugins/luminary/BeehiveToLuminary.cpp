@@ -277,6 +277,7 @@ namespace luminary
 		{
 			entity.name = gameObjectType.GetName();
 
+			//Convert entity/component variables
 			const std::vector<GameObjectVariable>& variables = gameObjectType.GetScriptVariables();
 
 			int paramIdx = 0;
@@ -322,6 +323,29 @@ namespace luminary
 				case eSizeLong:
 					param->size = luminary::ParamSize::Long;
 					break;
+				}
+			}
+
+			//Convert entity/component script functions
+			const std::vector<GameObjectScriptFunc>& scriptFuncs = gameObjectType.GetScriptFunctions();
+
+			for (int j = 0; j < scriptFuncs.size(); j++)
+			{
+				ScriptFunc scriptFunc;
+				scriptFunc.name = scriptFuncs[j].name;
+				scriptFunc.params = scriptFuncs[j].params;
+				scriptFunc.returnType = scriptFuncs[j].returnType;
+				scriptFunc.routine = scriptFuncs[j].routine;
+
+				if (scriptFuncs[j].componentIdx == -1)
+				{
+					scriptFunc.scope = entity.name;
+					entity.scriptFuncs.push_back(scriptFunc);
+				}
+				else
+				{
+					scriptFunc.scope = entity.components[scriptFuncs[j].componentIdx].name;
+					entity.components[scriptFuncs[j].componentIdx].scriptFuncs.push_back(scriptFunc);
 				}
 			}
 		}
@@ -390,6 +414,29 @@ namespace luminary
 				}
 
 				ExportParam(*param, *variable, gameObjectType, nullptr, &gameObject, actor, scriptAddresses);
+			}
+
+			//Create entity/component script functions
+			const std::vector<GameObjectScriptFunc>& scriptFuncs = gameObjectType.GetScriptFunctions();
+
+			for (int j = 0; j < scriptFuncs.size(); j++)
+			{
+				ScriptFunc scriptFunc;
+				scriptFunc.name = scriptFuncs[j].name;
+				scriptFunc.params = scriptFuncs[j].params;
+				scriptFunc.returnType = scriptFuncs[j].returnType;
+				scriptFunc.routine = scriptFuncs[j].routine;
+
+				if (scriptFuncs[j].componentIdx == -1)
+				{
+					scriptFunc.scope = entity.name;
+					entity.scriptFuncs.push_back(scriptFunc);
+				}
+				else
+				{
+					scriptFunc.scope = entity.components[scriptFuncs[j].componentIdx].name;
+					entity.components[scriptFuncs[j].componentIdx].scriptFuncs.push_back(scriptFunc);
+				}
 			}
 		}
 	}

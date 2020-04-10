@@ -36,6 +36,16 @@ namespace luminary
 		std::vector<std::string> tags;
 	};
 
+	struct ScriptFunc
+	{
+		u32 tableOffset;
+		std::string routine;
+		std::string scope;
+		std::string name;
+		std::string returnType;
+		std::vector<std::pair<std::string, std::string>> params;
+	};
+
 	struct SpawnData
 	{
 		u32 positionX;
@@ -51,6 +61,7 @@ namespace luminary
 		std::string name;
 		SpawnData spawnData;
 		std::vector<Param> params;
+		std::vector<ScriptFunc> scriptFuncs;
 	};
 
 	struct Entity
@@ -59,6 +70,7 @@ namespace luminary
 		SpawnData spawnData;
 		std::vector<Param> params;
 		std::vector<Component> components;
+		std::vector<ScriptFunc> scriptFuncs;
 		bool isStatic;
 	};
 
