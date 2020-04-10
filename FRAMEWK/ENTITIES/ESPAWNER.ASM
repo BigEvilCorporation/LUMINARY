@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 6th December 2019
 ; ============================================================================================
-; SPAWNER.ASM - Spawns a specified entity when its world grid cell becomes active
+; ESPAWNER.ASM - Spawns a specified entity when its world grid cell becomes active
 ; ============================================================================================
 
     STATIC_ENTITY_BEGIN SESpawner

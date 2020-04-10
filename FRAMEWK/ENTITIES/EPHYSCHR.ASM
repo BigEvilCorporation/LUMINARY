@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 5th August 2019
 ; ============================================================================================
-; PHYSCHAR.ASM - Physics body character component
+; EPHYSCHR.ASM - Physics body character component
 ; ============================================================================================
 ; - Dual terrain probes in all 4 directions
 ; - Horizontal wall probes

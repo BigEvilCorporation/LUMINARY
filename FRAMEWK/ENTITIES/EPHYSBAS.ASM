@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 5th August 2019
 ; ============================================================================================
-; PHYSBASC.ASM - Basic physics body component
+; EPHYSBAS.ASM - Basic physics body component
 ; ============================================================================================
 ; - Single terrain probe, downwards only
 ; - Horizontal wall probes

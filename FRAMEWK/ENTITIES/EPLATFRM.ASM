@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 8th December 2019
 ; ============================================================================================
-; PLATFORM.ASM - Physics platform
+; EPLATFRM.ASM - Physics platform entity component
 ; ============================================================================================
 
     COMPONENT_SPAWN_DATA_BEGIN ECPlatform

@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 15th December 2019
 ; ============================================================================================
-; SCRIPT.ASM - Script entity component
+; ESCRIPT.ASM - Script entity component
 ; ============================================================================================
 
     COMPONENT_SPAWN_DATA_BEGIN ECScript

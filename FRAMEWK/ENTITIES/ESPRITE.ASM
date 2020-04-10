@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 5th August 2019
 ; ============================================================================================
-; SPRITE.ASM - Sprite entity component
+; ESPRITE.ASM - Sprite entity component
 ; ============================================================================================
 
 ECSPRITE_STATE_FLAG_PLAYING             equ 0x0 ; Anim playing

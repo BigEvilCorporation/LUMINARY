@@ -69,21 +69,19 @@
     include 'framewk/entity.asm'
     include 'framewk/entmgr.asm'
     include 'framewk/geometry.asm'
+    include 'framewk/physutil.asm'
     include 'framewk/scene.asm'
-
-    ; Script system
-    include 'framewk/script/script.asm'
-    include 'framewk/script/engine.asm'
+    include 'framewk/script.asm'
+    include 'framewk/scriptfn.asm'
 
     ; Entities and components
-    include 'framewk/entities/physbasc.asm'
-    include 'framewk/entities/physchar.asm'
-    include 'framewk/entities/physutil.asm'
-    include 'framewk/entities/platform.asm'
-    include 'framewk/entities/spawner.asm'
-    include 'framewk/entities/script.asm'
-    include 'framewk/entities/sprite.asm'
-    include 'framewk/entities/vfx.asm'
+    include 'framewk/entities/ephysbas.asm'
+    include 'framewk/entities/ephyschr.asm'
+    include 'framewk/entities/eplatfrm.asm'
+    include 'framewk/entities/espawner.asm'
+    include 'framewk/entities/escript.asm'
+    include 'framewk/entities/esprite.asm'
+    include 'framewk/entities/evfx.asm'
 
     ; Memory maps
     include 'engine/memmap.asm'

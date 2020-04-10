@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 30th November 2019
 ; ============================================================================================
-; VFX.ASM - A fixed, one-shot animation that plays then dies
+; EVFX.ASM - A fixed, one-shot animation entity that plays then dies
 ; ============================================================================================
 
     ; Spawn data

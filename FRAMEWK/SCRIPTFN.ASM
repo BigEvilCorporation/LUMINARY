@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 29th March 2020
 ; ============================================================================================
-; ENGINE.ASM - Script engine funcs and structure
+; SCRIPTFN.ASM - Script engine funcs and structure
 ; ============================================================================================
 
 ScriptGlobal_Engine:
