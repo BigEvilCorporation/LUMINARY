@@ -5,17 +5,6 @@
 ; ============================================================================================
 ; LUMINARY.ASM - main engine include file
 ; ============================================================================================
-; Include files from game project the following order:
-;
-;  - asmopts.asm
-;  - bootstrp.asm
-;  - game/header.asm
-;  - luminary.asm (this file)
-;  - game/memmap.asm
-;  - engine/assets.asm
-;  - Everything else...
-;
-; ============================================================================================
 
     ; Bootstrap
     include 'bootstrp.asm'
