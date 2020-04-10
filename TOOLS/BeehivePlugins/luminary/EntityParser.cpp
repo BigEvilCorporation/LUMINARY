@@ -74,7 +74,12 @@ namespace luminary
 					if (ion::string::EndsWith(ion::string::ToLower(contents[i].m_filename), s_asmExtensions[j]))
 					{
 						std::string fullPath = directory + fileDevice.GetPathSeparator() + contents[i].m_filename;
-						asmFiles.push_back(fullPath);
+
+						if (std::find(asmFiles.begin(), asmFiles.end(), fullPath) == asmFiles.end())
+						{
+							asmFiles.push_back(fullPath);
+						}
+
 						break;
 					}
 				}
@@ -82,62 +87,65 @@ namespace luminary
 		}
 	}
 
-	bool EntityParser::ParseDirectory(const std::string& directory, std::vector<Entity>& entities)
+	bool EntityParser::ParseDirectories(const std::vector<std::string>& directories, std::vector<Entity>& entities)
 	{
 		if (ion::io::FileDevice::GetDefault())
 		{
-			//Recursively search directory for ASM files
-			std::vector<std::string> asmFiles;
-			RecursiveFindASMFiles(*ion::io::FileDevice::GetDefault(), directory, asmFiles);
-
-			//Find all entity and component text blocks
-			for (int i = 0; i < asmFiles.size(); i++)
+			for (auto directory : directories)
 			{
-				FindTextBlocks(asmFiles[i]);
-			}
+				//Recursively search directory for ASM files
+				std::vector<std::string> asmFiles;
+				RecursiveFindASMFiles(*ion::io::FileDevice::GetDefault(), directory, asmFiles);
 
-			//Parse component spawn data
-			for (int i = 0; i < m_componentSpawnTextBlocks.size(); i++)
-			{
-				SpawnData spawnData;
-				ParseSpawnData(m_componentSpawnTextBlocks[i], spawnData);
-				m_componentSpawnData.push_back(spawnData);
-			}
-
-			//Parse entity spawn data
-			for (int i = 0; i < m_entitySpawnTextBlocks.size(); i++)
-			{
-				SpawnData spawnData;
-				ParseSpawnData(m_entitySpawnTextBlocks[i], spawnData);
-				m_entitySpawnData.push_back(spawnData);
-			}
-
-			//Parse components and match with spawn data
-			for (int i = 0; i < m_componentTextBlocks.size(); i++)
-			{
-				Component component;
-				if (ParseComponent(m_componentTextBlocks[i], component))
+				//Find all entity and component text blocks
+				for (int i = 0; i < asmFiles.size(); i++)
 				{
-					m_components.push_back(component);
+					FindTextBlocks(asmFiles[i]);
 				}
-			}
 
-			//Parse entities and match with spawn data
-			for (int i = 0; i < m_entityTextBlocks.size(); i++)
-			{
-				Entity entity;
-				if (ParseEntity(m_entityTextBlocks[i], entity))
+				//Parse component spawn data
+				for (int i = 0; i < m_componentSpawnTextBlocks.size(); i++)
 				{
+					SpawnData spawnData;
+					ParseSpawnData(m_componentSpawnTextBlocks[i], spawnData);
+					m_componentSpawnData.push_back(spawnData);
+				}
+
+				//Parse entity spawn data
+				for (int i = 0; i < m_entitySpawnTextBlocks.size(); i++)
+				{
+					SpawnData spawnData;
+					ParseSpawnData(m_entitySpawnTextBlocks[i], spawnData);
+					m_entitySpawnData.push_back(spawnData);
+				}
+
+				//Parse components and match with spawn data
+				for (int i = 0; i < m_componentTextBlocks.size(); i++)
+				{
+					Component component;
+					if (ParseComponent(m_componentTextBlocks[i], component))
+					{
+						m_components.push_back(component);
+					}
+				}
+
+				//Parse entities and match with spawn data
+				for (int i = 0; i < m_entityTextBlocks.size(); i++)
+				{
+					Entity entity;
+					if (ParseEntity(m_entityTextBlocks[i], entity))
+					{
+						entities.push_back(entity);
+					}
+				}
+
+				//Parse static entities
+				for (int i = 0; i < m_staticEntityTextBlocks.size(); i++)
+				{
+					Entity entity;
+					ParseStaticEntity(m_staticEntityTextBlocks[i], entity);
 					entities.push_back(entity);
 				}
-			}
-
-			//Parse static entities
-			for (int i = 0; i < m_staticEntityTextBlocks.size(); i++)
-			{
-				Entity entity;
-				ParseStaticEntity(m_staticEntityTextBlocks[i], entity);
-				entities.push_back(entity);
 			}
 
 			return true;

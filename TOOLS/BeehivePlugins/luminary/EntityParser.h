@@ -21,7 +21,7 @@ namespace luminary
 	public:
 		EntityParser();
 
-		bool ParseDirectory(const std::string& directory, std::vector<Entity>& entities);
+		bool ParseDirectories(const std::vector<std::string>& directories, std::vector<Entity>& entities);
 
 	private:
 		struct TextBlock

@@ -50,6 +50,7 @@
     ; Game framework macros
     include 'framewk/macros/entity.asm'
     include 'framewk/macros/entmgr.asm'
+    include 'framewk/macros/script.asm'
     include 'framewk/macros/sprite.asm'
     include 'framewk/macros/vfx.asm'
 
