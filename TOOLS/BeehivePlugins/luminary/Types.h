@@ -46,6 +46,14 @@ namespace luminary
 		std::vector<std::pair<std::string, std::string>> params;
 	};
 
+	struct ScriptRelocation
+	{
+		u32 address;
+		u16 tableIdx;
+		std::string scope;
+		std::string name;
+	};
+
 	struct SpawnData
 	{
 		u32 positionX;

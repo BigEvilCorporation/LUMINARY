@@ -9,6 +9,7 @@
 #include "ScriptCompiler.h"
 
 #include <ion/core/string/String.h>
+#include <ion/core/memory/Endian.h>
 #include <ion/io/File.h>
 #include <ion/io/FileDevice.h>
 
@@ -346,14 +347,73 @@ namespace luminary
 		return GetBinPath(compilerDir) + "\\" + g_symbolReadExe + " " + g_symbolReadArg + " " + outname + ".o ";
 	}
 
-	int ScriptCompiler::FindGlobalOffsetTableOffset(const std::vector<std::string>& symbolOutput)
+	int ScriptCompiler::ReadRelocationTable(const std::vector<std::string>& symbolOutput, const std::vector<ScriptFunc> globalOffsetsTable, std::vector<ScriptRelocation>& relocationTable)
 	{
-		return 0;
-	}
+		for (auto line : symbolOutput)
+		{
+			//TODO: A bit primitive, will have many edge cases
+			if (line.find("R_68K_GOT") != std::string::npos)
+			{
+				std::vector<std::string> tokens;
+				ion::string::TokeniseByWhitespace(line, tokens);
 
-	int ScriptCompiler::ReadRelocationTable(const std::vector<std::string>& symbolOutput, std::vector<std::pair<u32, std::string>>& relocationTable)
-	{
-		return 0;
+				//Need at least 3 tokens - address, type, name
+				if (tokens.size() >= 3)
+				{
+					ScriptRelocation entry;
+					entry.address = std::stoul(tokens[0], nullptr, 16);
+
+					std::vector<std::string> nameTokens;
+					ion::string::Tokenise(tokens[2], nameTokens, "::");
+
+					std::vector<char> stripChars = { ':', '(', ')' };
+
+					if (nameTokens.size() == 2)
+					{
+						//Scoped C++ function
+						entry.scope = ion::string::Strip(nameTokens[0], stripChars);
+
+						//todo : substr up to first (
+						int bracketPos = nameTokens[1].find('(');
+						if (bracketPos != std::string::npos)
+						{
+							entry.name = ion::string::Strip(nameTokens[1].substr(0, bracketPos), stripChars);
+						}
+						else
+						{
+							entry.name = ion::string::Strip(nameTokens[1], stripChars);
+						}
+
+						//Match with GOT entry
+						entry.tableIdx = -1;
+						
+						for (int i = 0; i < globalOffsetsTable.size(); i++)
+						{
+							if (entry.scope == globalOffsetsTable[i].scope && entry.name == globalOffsetsTable[i].name)
+							{
+								entry.tableIdx = i;
+								break;
+							}
+						}
+					}
+					else if (nameTokens.size() == 1)
+					{
+						//Global, or the GOT
+						entry.name = ion::string::Strip(nameTokens[0], stripChars);
+					}
+
+					relocationTable.push_back(entry);
+				}
+			}
+		}
+
+		//First entry should be the GOT, or there's a problem
+		if (relocationTable.size() == 0 || relocationTable[0].name != "_GLOBAL_OFFSET_TABLE_")
+		{
+			relocationTable.clear();
+		}
+
+		return relocationTable.size();
 	}
 
 	int ScriptCompiler::FindFunctionOffset(const std::vector<std::string>& symbolOutput, const std::string& className, const std::string& name)
@@ -391,5 +451,36 @@ namespace luminary
 		}
 
 		return -1;
+	}
+
+	int ScriptCompiler::LinkProgram(const std::string& filename, std::vector<ScriptRelocation>& relocationTable, u16 globalOffsetTableSize, u16 binaryStartOffset)
+	{
+		ion::io::File file(filename, ion::io::File::eOpenEdit);
+		if (file.IsOpen())
+		{
+			for (auto entry : relocationTable)
+			{
+				file.Seek(entry.address, ion::io::eSeekModeStart);
+
+				if (entry.name == "_GLOBAL_OFFSET_TABLE_")
+				{
+					//Offset from PC to global offset table
+					u16 tableOffsetShort = -entry.address - binaryStartOffset - globalOffsetTableSize;
+					ion::memory::EndianSwap(tableOffsetShort);
+					file.Write(&tableOffsetShort, sizeof(u16));
+				}
+				else
+				{
+					//Offset into global offset table (longword per entry)
+					u16 tableOffsetShort = entry.tableIdx * sizeof(u32);
+					ion::memory::EndianSwap(tableOffsetShort);
+					file.Write(&tableOffsetShort, sizeof(u16));
+				}
+			}
+
+			return file.GetSize();
+		}
+
+		return 0;
 	}
 }
