@@ -125,6 +125,11 @@ VDP_PLANE_WIDTH                         equ 0x40
 VDP_PLANE_HEIGHT                        equ 0x20
 VDP_PLANE_WIDTH_SHIFT                   equ 0x06
 
+; Cells
+VDP_CELL_FLAG_HI_PRIO                   equ (1<<15)
+VDP_CELL_FLAG_FLIP_X                    equ (1<<12)
+VDP_CELL_FLAG_FLIP_Y                    equ (1<<11)
+
 ; VRAM addresses
 VRAM_ADDR_TILES			                equ 0x0000
 VRAM_ADDR_PLANE_A		                equ 0xC000

@@ -55,10 +55,12 @@
     include 'framewk/macros/vfx.asm'
 
     ; Game framework
+    include 'framewk/canvas.asm'
     include 'framewk/camera.asm'
     include 'framewk/entity.asm'
     include 'framewk/entmgr.asm'
     include 'framewk/geometry.asm'
+    include 'framewk/maths3d.asm'
     include 'framewk/physutil.asm'
     include 'framewk/scene.asm'
     include 'framewk/script.asm'
