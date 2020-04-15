@@ -85,7 +85,10 @@ MAP_PreLoad:
     bsr    VDP_LoadTiles
 
     ; Update to fill initial screen
-    bsr    MAP_UpdateStreaming
+    lea    RAM_STREAMING_MAP_A, a3
+    bsr    MAP_UpdateStreamingPlane
+    lea    RAM_STREAMING_MAP_B, a3
+    bsr    MAP_UpdateStreamingPlane
 
     rts
 
@@ -97,10 +100,6 @@ MAP_UpdateStreaming:
     ; ======================================
     ; No params
     ; ======================================
-
-    ; Keep VDP addrs in a5/a6, will be writing a lot
-    move.l #PORT_VDP_CONTROL, a5
-    move.l #PORT_VDP_DATA, a6
 
     ; Alternate between maps each frame to spread workload
     lea    RAM_STREAMING_MAP_A, a3
@@ -126,9 +125,19 @@ MAP_UpdateStreamingPlane:
     ; a6   VDP data port
     ; ======================================
 
+    ; If map exists for this plane
+    tst.w  StreamingMap_WidthStamps(a3)
+    bne    @MapOk
+    rts
+    @MapOk:
+
     move.l StreamingMap_StampMap(a3), a0
     move.l StreamingMap_StampSet(a3), a1
     move.l StreamingMap_VRAMhndl(a3), a2
+
+    ; Keep VDP addrs in a5/a6
+    move.l #PORT_VDP_CONTROL, a5
+    move.l #PORT_VDP_DATA, a6
 
     ; ==================================================================================
     ; Stream rows
