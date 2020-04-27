@@ -46,6 +46,7 @@
     include 'engine/vdpregs.asm'
     include 'engine/vram.asm'
     include 'engine/vrammgr.asm'
+    include 'engine/z80.asm'
 
     ; Game framework macros
     include 'framewk/macros/entity.asm'

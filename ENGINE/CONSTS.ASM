@@ -195,6 +195,12 @@ CRAM_ADDR_PAL_1			                equ 0x0020
 CRAM_ADDR_PAL_2			                equ 0x0040
 CRAM_ADDR_PAL_3			                equ 0x0060
 
+; Z80
+PORT_Z80_BUS_REQUEST			        equ 0x00A11100
+PORT_Z80_BUS_RESET			            equ 0x00A11200
+Z80_RAM_START			                equ 0x00A00000
+Z80_RAM_SIZE_B			                equ 0x2000
+
 ; Gamepad ports
 PORT_PAD_DATA_A                         equ 0x00A10003
 PORT_PAD_DATA_B                         equ 0x00A10005

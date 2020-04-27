@@ -16,6 +16,9 @@ Bootstrap:
     ; Clear main RAM
     bsr    RAM_Clear
 
+    ; Initialise Z80
+    bsr    Z80_Initialise
+
     ; Initialise VDP
     bsr    VDP_Initialise
 
