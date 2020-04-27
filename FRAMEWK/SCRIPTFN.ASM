@@ -9,23 +9,6 @@
 ScriptGlobal_Engine:
     dc.l ScriptFunc_FindFloor   ; short FindFloor(const Entity& entity, const Scene& scene)
 
-SCRIPTFUNC_GETPARAM: macro index,outreg
-    ; ======================================
-    ; Fetches a script param from stack
-    ; (C++ calling convention)
-    ; ======================================
-    ; index    Index of param (left to right)
-    ; outreg   Reg to copy to
-    ; ======================================
-    ; Stack:
-    ;   0(sp) = return addr
-    ;   4(sp) = param 1...
-    ;   8(sp) = param 2...
-    ;  12(sp) = param 3...
-    ; ======================================
-    move.l (4+(index*4))(sp), \outreg
-    endm
-
 ScriptFunc_FindFloor:
     ; ======================================
     ; Searches for terrain downwards,

@@ -17,10 +17,6 @@ ENT_DEBUG_NAME_LEN                      equ 0x10
 ; Scene manager
 SCN_MAX_ENTITIES                        equ BLDCONF_SCN_MAX_ENTITIES
 
-; Script system
-SCR_MAX_ACTIONS                         equ 256
-SCR_MAX_PARAMS                          equ 8
-
 ; Physics
 PHYS_VEL_TO_GROUND_SPEED_SHIFT          equ 8
 PHYS_GRAVITY_Y                          equ BLDCONF_PHYS_GRAVITY_Y
