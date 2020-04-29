@@ -70,6 +70,6 @@ ERR_DrawMessage:
 
     move.w #ERR_TEXT_POS_X, d0
     move.w #ERR_TEXT_POS_Y, d1
-    bsr    DBG_DrawString
+    bsr    DBG_DrawStringA
 
     rts

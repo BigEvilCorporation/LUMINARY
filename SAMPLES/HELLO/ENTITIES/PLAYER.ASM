@@ -261,9 +261,9 @@ EPlayer_Update:
     ; Debug draw
     ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a0,a1
     move.w ECPhysBodyChar_LastTerrainFlags(a1), d7
-    DBG_DRAW_WORD #100,#8,d7
+    DBG_DRAW_WORD_A #100,#8,d7
     move.b ECPhysBodyChar_TerrainQuadrant(a1), d7
-    DBG_DRAW_BYTE #100,#9,d7
+    DBG_DRAW_BYTE_A #100,#9,d7
 
     rts
 

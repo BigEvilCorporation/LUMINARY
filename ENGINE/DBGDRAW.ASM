@@ -6,7 +6,46 @@
 ; DBGDRAW.ASM - Debug drawing routines
 ; ============================================================================================
 
-DBG_DrawString:
+DBG_DrawStringS:
+    ; ======================================
+    ; Draws debug text string using sprites.
+    ; Palette 0 only.
+    ; Assumes 2 byte VDP autoincrement.
+    ; ======================================
+    ; a0   String
+    ; d0.w X coord (plane cells)
+    ; d1.w Y coord (plane cells)
+    ; ======================================
+
+    ; Get font addr
+    move.l RAM_DBG_FONT_VRAM, d0
+
+    ; Coords to sprite space
+    VDP_TILES_TO_PIXELS d0
+    VDP_TILES_TO_PIXELS d1
+    addi.w #VDP_SPRITE_BORDER_X, d0
+    addi.w #VDP_SPRITE_BORDER_Y, d1
+
+    ; Sprite flags and layout
+    moveq  #0x0, d3
+    moveq  #0x0, d4
+
+    ; Loop until terminator
+    @CharLp:
+    moveq  #0x0, d7
+    move.b (a0)+, d7
+    beq    @End
+    sub.b  #STR_ASCII_START, d7         ; Tile idx = char - ascii start + font addr
+    move.w d7, d2
+    bsr    SPR_Draw                     ; Draw sprite
+    addq   #0x8, d0                     ; Next X coord
+    bra    @CharLp                      
+
+    @End:
+
+    rts
+
+DBG_DrawStringA:
     ; ======================================
     ; Draws debug text string to plane A.
     ; Palette 0 only.
@@ -39,7 +78,7 @@ DBG_DrawString:
 
     rts
 
-DBG_DrawString_Pal:
+DBG_DrawStringA_Pal:
     ; ======================================
     ; Draws debug text string to plane A,
     ; with variable palette.

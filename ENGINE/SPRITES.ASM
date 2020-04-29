@@ -70,6 +70,54 @@ SPR_Initialise:
 
     rts
 
+SPR_Draw:
+    ; ======================================
+    ; Adds a sprite for drawing
+    ; ======================================
+    ; d0.w X coord
+    ; d1.w Y coord
+    ; d2.w Tile ID
+    ; d3.w Draw flags
+    ; d4.b Layout
+    ; ======================================
+
+    ; Get table ptr
+    move.l RAM_SPRITE_TABLE_PTR, a1
+
+    ; Get next sprite index
+    move.w RAM_SPRITE_NEXT_IDX, d6
+
+    ; Check if table depleted
+    cmp.w  #VDP_MAX_SPRITES, d6
+    bge    @Err_OutOfSprites
+
+    ; Combine tile ID and flags
+    or.w   d3, d2
+
+    ; Link prev in table to this (-1st sprite is blank sprite)
+	move.b  d6, (-SIZEOF_VDPSprite+VDPSprite_NextId)(a1)
+
+    ; Populate hardware sprite
+    move.w d1, (a1)+                    ; Coord Y
+    move.b d4, (a1)+                    ; Layout
+    move.b #0, (a1)+                    ; Next ID
+    move.w d2, (a1)+                    ; Prio/pal/flip/tileId
+    move.w d0, (a1)+                    ; Coord X
+
+    ; Advance ptr
+    move.l a1, RAM_SPRITE_TABLE_PTR
+
+    ; Advance index
+    addq.w #0x1, d6
+    move.w d6, RAM_SPRITE_NEXT_IDX
+
+    rts
+
+    @Err_OutOfSprites:
+    DBG_RAISE_ERROR "Out of sprites"
+
+    rts
+
 SPR_DrawFrame:
     ; ======================================
     ; Adds a sprite frame for drawing
@@ -77,7 +125,7 @@ SPR_DrawFrame:
 	; a0   SpriteFrame
     ; d0.w X coord
     ; d1.w Y coord
-    ; d2.l VRAM handle
+    ; d2.w VRAM handle
     ; d3.w Draw flags
     ; ======================================
 
@@ -93,7 +141,7 @@ SPR_DrawFrame:
     ; Check if table depleted
     move.w d6, d4
     add.w  d5, d4
-    cmp.w  #VDP_MAX_SPRITES, d4
+    cmp.w  #VDP_MAX_SPRITES, d6
     bge    @Err_OutOfSprites
 
     ; Get layout table

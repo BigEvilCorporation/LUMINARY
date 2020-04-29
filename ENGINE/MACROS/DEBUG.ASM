@@ -33,6 +33,30 @@ DBG_RAISE_ERROR: macro string
     endm
 
     ; ======================================
+    ; Draws a string with sprites
+    ; ======================================
+    ; x    Cell pos X
+    ; y    Cell pos Y
+    ; string - String to draw
+    ; ======================================
+    ; Expects debug font and palette to be
+    ; loaded.
+    ; ======================================
+DBG_DRAW_STRING_S: macro x,y,string
+    PUSHM.L d0-d3/a0
+    lea    @string\@, a0
+    move.w \x, d0
+    move.w \y, d1
+    bsr    DBG_DrawStringS
+    bra    @string_end\@
+    @string\@:
+    dc.b   \string\,0
+    even
+    @string_end\@:
+    POPM.L d0-d3/a0
+    endm
+
+    ; ======================================
     ; Draws a string to plane A
     ; ======================================
     ; x    Cell pos X
@@ -43,18 +67,40 @@ DBG_RAISE_ERROR: macro string
     ; loaded.
     ; Does not account for scrolling.
     ; ======================================
-DBG_DRAW_STRING: macro x,y,string
+DBG_DRAW_STRING_A: macro x,y,string
     PUSHM.L d0-d3/a0
     lea    @string\@, a0
     move.w \x, d0
     move.w \y, d1
-    bsr    DBG_DrawString
+    bsr    DBG_DrawStringA
     bra    @string_end\@
     @string\@:
     dc.b   \string\,0
     even
     @string_end\@:
     POPM.L d0-d3/a0
+    endm
+
+    ; ======================================
+    ; Draws a byte with sprites
+    ; ======================================
+    ; x    Cell pos X
+    ; y    Cell pos Y
+    ; byte - byte to draw
+    ; ======================================
+    ; Expects debug font and palette to be
+    ; loaded.
+    ; ======================================
+DBG_DRAW_BYTE_S: macro x,y,byte
+    PUSHM.L d0-d3/a0-a1
+    STACK_ALLOC 4, a0                   ; Alloc space for string
+    move.l \byte, d0
+    bsr    STR_ItoA_Hex_b
+    move.w \x, d0
+    move.w \y, d1
+    bsr    DBG_DrawStringS
+    STACK_FREE 4                        ; Free string
+    POPM.L d0-d3/a0-a1
     endm
 
     ; ======================================
@@ -68,15 +114,37 @@ DBG_DRAW_STRING: macro x,y,string
     ; loaded.
     ; Does not account for scrolling.
     ; ======================================
-DBG_DRAW_BYTE: macro x,y,byte
+DBG_DRAW_BYTE_A: macro x,y,byte
     PUSHM.L d0-d3/a0-a1
     STACK_ALLOC 4, a0                   ; Alloc space for string
     move.l \byte, d0
     bsr    STR_ItoA_Hex_b
     move.w \x, d0
     move.w \y, d1
-    bsr    DBG_DrawString
+    bsr    DBG_DrawStringA
     STACK_FREE 4                        ; Free string
+    POPM.L d0-d3/a0-a1
+    endm
+
+    ; ======================================
+    ; Draws a word with sprites
+    ; ======================================
+    ; x    Cell pos X
+    ; y    Cell pos Y
+    ; word - word to draw
+    ; ======================================
+    ; Expects debug font and palette to be
+    ; loaded.
+    ; ======================================
+DBG_DRAW_WORD_S: macro x,y,word
+    PUSHM.L d0-d3/a0-a1
+    STACK_ALLOC 6, a0                   ; Alloc space for string
+    move.l \word, d0
+    bsr    STR_ItoA_Hex_w
+    move.w \x, d0
+    move.w \y, d1
+    bsr    DBG_DrawStringS
+    STACK_FREE 6                        ; Free string
     POPM.L d0-d3/a0-a1
     endm
 
@@ -91,15 +159,38 @@ DBG_DRAW_BYTE: macro x,y,byte
     ; loaded.
     ; Does not account for scrolling.
     ; ======================================
-DBG_DRAW_WORD: macro x,y,word
+DBG_DRAW_WORD_A: macro x,y,word
     PUSHM.L d0-d3/a0-a1
     STACK_ALLOC 6, a0                   ; Alloc space for string
     move.l \word, d0
     bsr    STR_ItoA_Hex_w
     move.w \x, d0
     move.w \y, d1
-    bsr    DBG_DrawString
+    bsr    DBG_DrawStringA
     STACK_FREE 6                        ; Free string
+    POPM.L d0-d3/a0-a1
+    endm
+
+    ; ======================================
+    ; Draws a longword with sprites
+    ; ======================================
+    ; x    Cell pos X
+    ; y    Cell pos Y
+    ; long - Longword to draw
+    ; ======================================
+    ; Expects debug font and palette to be
+    ; loaded.
+    ; Does not account for scrolling.
+    ; ======================================
+DBG_DRAW_LONG_S: macro x,y,long
+    PUSHM.L d0-d3/a0-a1
+    STACK_ALLOC 10, a0                  ; Alloc space for string
+    move.l \long, d0
+    bsr    STR_ItoA_Hex_l
+    move.w \x, d0
+    move.w \y, d1
+    bsr    DBG_DrawStringS
+    STACK_FREE 10                       ; Free string
     POPM.L d0-d3/a0-a1
     endm
 
@@ -114,14 +205,14 @@ DBG_DRAW_WORD: macro x,y,word
     ; loaded.
     ; Does not account for scrolling.
     ; ======================================
-DBG_DRAW_LONG: macro x,y,long
+DBG_DRAW_LONG_A: macro x,y,long
     PUSHM.L d0-d3/a0-a1
     STACK_ALLOC 10, a0                  ; Alloc space for string
     move.l \long, d0
     bsr    STR_ItoA_Hex_l
     move.w \x, d0
     move.w \y, d1
-    bsr    DBG_DrawString
+    bsr    DBG_DrawStringA
     STACK_FREE 10                       ; Free string
     POPM.L d0-d3/a0-a1
     endm

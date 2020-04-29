@@ -438,9 +438,9 @@ VRAMMGR_DrawTable:
     ; ======================================
 
     IF BLDCONF_VRAM_MGR_DEBUG
-    DBG_DRAW_STRING #4,#5,"Hndl Ownr Addr Size Prev Next"
+    DBG_DRAW_STRING_A #4,#5,"Hndl Ownr Addr Size Prev Next"
     ELSE
-    DBG_DRAW_STRING #4,#5,"Hndl Hndl Ownr Addr Size Prev Next"
+    DBG_DRAW_STRING_A #4,#5,"Hndl Hndl Ownr Addr Size Prev Next"
     ENDIF
 
     PUSH.L a0
@@ -500,7 +500,7 @@ VRAMMGR_DrawTable:
 
     POPM.L d0-d1/a0                     ; Restore string start addr                         
 
-    bsr    DBG_DrawString               ; Draw string
+    bsr    DBG_DrawStringA               ; Draw string
 
     POPM.L d0-d3/a0-a2
 
