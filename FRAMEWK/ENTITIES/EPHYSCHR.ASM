@@ -307,6 +307,8 @@ ECPhysBodyChar_StepAll:
     btst   #COLLISION_FLAG_BIT_TERRAIN_W, d5
     bne    @NotLanded
     bsr    ECPhysBodyChar_Landed
+    moveq  #0x0, d2                     ; Done, clear remaining velocity
+    moveq  #0x0, d3
     @NotLanded:
 
     POP.W  d7                           ; Restore map width
@@ -338,71 +340,46 @@ ECPhysBodyChar_StepAll:
     rts
 
 ECPhysBodyChar_Landed:
-
-    ; If landed on floor, not ceiling
-    tst.l  ECPhysBodyChar_VelY(a3)
-    blt    @LandedCeiling
-
-    ; If X > Y, landed sideways
-    move.l ECPhysBodyChar_VelX(a3), d7
-    move.l ECPhysBodyChar_VelY(a3), d6
-    ABS.L  d7
-    cmp.l  d6, d7
-    bge    @LandedSideways
+    ; ======================================
+    ; Re-acquisition of ground - converts
+    ; air velocity back into ground speed
+    ; after a terrain impact
+    ; ======================================
+    ; In/out:
+    ;  d0.l Position X
+    ;  d1.l Position Y
+    ;  a3   CPhysBodyChar component
+    ;  a4   Entity
+    ;  a5   Backup vel X
+    ;  a6   Backup vel Y
+    ; ======================================
 
     ; Get angle of terrain on impact
     move.w ECPhysBodyChar_LastTerrainFlags(a3), d5
-    moveq  #0x0, d6
+    moveq  #0x0, d7
+    move.b d5, d7
+    add.w  d7, d7                       ; Word offset
 
-    ; Shallow angle (0-22.5 deg, $F0-$FF/$00-$0F)
-    move.b d5, d6
-    addi.b #0x10, d6
-    cmp.w  #0x10*2, d6
-    ble    @ShallowAngle
+    ; Get current velocity
+    moveq  #0x0, d2
+    moveq  #0x0, d3
+    move.w ECPhysBodyChar_VelX(a3), d2  ; Velocity X
+    move.w ECPhysBodyChar_VelY(a3), d3  ; Velocity Y
 
-    ; Steep angle (22.5-45 deg, $E0-$EF/$10-$1F)
-    move.b d5, d6
-    addi.b #0x20, d6
-    cmp.w  #0x20*2, d6
-    ble    @SteepAngle
-    bra    @VerySteepAngle
-
-    ; Landed at steep angle, set ground speed to Y velocity / 2
-    @SteepAngle:
-    move.l ECPhysBodyChar_VelY(a3), d6
-    asr.l  #0x8, d6                     ; Y vel to ground speed range (16.16 >> 8)
-    asr.l  #0x1, d6                     ; / 2
-    tst.b  d5                           ; Get sign of angle
-    bge    @NoNeg1
-    neg.w  d6                           ; -ve direction
-    @NoNeg1:
-    move.w d6, ECPhysBodyChar_GroundSpeed(a3)
+    ; Get terrain normal
+    moveq  #0x0, d4
+    moveq  #0x0, d5
+    lea    sinetable, a4
+    move.w (a4,d7.w), d5                ; Normal Y
+    addi.w #SINE_TBL_COS_OFFS, d7
+    move.w (a4,d7.w), d4                ; Normal X
     
-    rts
+    ; Normal dot velocity (v1.x * v2.x + v1.y * v2.y)
+    muls.w d2, d4
+    muls.w d3, d5
+    add.w  d4, d5
 
-    ; Landed at very steep angle, clamp Y velocity to 0x0FC0 and set as ground speed
-    @VerySteepAngle:
-    move.l ECPhysBodyChar_VelY(a3), d6
-    asr.l  #0x8, d6                     ; Y vel to ground speed range (16.16 >> 8)
-    cmpi.w #0x0FC0, d6
-    ble    @NoClampY
-    move.w #0x0FC0, d6
-    @NoClampY:
-    tst.b  d5                           ; Get sign of angle
-    bge    @NoNeg2
-    neg.w  d6                           ; -ve direction
-    @NoNeg2:
-    move.w d6, ECPhysBodyChar_GroundSpeed(a3)
-    
-    rts
-
-    @ShallowAngle:
-    @LandedSideways:
-    move.l ECPhysBodyChar_VelX(a3), d6
-    asr.l  #0x8, d6                     ; X vel to ground speed range (16.16 >> 8)
-    move.w d6, ECPhysBodyChar_GroundSpeed(a3)
-
-    @LandedCeiling:
+    move.w d5, ECPhysBodyChar_GroundSpeed(a3)
 
     rts
 
