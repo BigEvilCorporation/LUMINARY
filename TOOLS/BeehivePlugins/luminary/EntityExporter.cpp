@@ -138,7 +138,8 @@ namespace luminary
 		stream << "\tIFND FINAL" << std::endl;
 		stream << "\tdc.b " << EntityExporter::ExportDebugNameData(entity.name, EntityExporter::s_debugNameLen) << std::endl;
 		stream << "\tENDIF" << std::endl;
-		stream << "\tdc.w 0x0\t; EntityBlock_Flags" << std::endl;
+		stream << "\tdc.b 0x0\t; EntityBlock_Flags" << std::endl;
+		stream << "\tdc.b 0x0\t; EntityBlock_Priority" << std::endl;
 		stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
 		stream << "\tdc.w " << entity.name << "_Typedesc\t; Entity_TypeDesc" << std::endl;
 		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionX + extents.x) << 16) << "\t; Entity_PosX" << std::endl;

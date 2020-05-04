@@ -18,6 +18,7 @@ ECSPRITE_STATE_FLAG_DIRTY               equ 0x4 ; Anim changed, forcefully load 
     COMPONENT_SPAWN_DATA_BEGIN ECSprite
 SDSprite_Sheet                          rs.l 1  ; [TAGS=SPRITE_SHEET]
 SDSprite_Animation                      rs.l 1  ; [TAGS=SPRITE_ANIM]
+SDSprite_DrawPriority                   rs.b 1
     COMPONENT_SPAWN_DATA_END
 
     ENTITY_COMPONENT_BEGIN ECSprite
@@ -58,6 +59,7 @@ ECSprite_Initialise:
     move.b #0x0, ECSprite_PosX(a0)
     move.b #0x0, ECSprite_PosY(a0)
     move.b #0x0, ECSprite_DrawFlags(a0)
+    move.b SDSprite_DrawPriority(a1), EntityBlock_Priority(a0)
     move.b #(1<<ECSPRITE_STATE_FLAG_VISIBLE)|(1<<ECSPRITE_STATE_FLAG_ONSCREEN), ECSprite_StateFlags(a0)
 
     ; Load animation

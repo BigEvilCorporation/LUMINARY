@@ -14,7 +14,8 @@
     IFND FINAL
 EntityBlock_DebugName                   rs.b ENT_DEBUG_NAME_LEN
 	ENDIF
-EntityBlock_Flags                       rs.w 1
+EntityBlock_Flags                       rs.b 1
+EntityBlock_Priority                    rs.b 1
 EntityBlock_Next                        rs.w 1
     STRUCT_END
 
