@@ -45,6 +45,19 @@ SPRITE_COMPONENT_SETFLIPY_REG: macro sprite,enabled
     or.b   \enabled, ECSprite_DrawFlags(\sprite)
     endm
 
+SPRITE_COMPONENT_SETPRIO_REG: macro sprite,high_prio
+    ; ======================================
+    ; Set a sprite's high prio flag
+    ; ======================================
+    ; sprite    - Address reg of sprite
+    ; high_prio - Reg containing 0 or 1
+    ; ======================================
+    andi.b #0x1, \high_prio
+    ror.b  #VDP_SPRITE_FLAG_ROR_PRIO, \high_prio
+    andi.b #VDP_SPRITE_FLAG_NMASK_PRIO>>8, ECSprite_DrawFlags(\sprite)
+    or.b   \high_prio, ECSprite_DrawFlags(\sprite)
+    endm
+
 SPRITE_COMPONENT_FLIPX: macro sprite
     ; ======================================
     ; Flip a sprite on the X axis

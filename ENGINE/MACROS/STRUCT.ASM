@@ -30,3 +30,7 @@ SIZEOF_\__STRUCT_NAME rs.b 0
 STRUCT_ALLOC: macro structname,varname
 \varname\: rs.b SIZEOF_\structname
 	endm
+
+STRUCT_ALLOC_ARRAY: macro structname,varname,count
+\varname\: rs.b SIZEOF_\structname*\count
+	endm

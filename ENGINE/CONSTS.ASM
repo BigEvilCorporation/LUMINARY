@@ -47,8 +47,17 @@ VRAM_END					            equ (VRAM_START+VRAM_SIZE_B)
 ; Screen
 VDP_SCREEN_WIDTH_PX                     equ 0x0140 ; 320 (H40 mode)
 VDP_SCREEN_HEIGHT_PX                    equ 0x00E0 ; 224 (V28 mode)
+
+; Sprite plane
+VDP_SPRITE_PLANE_WIDTH_PX               equ 0x0200
+VDP_SPRITE_PLANE_HEIGHT_PX              equ 0x0200
 VDP_SPRITE_BORDER_X		                equ 0x0080
 VDP_SPRITE_BORDER_Y		                equ 0x0080
+
+; A/B planes
+VDP_PLANE_WIDTH                         equ 0x40
+VDP_PLANE_HEIGHT                        equ 0x20
+VDP_PLANE_WIDTH_SHIFT                   equ 0x06
 
 ; Map streaming
 MAP_STREAM_STAMP_WIDTH                  equ BLDCONF_MAP_STREAM_STAMP_WIDTH
@@ -119,11 +128,6 @@ VDP_SPRITE_LAYOUT_4x1                   equ %1100
 VDP_SPRITE_LAYOUT_4x2                   equ %1101
 VDP_SPRITE_LAYOUT_4x3                   equ %1110
 VDP_SPRITE_LAYOUT_4x4                   equ %1111
-
-; Planes
-VDP_PLANE_WIDTH                         equ 0x40
-VDP_PLANE_HEIGHT                        equ 0x20
-VDP_PLANE_WIDTH_SHIFT                   equ 0x06
 
 ; Cells
 VDP_CELL_FLAG_HI_PRIO                   equ (1<<15)
