@@ -190,9 +190,20 @@ MAP_UpdateStreamingPlane:
     add.w  d6, d7						; Add to X
     add.w  d7, d7                       ; Dest offset to words
     VDP_SETADDRESS d7, StreamingMap_PlaneAddr(a3), #VDP_CMD_VRAM_WRITE
+
+    ; Get row width to stream
+    move.w #VDP_PLANE_WIDTH, d6         ; Plane width by default
+    add.w  d2, d6                       ; Get max
+    move.w StreamingMap_WidthStamps(a3), d5
+    MAP_STAMPS_TO_TILES_Y d5
+    cmp.w  d5, d6                       ; Clamp to map width
+    ble    @NoClampX
+    move.w d5, d6
+    @NoClampX:
+    sub.w  d2, d6                       ; Back to start
+    subq   #0x1, d6                     ; -1 for loop
     
     ; Row loop
-    move.w #VDP_PLANE_WIDTH-1, d6
     @StreamRow:
 
     ; d2 = x coord
@@ -282,8 +293,19 @@ MAP_UpdateStreamingPlane:
     add.w  d7, d7                       ; Dest offset to words
     VDP_SETADDRESS d7, StreamingMap_PlaneAddr(a3), #VDP_CMD_VRAM_WRITE
     
+    ; Get column height to stream
+    move.w #VDP_PLANE_HEIGHT, d6        ; Plane height by default
+    add.w  d2, d6                       ; Get max
+    move.w StreamingMap_HeightStamps(a3), d5
+    MAP_STAMPS_TO_TILES_Y d5
+    cmp.w  d5, d6                       ; Clamp to map height
+    ble    @NoClampY
+    move.w d5, d6
+    @NoClampY:
+    sub.w  d2, d6                       ; Back to start
+    subq   #0x1, d6                     ; -1 for loop
+
     ; Column loop
-    move.w #VDP_PLANE_HEIGHT-1, d6
     @StreamCol:
 
     ; d1 = x coord
