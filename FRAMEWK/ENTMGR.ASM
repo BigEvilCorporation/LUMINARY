@@ -82,6 +82,7 @@ ENT_SpawnEntity:
 
     ; Alloc all component blocks and call constructors
     move.w EntityTypeDesc_NumComponents(a5), d0
+    beq    @NoComponents
     movea.w EntityTypeDesc_ComponentSlots(a5), a2
     subi.w #0x1, d0
     @ConstructorLp:
@@ -106,6 +107,7 @@ ENT_SpawnEntity:
     addi.w #SIZEOF_ComponentSlotDesc, a2            ; Next component
     dbra   d0, @ConstructorLp
     
+    @NoComponents:
     POP.L  a0
 
     ; Increment entities allocated
@@ -151,6 +153,7 @@ ENT_DespawnEntity:
 
     ; Free all components
     move.w EntityTypeDesc_NumComponents(a1), d0
+    beq    @NoComponents
     movea.w EntityTypeDesc_ComponentSlots(a1), a2
     subi.w #0x1, d0
     @ComponentLp:
@@ -179,6 +182,8 @@ ENT_DespawnEntity:
 
     adda.w #SIZEOF_ComponentSlotDesc, a2                        ; Next component
     dbra   d0, @ComponentLp
+    
+    @NoComponents:
 
     ; Free entity
     bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
