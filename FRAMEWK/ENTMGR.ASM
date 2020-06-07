@@ -66,6 +66,9 @@ ENT_SpawnEntity:
     POPM.W  d0-d1
     move.l a0, a3
 
+    ; Set id
+    move.w EntitySpawnData_Id(a1), Entity_Id(a0)
+
     IFND FINAL
     ; Set debug name
     PUSHM.L a0-a1

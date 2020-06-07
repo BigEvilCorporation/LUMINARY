@@ -75,6 +75,7 @@ namespace luminary
 	struct Entity
 	{
 		std::string name;
+		unsigned short id;
 		SpawnData spawnData;
 		std::vector<Param> params;
 		std::vector<Component> components;

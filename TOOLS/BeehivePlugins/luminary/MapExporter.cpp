@@ -29,8 +29,9 @@ namespace luminary
 				int x = it->m_position.x / stampWidth;
 				int y = it->m_position.y / stampHeight;
 				u32 addr = (it->m_id * stampSizeBytes);
-				ion::memory::EndianSwap(addr);
-				stampMap[(y * widthStamps) + x] = addr;
+				u32 word = addr | (it->m_flags << 13);	// High Prio, Flip X, Flip Y
+				ion::memory::EndianSwap(word);
+				stampMap[(y * widthStamps) + x] = word;
 			}
 
 			file.Write(stampMap.data(), stampMap.size() * sizeof(u32));

@@ -79,15 +79,15 @@ namespace luminary
 						switch (components[i].params[j].size)
 						{
 							case ParamSize::Byte:
-								stream << "\tunsigned char " << paramName << ";" << std::endl;
+								stream << "\tchar " << paramName << ";" << std::endl;
 								structSize += 1;
 								break;
 							case ParamSize::Word:
-								stream << "\tunsigned short " << paramName << ";" << std::endl;
+								stream << "\tshort " << paramName << ";" << std::endl;
 								structSize += 2;
 								break;
 							case ParamSize::Long:
-								stream << "\tunsigned int " << paramName << ";" << std::endl;
+								stream << "\tint " << paramName << ";" << std::endl;
 								structSize += 4;
 								break;
 						}
@@ -185,15 +185,15 @@ namespace luminary
 				switch (entity.params[i].size)
 				{
 				case ParamSize::Byte:
-					stream << "\tunsigned char " << paramName << ";" << std::endl;
+					stream << "\tchar " << paramName << ";" << std::endl;
 					structSize += 1;
 					break;
 				case ParamSize::Word:
-					stream << "\tunsigned short " << paramName << ";" << std::endl;
+					stream << "\tshort " << paramName << ";" << std::endl;
 					structSize += 2;
 					break;
 				case ParamSize::Long:
-					stream << "\tunsigned int " << paramName << ";" << std::endl;
+					stream << "\tint " << paramName << ";" << std::endl;
 					structSize += 4;
 					break;
 				}

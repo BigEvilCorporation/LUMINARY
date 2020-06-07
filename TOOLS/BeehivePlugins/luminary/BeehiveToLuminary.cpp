@@ -227,7 +227,7 @@ namespace luminary
 			{
 				archetype.name = srcArchetype.name;
 				archetype.entityTypeName = gameObjectType->GetName();
-				const Actor* actor = project.GetActor(gameObjectType->GetSpriteActorId());
+				const Actor* actor = project.GetActor(srcArchetype.spriteActorId);
 
 				//Create archetype params
 				int paramIdx = 0;
@@ -352,8 +352,9 @@ namespace luminary
 
 		void ExportEntity(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity)
 		{
-			//Type name
+			//Entity name and id
 			entity.name = gameObjectType.GetName();
+			entity.id = gameObject.GetId() & 0xFFFF;
 
 			//Entity name
 			if (gameObject.GetName().size() > 0)
