@@ -23,6 +23,7 @@ namespace luminary
 			EntityDesc,
 			EntityArchetype,
 			ScriptData,
+			PrefabData,
 		};
 
 		struct ParamTag

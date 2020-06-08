@@ -23,6 +23,7 @@ namespace luminary
 			{ "ENTITY_DESC", TagType::EntityDesc },
 			{ "ENTITY_ARCHETYPE", TagType::EntityArchetype },
 			{ "SCRIPT_DATA", TagType::ScriptData },
+			{ "PREFAB_DATA", TagType::PrefabData },
 		};
 
 		const std::string& GetTagName(TagType tagType)

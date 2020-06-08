@@ -18,9 +18,9 @@ namespace luminary
 {
 	enum class ParamSize
 	{
-		Byte,
-		Word,
-		Long
+		Byte = 1,
+		Word = 2,
+		Long = 4
 	};
 
 	struct Param
@@ -75,11 +75,20 @@ namespace luminary
 	struct Entity
 	{
 		std::string name;
+		unsigned short id;
 		SpawnData spawnData;
 		std::vector<Param> params;
 		std::vector<Component> components;
 		std::vector<ScriptFunc> scriptFuncs;
 		bool isStatic;
+		bool isPrefab;
+	};
+
+	struct Prefab
+	{
+		std::string name;
+		unsigned short id;
+		std::vector<Entity> children;
 	};
 
 	struct Archetype

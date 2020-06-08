@@ -29,8 +29,9 @@ namespace luminary
 		EntityExporter();
 
 		bool ExportArchetypes(const std::string& filename, const std::vector<Archetype>& archetypes);
+		bool ExportPrefabs(const std::string& filename, const std::vector<Prefab>& prefabs);
 
-		static std::string ExportSpawnParamsData(const std::string& name, const std::vector<Param>& entityParams, const std::vector<Component>& components);
+		static std::string ExportSpawnParamsData(const std::string& name, unsigned short id, const std::vector<Param>& entityParams, const std::vector<Component>& components);
 		static std::string ExportStaticEntityData(const Entity& entity);
 		static std::string ExportEntitySpawnTableData(const std::string& spawnDataName, const Entity& entity, std::map<std::string, ExportedSpawnData>& exportedSpawnDatas);
 		static std::string ExportDebugNameData(const std::string& name, int maxLength);

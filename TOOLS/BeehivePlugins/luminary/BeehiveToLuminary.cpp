@@ -76,6 +76,19 @@ namespace luminary
 			return spriteAnim;
 		}
 
+		void CreatePrefabType(GameObjectType& gameObjectType)
+		{
+			//EPrefab entity type
+			gameObjectType.SetName("EPrefab");
+
+			//Add prefab data variable
+			GameObjectVariable& variable = gameObjectType.AddVariable();
+			variable.m_name = "SDPrefab_Data";
+			variable.m_size = (u8)luminary::ParamSize::Long;
+			variable.m_value = std::string("prefabdata_") + gameObjectType.GetPrefabName();
+			variable.m_tags.push_back(luminary::tags::GetTagName(luminary::tags::TagType::PrefabData));
+		}
+
 		void ExportParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses)
 		{
 			param.name = variable.m_name;
@@ -159,6 +172,10 @@ namespace luminary
 			{
 				param.value = std::string("scriptdata_") + gameObjectType.GetName();
 			}
+			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::PrefabData)))
+			{
+				param.value = std::string("prefabdata_") + gameObjectType.GetPrefabName();
+			}
 			else if (variable.FindTagValue("SCRIPTFUNC", scriptAddress))
 			{
 				ScriptAddressMap::const_iterator it = scriptAddresses.find(gameObjectType.GetName());
@@ -227,7 +244,7 @@ namespace luminary
 			{
 				archetype.name = srcArchetype.name;
 				archetype.entityTypeName = gameObjectType->GetName();
-				const Actor* actor = project.GetActor(gameObjectType->GetSpriteActorId());
+				const Actor* actor = project.GetActor(srcArchetype.spriteActorId);
 
 				//Create archetype params
 				int paramIdx = 0;
@@ -273,9 +290,9 @@ namespace luminary
 			}
 		}
 
-		void ConvertScriptEntity(const GameObjectType& gameObjectType, luminary::Entity& entity)
+		void ConvertEntityType(const GameObjectType& gameObjectType, luminary::Entity& entity)
 		{
-			entity.name = gameObjectType.GetName();
+			entity.name = gameObjectType.IsPrefabType() ? gameObjectType.GetPrefabName() : gameObjectType.GetName();
 
 			//Convert entity/component variables
 			const std::vector<GameObjectVariable>& variables = gameObjectType.GetScriptVariables();
@@ -350,10 +367,35 @@ namespace luminary
 			}
 		}
 
+		void ConvertPrefabType(const GameObjectType& gameObjectType, const std::vector<const GameObjectType*>& children, luminary::Prefab& prefab)
+		{
+			prefab.name = gameObjectType.GetPrefabName();
+			prefab.id = gameObjectType.GetId() & 0xFFFF;
+
+			//Convert children to luminary entities
+			for (auto child : gameObjectType.GetChildren())
+			{
+				std::vector<const GameObjectType*>::const_iterator it = std::find_if(children.begin(), children.end(), [&](const GameObjectType* rhs) { return rhs->GetId() == child.typeId; });
+				ion::debug::Assert(it != children.end(), "luminary::beehive::ConvertPrefabType() - prefab child not found");
+				if (const GameObjectType* childType = *it)
+				{
+					luminary::Entity entity;
+					luminary::beehive::ConvertEntityType(*childType, entity);
+					entity.id = child.instanceId;
+					entity.spawnData.positionX = child.relativePos.x;
+					entity.spawnData.positionY = child.relativePos.y;
+					entity.spawnData.width = childType->GetDimensions().x;
+					entity.spawnData.height = childType->GetDimensions().y;
+					prefab.children.push_back(entity);
+				}
+			}
+		}
+
 		void ExportEntity(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity)
 		{
-			//Type name
+			//Entity name and id
 			entity.name = gameObjectType.GetName();
+			entity.id = gameObject.GetId() & 0xFFFF;
 
 			//Entity name
 			if (gameObject.GetName().size() > 0)
