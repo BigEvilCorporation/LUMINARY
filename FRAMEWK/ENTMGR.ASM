@@ -54,7 +54,7 @@ ENT_SpawnEntity:
     move.l a0, a5
 
     ; Check enough space free
-    move.w EntityTypeDesc_NumComponents(a5), d4	; Component count
+    move.w EntityTypeDesc_NumComponents(a5), d4	    ; Component count
     addq   #0x1, d4									; +1 for entity
     move.w EntityManager_BlocksFree(a4), d5
     cmp.w  d4, d5
@@ -65,6 +65,9 @@ ENT_SpawnEntity:
     bsr    ENT_AllocEntityBlock
     POPM.W  d0-d1
     move.l a0, a3
+
+    ; Set id
+    move.w EntitySpawnData_Id(a1), Entity_Id(a0)
 
     IFND FINAL
     ; Set debug name
@@ -82,6 +85,7 @@ ENT_SpawnEntity:
 
     ; Alloc all component blocks and call constructors
     move.w EntityTypeDesc_NumComponents(a5), d0
+    beq    @NoComponents
     movea.w EntityTypeDesc_ComponentSlots(a5), a2
     subi.w #0x1, d0
     @ConstructorLp:
@@ -106,6 +110,7 @@ ENT_SpawnEntity:
     addi.w #SIZEOF_ComponentSlotDesc, a2            ; Next component
     dbra   d0, @ConstructorLp
     
+    @NoComponents:
     POP.L  a0
 
     ; Increment entities allocated
@@ -151,6 +156,7 @@ ENT_DespawnEntity:
 
     ; Free all components
     move.w EntityTypeDesc_NumComponents(a1), d0
+    beq    @NoComponents
     movea.w EntityTypeDesc_ComponentSlots(a1), a2
     subi.w #0x1, d0
     @ComponentLp:
@@ -179,6 +185,8 @@ ENT_DespawnEntity:
 
     adda.w #SIZEOF_ComponentSlotDesc, a2                        ; Next component
     dbra   d0, @ComponentLp
+    
+    @NoComponents:
 
     ; Free entity
     bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
@@ -273,6 +281,33 @@ ENT_LinkEntityBlock:
 	move.w a0, EntityBlockList_Tail(a1)
 	bra    @End
 	@HasHead:
+
+    ; else if block has a priority, find its place in the list
+    tst.b  EntityBlock_Priority(a0)
+    beq    @AppendTail
+    move.b EntityBlock_Priority(a0), d0
+    movea.w EntityBlockList_Head(a1), a2
+    move.l #0x0, a3
+    @PrioFindLp:
+    cmp.b  EntityBlock_Priority(a2), d0
+    ble    @Next
+    move.w a2, EntityBlock_Next(a0)                     ; Steal next link
+    cmpa.w #0x0, a3                                     ; If no prev, we're the new head
+    beq    @NewHead
+    move.w a0, EntityBlock_Next(a3)                     ; Set ourself as new next link
+    bra    @NotNewHead
+    @NewHead:
+    move.w a0, EntityBlockList_Head(a1)                 ; Set ourself as new head
+    @NotNewHead:
+    cmp.w  #0x0, EntityBlock_Next(a2)                   ; If no next, we're also the new tail
+    bne    @End
+	move.w a0, EntityBlockList_Tail(a1)
+    bra    @End
+    @Next:
+    movea.w a2, a3
+    movea.w EntityBlock_Next(a2), a2
+    bne    @PrioFindLp                                  ; If end of list, append to tail
+    @AppendTail:
 	
 	; else link to current tail, then set as current tail
 	move.w EntityBlockList_Tail(a1), a2

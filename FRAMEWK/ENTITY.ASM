@@ -14,7 +14,8 @@
     IFND FINAL
 EntityBlock_DebugName                   rs.b ENT_DEBUG_NAME_LEN
 	ENDIF
-EntityBlock_Flags                       rs.w 1
+EntityBlock_Flags                       rs.b 1
+EntityBlock_Priority                    rs.b 1
 EntityBlock_Next                        rs.w 1
     STRUCT_END
 
@@ -48,6 +49,7 @@ EntityTypeDesc_Update                   rs.w 1
     ; ======================================
     STRUCT_INHERIT EntityBase,EntityBlockData
 Entity_TypeDesc                         rs.w 1  ; Entity type
+Entity_Id                               rs.w 1  ; Unique id
 Entity_PosX                             rs.l 1  ; World centre pos X (16.16)
 Entity_PosY                             rs.l 1  ; World centre pos Y (16.16)
 Entity_ExtentsX                         rs.w 1  ; Half width in pixels
@@ -69,6 +71,7 @@ Component_Owner                         rs.w 1  ; Owning entity
     IFND FINAL
 EntitySpawnData_DebugName               rs.b ENT_DEBUG_NAME_LEN
 	ENDIF
+EntitySpawnData_Id                      rs.w 1  ; Unique id
     STRUCT_END
 
 Entity_Initialise:

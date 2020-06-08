@@ -6,6 +6,16 @@
 ; MAP.ASM - Macros for map loading and streaming
 ; ============================================================================================
 
+    ; Converts stamp X coord to tiles
+MAP_STAMPS_TO_TILES_X: macro valuereg
+    lsl.l  #MAP_STREAM_STAMP_WIDTH_SHIFT, \valuereg
+    endm
+
+    ; Converts stamp Y coord to tiles
+MAP_STAMPS_TO_TILES_Y: macro valuereg
+    lsl.l  #MAP_STREAM_STAMP_HEIGHT_SHIFT, \valuereg
+    endm
+
     ; Converts stamp X coord to pixels
 MAP_STAMPS_TO_PIXELS_X: macro valuereg
     lsl.l  #MAP_STREAM_STAMP_WIDTH_SHIFT, \valuereg

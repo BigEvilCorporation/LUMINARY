@@ -17,17 +17,17 @@
     COMPONENT_SPAWN_DATA_END
     
     ENTITY_COMPONENT_BEGIN ECPhysBodyChar
-ECPhysBodyChar_VelX                      rs.l 1
-ECPhysBodyChar_VelY                      rs.l 1
-ECPhysBodyChar_MaxVelX                   rs.l 1
-ECPhysBodyChar_GroundSpeed               rs.w 1
-ECPhysBodyChar_AccelX                    rs.w 1
-ECPhysBodyChar_AccelY                    rs.w 1
-ECPhysBodyChar_DecelX                    rs.w 1
-ECPhysBodyChar_SlopeFact                 rs.w 1
-ECPhysBodyChar_LastTerrainFlags          rs.w 1
+ECPhysBodyChar_VelX                      rs.l 1 ; X velocity (16.16)
+ECPhysBodyChar_VelY                      rs.l 1 ; Y velocity (16.16)
+ECPhysBodyChar_MaxVelX                   rs.w 1 ; Max ground speed or X vel (16.16)
+ECPhysBodyChar_GroundSpeed               rs.w 1 ; Current speed if on ground
+ECPhysBodyChar_AccelX                    rs.w 1 ; X acceleration
+ECPhysBodyChar_AccelY                    rs.w 1 ; Y acceleration
+ECPhysBodyChar_DecelX                    rs.w 1 ; X deceleration if X acceleration == 0
+ECPhysBodyChar_SlopeFact                 rs.w 1 ; Multiplyer to reduce speed on slope
+ECPhysBodyChar_LastTerrainFlags          rs.w 1 ; Flags and angle
 ECPhysBodyChar_TerrainQuadrant           rs.b 1 ; PHYS_TERRAIN_SEARCH_QUADRANT_*
-ECPhysBodyChar_TerrainLayer              rs.b 1
+ECPhysBodyChar_TerrainLayer              rs.b 1 ; Current terrain layer idx
     ENTITY_COMPONENT_END
 
 ECPhysBodyChar_Initialise:
@@ -40,7 +40,7 @@ ECPhysBodyChar_Initialise:
 
     move.l #0x0, ECPhysBodyChar_VelX(a0)
     move.l #0x0, ECPhysBodyChar_VelY(a0)
-    move.l #PHYS_DEFAULT_MAX_VEL_X, ECPhysBodyChar_MaxVelX(a0)
+    move.w #PHYS_DEFAULT_MAX_VEL_X, ECPhysBodyChar_MaxVelX(a0)
     move.w #0x0, ECPhysBodyChar_GroundSpeed(a0)
     move.w #0x0, ECPhysBodyChar_AccelX(a0)
     move.w #0x0, ECPhysBodyChar_AccelY(a0)
@@ -119,7 +119,7 @@ ECPhysBodyChar_StepAll:
 
     ; Deceleration
     @Decelerate:
-    move.w ECPhysBodyChar_DecelX(a3), d4             ; Apply X decel to ground speed
+    move.w ECPhysBodyChar_DecelX(a3), d4            ; Apply X decel to ground speed
     asr.w  #0x8, d4                                 ; X decel to ground speed range (16.16 >> 8)
     ext.l  d4
     tst.l  d5                                       ; Reverse sign if vel < 0
@@ -139,8 +139,8 @@ ECPhysBodyChar_StepAll:
     @Accelerate:
     
     PUSH.L d7
-    move.l ECPhysBodyChar_MaxVelX(a3), d4	        ; Clamp ground speed to max
-    asr.l  #0x8, d4                                 ; Max X vel to ground speed range (16.16 >> 8)
+    move.w ECPhysBodyChar_MaxVelX(a3), d4	        ; Clamp ground speed to max
+    asl.w  #0x8, d4                                 ; Max X vel to ground speed range (16.16 >> 8)
     move.w d4, d7
     neg.w  d7
     CLAMP.W d5,d7,d4
@@ -185,7 +185,8 @@ ECPhysBodyChar_StepAll:
 
     ; Clamp X velocity
     moveq  #0x0, d4
-    move.l ECPhysBodyChar_MaxVelX(a3), d4
+    move.w ECPhysBodyChar_MaxVelX(a3), d4
+    INT_TO_FIXED16 d4
     move.l d4, d5
     neg.l  d5
     CLAMP.L d2,d5,d4
