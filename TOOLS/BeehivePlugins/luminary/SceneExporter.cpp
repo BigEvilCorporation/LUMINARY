@@ -91,12 +91,13 @@ namespace luminary
 
 				ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
 
-				stream << "\tdc.w " << entity.name << "_Typedesc\t; Entity descriptor" << std::endl;
-				stream << "\tdc.l " << spawnDataName.str() << "\t; Entity spawn data" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX + extents.x) << "\t; Position X" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY + extents.y) << "\t; Position Y" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; ExtentsX" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; ExtentsY" << std::endl;
+				// SceneEntity
+				stream << "\tdc.w " << entity.name << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
+				stream << "\tdc.l " << spawnDataName.str() << "\t; SceneEntity_SpawnData" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX + extents.x) << "\t; SceneEntity_PosX" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY + extents.y) << "\t; SceneEntity_PosY" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; SceneEntity_ExtentsX" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; SceneEntity_ExtentsY" << std::endl;
 			}
 
 			stream << std::endl;

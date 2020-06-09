@@ -89,7 +89,7 @@ namespace luminary
 			variable.m_tags.push_back(luminary::tags::GetTagName(luminary::tags::TagType::PrefabData));
 		}
 
-		void ExportParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses)
+		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses)
 		{
 			param.name = variable.m_name;
 			param.value = "0x0";
@@ -238,7 +238,7 @@ namespace luminary
 			}
 		}
 
-		void ExportArchetype(const Project& project, const GameObjectArchetype& srcArchetype, const luminary::ScriptAddressMap& scriptAddresses, luminary::Archetype& archetype)
+		void ConvertArchetype(const Project& project, const GameObjectArchetype& srcArchetype, const luminary::ScriptAddressMap& scriptAddresses, luminary::Archetype& archetype)
 		{
 			if (const GameObjectType* gameObjectType = project.GetGameObjectType(srcArchetype.typeId))
 			{
@@ -285,62 +285,84 @@ namespace luminary
 						param = &archetype.components[componentIdx].spawnData.params[paramIdx];
 					}
 
-					ExportParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, actor, scriptAddresses);
+					ConvertParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, actor, scriptAddresses);
 				}
 			}
 		}
 
-		void ConvertEntityType(const GameObjectType& gameObjectType, luminary::Entity& entity)
+		void ConvertPrefabType(const Project& project, const GameObjectType& gameObjectType, luminary::Prefab& prefab)
 		{
+			prefab.name = gameObjectType.GetPrefabName();
+			prefab.id = gameObjectType.GetId() & 0xFFFF;
+
+			//Child offsets from prefab ccentre
+			ion::Vector2i extents(gameObjectType.GetDimensions().x / 2, gameObjectType.GetDimensions().y / 2);
+
+			//Convert children to luminary entities
+			for (auto child : gameObjectType.GetChildren())
+			{
+				if (const GameObjectType* childType = project.GetGameObjectType(child.typeId))
+				{
+					luminary::Entity entity;
+					luminary::beehive::ConvertEntityType(project, *childType, entity);
+					entity.id = child.instanceId;
+					entity.spawnData.positionX = -extents.x + child.relativePos.x;
+					entity.spawnData.positionY = -extents.y + child.relativePos.y;
+					prefab.children.push_back(entity);
+				}
+			}
+		}
+
+		void ConvertEntityType(const Project& project, const GameObjectType& gameObjectType, luminary::Entity& entity)
+		{
+			//Entity name and id
 			entity.name = gameObjectType.IsPrefabType() ? gameObjectType.GetPrefabName() : gameObjectType.GetName();
+			entity.spawnData.name = entity.name;
+			entity.id = gameObjectType.GetId() & 0xFFFF;
 
-			//Convert entity/component variables
-			const std::vector<GameObjectVariable>& variables = gameObjectType.GetScriptVariables();
+			//Size
+			entity.spawnData.width = gameObjectType.GetDimensions().x;
+			entity.spawnData.height = gameObjectType.GetDimensions().y;
 
+			//Sprite actor from game object type
+			const Actor* actor = project.GetActor(gameObjectType.GetSpriteActorId());
+
+			//Create entity and component spawn params
 			int paramIdx = 0;
 			int componentIdx = -1;
 
+			const std::vector<GameObjectVariable>& variables = gameObjectType.GetVariables();
+			luminary::ScriptAddressMap scriptAddresses;
+
 			for (int j = 0; j < variables.size(); j++, paramIdx++)
 			{
-				const GameObjectVariable& variable = variables[j];
+				//Find overridden variable on game object
+				const GameObjectVariable* variable = &variables[j];
+
 				luminary::Param* param = nullptr;
 
-				if (variable.m_componentIdx == -1)
+				if (variable->m_componentIdx == -1)
 				{
 					//Entity param
-					entity.params.resize(paramIdx + 1);
-					param = &entity.params[paramIdx];
+					entity.spawnData.params.resize(paramIdx + 1);
+					param = &entity.spawnData.params[paramIdx];
 				}
 				else
 				{
 					//Component param
-					if (componentIdx != variable.m_componentIdx)
+					if (componentIdx != variable->m_componentIdx)
 					{
-						componentIdx = variable.m_componentIdx;
+						componentIdx = variable->m_componentIdx;
 						entity.components.resize(componentIdx + 1);
-						entity.components[componentIdx].name = variable.m_componentName;
+						entity.components[componentIdx].name = variable->m_componentName;
 						paramIdx = 0;
 					}
 
-					entity.components[componentIdx].params.resize(paramIdx + 1);
-					param = &entity.components[componentIdx].params[paramIdx];
+					entity.components[componentIdx].spawnData.params.resize(paramIdx + 1);
+					param = &entity.components[componentIdx].spawnData.params[paramIdx];
 				}
 
-				param->name = variable.m_name;
-				param->value = "0x0";
-
-				switch (variable.m_size)
-				{
-				case eSizeByte:
-					param->size = luminary::ParamSize::Byte;
-					break;
-				case eSizeWord:
-					param->size = luminary::ParamSize::Word;
-					break;
-				case eSizeLong:
-					param->size = luminary::ParamSize::Long;
-					break;
-				}
+				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, actor, scriptAddresses);
 			}
 
 			//Convert entity/component script functions
@@ -367,31 +389,7 @@ namespace luminary
 			}
 		}
 
-		void ConvertPrefabType(const GameObjectType& gameObjectType, const std::vector<const GameObjectType*>& children, luminary::Prefab& prefab)
-		{
-			prefab.name = gameObjectType.GetPrefabName();
-			prefab.id = gameObjectType.GetId() & 0xFFFF;
-
-			//Convert children to luminary entities
-			for (auto child : gameObjectType.GetChildren())
-			{
-				std::vector<const GameObjectType*>::const_iterator it = std::find_if(children.begin(), children.end(), [&](const GameObjectType* rhs) { return rhs->GetId() == child.typeId; });
-				ion::debug::Assert(it != children.end(), "luminary::beehive::ConvertPrefabType() - prefab child not found");
-				if (const GameObjectType* childType = *it)
-				{
-					luminary::Entity entity;
-					luminary::beehive::ConvertEntityType(*childType, entity);
-					entity.id = child.instanceId;
-					entity.spawnData.positionX = child.relativePos.x;
-					entity.spawnData.positionY = child.relativePos.y;
-					entity.spawnData.width = childType->GetDimensions().x;
-					entity.spawnData.height = childType->GetDimensions().y;
-					prefab.children.push_back(entity);
-				}
-			}
-		}
-
-		void ExportEntity(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity)
+		void ConvertEntityInstance(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity)
 		{
 			//Entity name and id
 			entity.name = gameObjectType.GetName();
@@ -455,7 +453,7 @@ namespace luminary
 					param = &entity.components[componentIdx].spawnData.params[paramIdx];
 				}
 
-				ExportParam(*param, *variable, gameObjectType, nullptr, &gameObject, actor, scriptAddresses);
+				ConvertParam(*param, *variable, gameObjectType, nullptr, &gameObject, actor, scriptAddresses);
 			}
 
 			//Create entity/component script functions

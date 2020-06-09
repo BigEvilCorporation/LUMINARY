@@ -28,10 +28,10 @@ namespace luminary
 
 		void CreatePrefabType(GameObjectType& gameObjectType);
 
-		void ExportParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses);
-		void ExportArchetype(const Project& project, const GameObjectArchetype& srcArchetype, const luminary::ScriptAddressMap& scriptAddresses, luminary::Archetype& archetype);
-		void ConvertEntityType(const GameObjectType& gameObjectType, luminary::Entity& entity);
-		void ConvertPrefabType(const GameObjectType& gameObjectType, const std::vector<const GameObjectType*>& children, luminary::Prefab& prefab);
-		void ExportEntity(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity);
+		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses);
+		void ConvertArchetype(const Project& project, const GameObjectArchetype& srcArchetype, const luminary::ScriptAddressMap& scriptAddresses, luminary::Archetype& archetype);
+		void ConvertPrefabType(const Project& project, const GameObjectType& gameObjectType, luminary::Prefab& prefab);
+		void ConvertEntityType(const Project& project, const GameObjectType& gameObjectType, luminary::Entity& entity);
+		void ConvertEntityInstance(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity);
 	}
 }
