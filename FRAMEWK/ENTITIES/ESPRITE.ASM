@@ -65,6 +65,8 @@ ECSprite_Initialise:
     ; Load animation
     move.l SDSprite_Animation(a1), a2
     move.l SDSprite_Sheet(a1), a1
+    cmpa.w #0x0, a1
+    beq    @Err_NoSpriteSheet
     bsr    ECSprite_LoadAnimation
 
     ; Alloc VRAM and load tile data
@@ -72,6 +74,10 @@ ECSprite_Initialise:
     bsr    ECSprite_LoadTiles
     POPM.L  a0-a1
 
+    rts
+
+    @Err_NoSpriteSheet:
+    DBG_RAISE_ERROR "ECSprite_Init: Null sprite sheet"
     rts
 
 ECSprite_Shutdown:
