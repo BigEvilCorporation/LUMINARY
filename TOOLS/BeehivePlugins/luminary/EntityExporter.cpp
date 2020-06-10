@@ -102,8 +102,8 @@ namespace luminary
 					// SceneEntity
 					stream << "\tdc.w " << child.typeName << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
 					stream << "\tdc.l " << spawnDataName.str() << "\t; SceneEntity_SpawnData" << std::endl;
-					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionX + extents.x) << "\t; SceneEntity_PosX" << std::endl;
-					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionY + extents.y) << "\t; SceneEntity_PosY" << std::endl;
+					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionX) << "\t; SceneEntity_PosX" << std::endl;
+					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionY) << "\t; SceneEntity_PosY" << std::endl;
 					stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; SceneEntity_ExtentsX" << std::endl;
 					stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; SceneEntity_ExtentsY" << std::endl;
 					stream << std::endl;
@@ -220,8 +220,8 @@ namespace luminary
 		stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
 		stream << "\tdc.w " << entity.typeName << "_Typedesc\t; Entity_TypeDesc" << std::endl;
 		stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.id) << "\t; Entity_Id" << std::endl;
-		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionX + extents.x) << 16) << "\t; Entity_PosX" << std::endl;
-		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionY + extents.y) << 16) << "\t; Entity_PosY" << std::endl;
+		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionX) << 16) << "\t; Entity_PosX" << std::endl;
+		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionY) << 16) << "\t; Entity_PosY" << std::endl;
 		stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; Entity_ExtentsX" << std::endl;
 		stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; Entity_ExtentsY" << std::endl;
 

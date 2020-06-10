@@ -303,9 +303,6 @@ namespace luminary
 			prefab.name = gameObjectType.GetPrefabName();
 			prefab.id = gameObjectType.GetId() & 0xFFFF;
 
-			//Child offsets from prefab ccentre
-			ion::Vector2i extents(gameObjectType.GetDimensions().x / 2, gameObjectType.GetDimensions().y / 2);
-
 			//Convert children to luminary entities
 			for (auto child : gameObjectType.GetPrefabChildren())
 			{
@@ -314,8 +311,8 @@ namespace luminary
 					luminary::Entity entity;
 					luminary::beehive::ConvertPrefabChild(project, *childType, child, entity);
 					entity.id = child.instanceId;
-					entity.spawnData.positionX = -extents.x + child.relativePos.x;
-					entity.spawnData.positionY = -extents.y + child.relativePos.y;
+					entity.spawnData.positionX = child.relativePos.x;
+					entity.spawnData.positionY = child.relativePos.y;
 					prefab.children.push_back(entity);
 				}
 			}

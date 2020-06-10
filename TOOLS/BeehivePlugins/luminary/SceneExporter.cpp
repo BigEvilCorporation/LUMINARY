@@ -94,8 +94,8 @@ namespace luminary
 				// SceneEntity
 				stream << "\tdc.w " << entity.typeName << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
 				stream << "\tdc.l " << spawnDataName.str() << "\t; SceneEntity_SpawnData" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX + extents.x) << "\t; SceneEntity_PosX" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY + extents.y) << "\t; SceneEntity_PosY" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX) << "\t; SceneEntity_PosX" << std::endl;
+				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY) << "\t; SceneEntity_PosY" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; SceneEntity_ExtentsX" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; SceneEntity_ExtentsY" << std::endl;
 			}
