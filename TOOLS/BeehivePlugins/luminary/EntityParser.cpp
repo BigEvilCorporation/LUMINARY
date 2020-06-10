@@ -372,7 +372,7 @@ namespace luminary
 
 	bool EntityParser::ParseEntity(const TextBlock& textBlock, Entity& entity)
 	{
-		entity.name = textBlock.name;
+		entity.typeName = textBlock.name;
 		entity.isStatic = false;
 
 		//Find components and script functions, and parse params
@@ -397,7 +397,7 @@ namespace luminary
 			else if ((tokenPos = ContainsToken(textBlock.block[i], s_scriptFuncDef)) >= 0)
 			{
 				ScriptFunc scriptFunc = ParseScriptFuncDef(textBlock.block[i], tokenPos);
-				scriptFunc.scope = entity.name;
+				scriptFunc.scope = entity.typeName;
 				entity.scriptFuncs.push_back(scriptFunc);
 			}
 			else
@@ -411,17 +411,17 @@ namespace luminary
 		}
 
 		//Match with spawn data
-		if (SpawnData* spawnData = FindEntitySpawnData(entity.name))
+		if (SpawnData* spawnData = FindEntitySpawnData(entity.typeName))
 		{
 			entity.spawnData = *spawnData;
 		}
 
-		return entity.name.size() > 0;
+		return entity.typeName.size() > 0;
 	}
 
 	void EntityParser::ParseStaticEntity(const TextBlock& textBlock, Entity& entity)
 	{
-		entity.name = textBlock.name;
+		entity.typeName = textBlock.name;
 		entity.isStatic = true;
 
 		for (int i = 0; i < textBlock.block.size(); i++)

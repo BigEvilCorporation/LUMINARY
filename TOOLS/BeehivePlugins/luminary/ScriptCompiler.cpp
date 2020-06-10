@@ -136,7 +136,7 @@ namespace luminary
 
 	bool ScriptTranspiler::GenerateEntityCppHeader(const Entity& entity, const std::string& outputDir)
 	{
-		std::string filename = outputDir + "\\" + entity.name + ".h";
+		std::string filename = outputDir + "\\" + entity.typeName + ".h";
 
 		ion::io::File file(filename, ion::io::File::eOpenWrite);
 		if (file.IsOpen())
@@ -147,7 +147,7 @@ namespace luminary
 			stream << "#include <" << g_commonInclude + ">" << std::endl;
 			stream << "#include <" << g_componentsInclude + ">" << std::endl << std::endl;
 
-			stream << "struct " << entity.name << " : Entity" << std::endl;
+			stream << "struct " << entity.typeName << " : Entity" << std::endl;
 			stream << "{" << std::endl;
 
 			stream << "\tstruct Components" << std::endl;
@@ -179,7 +179,7 @@ namespace luminary
 
 			for (int i = 0; i < entity.params.size(); i++)
 			{
-				std::string paramName = ion::string::RemoveSubstring(entity.params[i].name, entity.name + "_");
+				std::string paramName = ion::string::RemoveSubstring(entity.params[i].name, entity.typeName + "_");
 				paramName[0] = ion::string::ToLower(paramName)[0];
 
 				switch (entity.params[i].size)
@@ -225,17 +225,17 @@ namespace luminary
 
 	bool ScriptTranspiler::GenerateEntityCppBoilerplate(const Entity& entity, const std::string& outputDir)
 	{
-		std::string filename = outputDir + "\\" + entity.name + ".cpp";
+		std::string filename = outputDir + "\\" + entity.typeName + ".cpp";
 
 		ion::io::File file(filename, ion::io::File::eOpenWrite);
 		if (file.IsOpen())
 		{
 			std::stringstream stream;
-			stream << "#include \"" << entity.name << ".h\"" << std::endl << std::endl;
+			stream << "#include \"" << entity.typeName << ".h\"" << std::endl << std::endl;
 
 			for (auto func : g_scriptFuncs)
 			{
-				stream << func.returnType << " " << entity.name << "::" << func.methodName << "(" << func.params << ")" << std::endl;
+				stream << func.returnType << " " << entity.typeName << "::" << func.methodName << "(" << func.params << ")" << std::endl;
 				stream << "{" << std::endl << std::endl << "}" << std::endl << std::endl;
 			}
 

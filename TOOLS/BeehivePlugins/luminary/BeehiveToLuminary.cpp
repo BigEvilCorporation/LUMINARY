@@ -15,10 +15,14 @@ namespace luminary
 {
 	namespace beehive
 	{
-		const SpriteSheet* FindSpriteSheet(const Actor& actor, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectVariable* variable)
+		const SpriteSheet* FindSpriteSheet(const Actor& actor, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const GameObjectVariable* variable)
 		{
 			//Sprite sheet from variable
 			const SpriteSheet* spriteSheet = variable ? actor.GetSpriteSheet(actor.FindSpriteSheetId(variable->m_value)) : nullptr;
+
+			//Sprite sheet from prefab
+			if (!spriteSheet && prefabChild)
+				spriteSheet = actor.GetSpriteSheet(prefabChild->spriteSheetId);
 
 			//Sprite sheet from game object
 			if (!spriteSheet && gameObject)
@@ -31,7 +35,7 @@ namespace luminary
 			return spriteSheet;
 		}
 
-		const SpriteAnimation* FindSpriteAnim(const Actor& actor, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectArchetype* archetype, const GameObjectVariable& variable, std::string& sheetName)
+		const SpriteAnimation* FindSpriteAnim(const Actor& actor, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const GameObjectArchetype* archetype, const GameObjectVariable& variable, std::string& sheetName)
 		{
 			const SpriteSheet* spriteSheet = nullptr;
 			const SpriteAnimation* spriteAnim = nullptr;
@@ -46,7 +50,11 @@ namespace luminary
 				spriteSheetVar = gameObjectType.FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet), variable.m_componentIdx);
 
 			if (spriteSheetVar)
-				spriteSheet = FindSpriteSheet(actor, gameObjectType, gameObject, spriteSheetVar);
+				spriteSheet = FindSpriteSheet(actor, gameObjectType, gameObject, prefabChild, spriteSheetVar);
+
+			//Sprite sheet from prefab
+			if (!spriteSheet && prefabChild)
+				spriteSheet = actor.GetSpriteSheet(prefabChild->spriteSheetId);
 
 			//Sprite sheet from game object
 			if (!spriteSheet && gameObject)
@@ -89,7 +97,7 @@ namespace luminary
 			variable.m_tags.push_back(luminary::tags::GetTagName(luminary::tags::TagType::PrefabData));
 		}
 
-		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses)
+		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses)
 		{
 			param.name = variable.m_name;
 			param.value = "0x0";
@@ -143,7 +151,7 @@ namespace luminary
 			{
 				if (actor)
 				{
-					if (const SpriteSheet* spriteSheet = FindSpriteSheet(*actor, gameObjectType, gameObject, &variable))
+					if (const SpriteSheet* spriteSheet = FindSpriteSheet(*actor, gameObjectType, gameObject, prefabChild, &variable))
 					{
 						std::stringstream stream;
 						stream << "actor_" << actor->GetName() << "_spritesheet_" << spriteSheet->GetName();
@@ -155,10 +163,10 @@ namespace luminary
 			{
 				if (actor)
 				{
-					if (const SpriteSheet* spriteSheet = FindSpriteSheet(*actor, gameObjectType, gameObject, &variable))
+					if (const SpriteSheet* spriteSheet = FindSpriteSheet(*actor, gameObjectType, gameObject, prefabChild, &variable))
 					{
 						std::string sheetName;
-						if (const SpriteAnimation* spriteAnim = FindSpriteAnim(*actor, gameObjectType, gameObject, archetype, variable, sheetName))
+						if (const SpriteAnimation* spriteAnim = FindSpriteAnim(*actor, gameObjectType, gameObject, prefabChild, archetype, variable, sheetName))
 						{
 							std::stringstream stream;
 							stream << "actor_" << actor->GetName() << "_sheet_" << spriteSheet->GetName() << "_anim_" << spriteAnim->GetName();
@@ -285,7 +293,7 @@ namespace luminary
 						param = &archetype.components[componentIdx].spawnData.params[paramIdx];
 					}
 
-					ConvertParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, actor, scriptAddresses);
+					ConvertParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, nullptr, actor, scriptAddresses);
 				}
 			}
 		}
@@ -299,12 +307,12 @@ namespace luminary
 			ion::Vector2i extents(gameObjectType.GetDimensions().x / 2, gameObjectType.GetDimensions().y / 2);
 
 			//Convert children to luminary entities
-			for (auto child : gameObjectType.GetChildren())
+			for (auto child : gameObjectType.GetPrefabChildren())
 			{
 				if (const GameObjectType* childType = project.GetGameObjectType(child.typeId))
 				{
 					luminary::Entity entity;
-					luminary::beehive::ConvertEntityType(project, *childType, entity);
+					luminary::beehive::ConvertPrefabChild(project, *childType, child, entity);
 					entity.id = child.instanceId;
 					entity.spawnData.positionX = -extents.x + child.relativePos.x;
 					entity.spawnData.positionY = -extents.y + child.relativePos.y;
@@ -313,11 +321,81 @@ namespace luminary
 			}
 		}
 
+		const GameObjectVariable* FindVariable(const std::vector<GameObjectVariable>& variables, const std::string& name, int componentIdx)
+		{
+			for (int i = 0; i < variables.size(); i++)
+			{
+				if (((componentIdx == -1) || (componentIdx == variables[i].m_componentIdx)) && ion::string::CompareNoCase(variables[i].m_name, name))
+				{
+					return &variables[i];
+				}
+			}
+
+			return nullptr;
+		}
+
+		void ConvertPrefabChild(const Project& project, const GameObjectType& gameObjectType, const GameObjectType::PrefabChild& prefabChild, luminary::Entity& entity)
+		{
+			//Convert base type
+			ConvertEntityType(project, gameObjectType, entity);
+
+			entity.spawnData.name = prefabChild.name;
+
+			//Merge instance variables
+			int paramIdx = 0;
+			int componentIdx = -1;
+
+			const std::vector<GameObjectVariable>& typeVariables = gameObjectType.GetVariables();
+
+			const Actor* actor = project.GetActor(prefabChild.spriteActorId);
+
+			if (!actor)
+				actor = project.GetActor(gameObjectType.GetSpriteActorId());
+
+			luminary::ScriptAddressMap scriptAddresses;
+
+			for (int j = 0; j < typeVariables.size(); j++, paramIdx++)
+			{
+				//Find overridden variable
+				const GameObjectVariable* variable = FindVariable(prefabChild.variables, typeVariables[j].m_name, typeVariables[j].m_componentIdx);
+				if (!variable)
+				{
+					//Use variable from game object type
+					variable = &typeVariables[j];
+				}
+
+				luminary::Param* param = nullptr;
+
+				if (variable->m_componentIdx == -1)
+				{
+					//Entity param
+					entity.spawnData.params.resize(paramIdx + 1);
+					param = &entity.spawnData.params[paramIdx];
+				}
+				else
+				{
+					//Component param
+					if (componentIdx != variable->m_componentIdx)
+					{
+						componentIdx = variable->m_componentIdx;
+						entity.components.resize(componentIdx + 1);
+						entity.components[componentIdx].name = variable->m_componentName;
+						paramIdx = 0;
+					}
+
+					entity.components[componentIdx].spawnData.params.resize(paramIdx + 1);
+					param = &entity.components[componentIdx].spawnData.params[paramIdx];
+				}
+
+				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, &prefabChild, actor, scriptAddresses);
+			}
+		}
+
 		void ConvertEntityType(const Project& project, const GameObjectType& gameObjectType, luminary::Entity& entity)
 		{
 			//Entity name and id
-			entity.name = gameObjectType.IsPrefabType() ? gameObjectType.GetPrefabName() : gameObjectType.GetName();
-			entity.spawnData.name = entity.name;
+			entity.typeName = gameObjectType.GetName();
+			entity.spawnData.name = gameObjectType.IsPrefabType() ? gameObjectType.GetPrefabName() : gameObjectType.GetName();
 			entity.id = gameObjectType.GetId() & 0xFFFF;
 
 			//Size
@@ -362,7 +440,7 @@ namespace luminary
 					param = &entity.components[componentIdx].spawnData.params[paramIdx];
 				}
 
-				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, actor, scriptAddresses);
+				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, nullptr, actor, scriptAddresses);
 			}
 
 			//Convert entity/component script functions
@@ -378,7 +456,7 @@ namespace luminary
 
 				if (scriptFuncs[j].componentIdx == -1)
 				{
-					scriptFunc.scope = entity.name;
+					scriptFunc.scope = entity.typeName;
 					entity.scriptFuncs.push_back(scriptFunc);
 				}
 				else
@@ -392,7 +470,7 @@ namespace luminary
 		void ConvertEntityInstance(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity)
 		{
 			//Entity name and id
-			entity.name = gameObjectType.GetName();
+			entity.typeName = gameObjectType.GetName();
 			entity.id = gameObject.GetId() & 0xFFFF;
 
 			//Entity name
@@ -453,7 +531,7 @@ namespace luminary
 					param = &entity.components[componentIdx].spawnData.params[paramIdx];
 				}
 
-				ConvertParam(*param, *variable, gameObjectType, nullptr, &gameObject, actor, scriptAddresses);
+				ConvertParam(*param, *variable, gameObjectType, nullptr, &gameObject, nullptr, actor, scriptAddresses);
 			}
 
 			//Create entity/component script functions
@@ -469,7 +547,7 @@ namespace luminary
 
 				if (scriptFuncs[j].componentIdx == -1)
 				{
-					scriptFunc.scope = entity.name;
+					scriptFunc.scope = entity.typeName;
 					entity.scriptFuncs.push_back(scriptFunc);
 				}
 				else

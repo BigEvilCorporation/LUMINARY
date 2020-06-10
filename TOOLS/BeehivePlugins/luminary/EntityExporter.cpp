@@ -73,7 +73,7 @@ namespace luminary
 				for (auto child : prefab.children)
 				{
 					std::stringstream spawnDataName;
-					spawnDataName << "prefabchildspawndata_" << prefab.name << "_" << child.name;
+					spawnDataName << "prefabchildspawndata_" << prefab.name << "_" << child.spawnData.name;
 					stream << EntityExporter::ExportEntitySpawnTableData(spawnDataName.str(), child, exportedSpawnDatas);
 					stream << std::endl;
 				}
@@ -89,7 +89,7 @@ namespace luminary
 				for (auto child : prefab.children)
 				{
 					std::stringstream spawnDataName;
-					spawnDataName << "prefabchildspawndata_" << prefab.name << "_" << child.name;
+					spawnDataName << "prefabchildspawndata_" << prefab.name << "_" << child.spawnData.name;
 
 					std::map<std::string, EntityExporter::ExportedSpawnData>::const_iterator it = exportedSpawnDatas.find(child.spawnData.name);
 					if (it != exportedSpawnDatas.end())
@@ -100,7 +100,7 @@ namespace luminary
 					ion::Vector2i extents(child.spawnData.width / 2, child.spawnData.height / 2);
 
 					// SceneEntity
-					stream << "\tdc.w " << child.name << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
+					stream << "\tdc.w " << child.typeName << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
 					stream << "\tdc.l " << spawnDataName.str() << "\t; SceneEntity_SpawnData" << std::endl;
 					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionX + extents.x) << "\t; SceneEntity_PosX" << std::endl;
 					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionY + extents.y) << "\t; SceneEntity_PosY" << std::endl;
@@ -214,11 +214,11 @@ namespace luminary
 		ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
 
 		stream << "\tIFND FINAL" << std::endl;
-		stream << "\tdc.b " << EntityExporter::ExportDebugNameData(entity.name, EntityExporter::s_debugNameLen) << std::endl;
+		stream << "\tdc.b " << EntityExporter::ExportDebugNameData(entity.spawnData.name, EntityExporter::s_debugNameLen) << std::endl;
 		stream << "\tENDIF" << std::endl;
 		stream << "\tdc.w 0x0\t; EntityBlock_Flags" << std::endl;
 		stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
-		stream << "\tdc.w " << entity.name << "_Typedesc\t; Entity_TypeDesc" << std::endl;
+		stream << "\tdc.w " << entity.typeName << "_Typedesc\t; Entity_TypeDesc" << std::endl;
 		stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.id) << "\t; Entity_Id" << std::endl;
 		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionX + extents.x) << 16) << "\t; Entity_PosX" << std::endl;
 		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionY + extents.y) << 16) << "\t; Entity_PosY" << std::endl;
@@ -267,6 +267,8 @@ namespace luminary
 
 		//If spawn data params matches any previously exported, save some space by sharing it
 		const ExportedSpawnData* matchingSpawnData = nullptr;
+
+#if 0 // TODO: Name and id needs removing from spawn params, so variables alone can match up
 		for (std::map<std::string, ExportedSpawnData>::const_iterator it = exportedSpawnDatas.begin(), end = exportedSpawnDatas.end(); it != end && !matchingSpawnData; ++it)
 		{
 			bool match = it->second.data.size() == spawnDataBlock.size();
@@ -282,6 +284,7 @@ namespace luminary
 				matchingSpawnData = &it->second;
 			}
 		}
+#endif
 
 		if (matchingSpawnData)
 		{
@@ -293,7 +296,7 @@ namespace luminary
 		{
 			//Export to file
 			stream << spawnDataName << ":" << std::endl;
-			stream << EntityExporter::ExportSpawnParamsData(entity.name, entity.id, entity.spawnData.params, entity.components);
+			stream << EntityExporter::ExportSpawnParamsData(entity.spawnData.name, entity.id, entity.spawnData.params, entity.components);
 
 			ExportedSpawnData exportedData;
 			exportedData.labelName = spawnDataName;
