@@ -12,7 +12,7 @@
 
 namespace luminary
 {
-	bool MapExporter::ExportMap(const std::string& binFilename, const Map& map, int stampWidth, int stampHeight)
+	bool MapExporter::ExportMap(const std::string& binFilename, const Map& map, int stampWidth, int stampHeight, StampId backgroundStamp)
 	{
 		ion::io::File file(binFilename, ion::io::File::eOpenWrite);
 		if (file.IsOpen())
@@ -23,14 +23,17 @@ namespace luminary
 
 			std::vector<u32> stampMap;
 			stampMap.resize(widthStamps * heightStamps);
+			u32 backgroundWord = backgroundStamp * stampSizeBytes;
+			std::fill(stampMap.begin(), stampMap.end(), backgroundWord);
 
 			for (TStampPosMap::const_iterator it = map.StampsBegin(), end = map.StampsEnd(); it != end; ++it)
 			{
 				int x = it->m_position.x / stampWidth;
 				int y = it->m_position.y / stampHeight;
 				u32 addr = (it->m_id * stampSizeBytes);
-				ion::memory::EndianSwap(addr);
-				stampMap[(y * widthStamps) + x] = addr;
+				u32 word = addr | (it->m_flags << 13);	// High Prio, Flip X, Flip Y
+				ion::memory::EndianSwap(word);
+				stampMap[(y * widthStamps) + x] = word;
 			}
 
 			file.Write(stampMap.data(), stampMap.size() * sizeof(u32));

@@ -15,6 +15,6 @@ namespace luminary
 	class MapExporter
 	{
 	public:
-		bool ExportMap(const std::string& binFilename, const Map& map, int stampWidth, int stampHeight);
+		bool ExportMap(const std::string& binFilename, const Map& map, int stampWidth, int stampHeight, StampId backgroundStamp);
 	};
 }
