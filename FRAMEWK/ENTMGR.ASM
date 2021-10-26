@@ -295,13 +295,9 @@ ENT_LinkEntityBlock:
     cmpa.w #0x0, a3                                     ; If no prev, we're the new head
     beq    @NewHead
     move.w a0, EntityBlock_Next(a3)                     ; Set ourself as new next link
-    bra    @NotNewHead
+    bra    @End
     @NewHead:
     move.w a0, EntityBlockList_Head(a1)                 ; Set ourself as new head
-    @NotNewHead:
-    cmp.w  #0x0, EntityBlock_Next(a2)                   ; If no next, we're also the new tail
-    bne    @End
-	move.w a0, EntityBlockList_Tail(a1)
     bra    @End
     @Next:
     movea.w a2, a3
