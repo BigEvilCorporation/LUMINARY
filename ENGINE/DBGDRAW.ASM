@@ -17,9 +17,6 @@ DBG_DrawStringS:
     ; d1.w Y coord (plane cells)
     ; ======================================
 
-    ; Get font addr
-    move.l RAM_DBG_FONT_VRAM, d0
-
     ; Coords to sprite space
     VDP_TILES_TO_PIXELS d0
     VDP_TILES_TO_PIXELS d1
@@ -30,6 +27,10 @@ DBG_DrawStringS:
     moveq  #0x0, d3
     moveq  #0x0, d4
 
+    ; Get font addr
+    move.l RAM_DBG_FONT_VRAM, d5
+    VRAM_BYTES_TO_TILES d5
+
     ; Loop until terminator
     @CharLp:
     moveq  #0x0, d7
@@ -37,6 +38,7 @@ DBG_DrawStringS:
     beq    @End
     sub.b  #STR_ASCII_START, d7         ; Tile idx = char - ascii start + font addr
     move.w d7, d2
+    add.w  d5, d2
     bsr    SPR_Draw                     ; Draw sprite
     addq   #0x8, d0                     ; Next X coord
     bra    @CharLp                      
@@ -63,6 +65,7 @@ DBG_DrawStringA:
 
     ; Get font addr
     move.l RAM_DBG_FONT_VRAM, d0
+    VRAM_BYTES_TO_TILES d0
 
     ; Loop until terminator
     @CharLp:
@@ -102,6 +105,7 @@ DBG_DrawStringA_Pal:
 
     ; Get font addr
     move.l RAM_DBG_FONT_VRAM, d0
+    VRAM_BYTES_TO_TILES d0
 
     ; Loop until terminator
     @CharLp:
