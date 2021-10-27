@@ -85,6 +85,11 @@ VRAM_TILES_TO_BYTES: macro reg
 	lsl.w  #SIZE_TILE_SHIFT_B, \reg
 	endm
 
+; Converts byte offset to tile index
+VRAM_BYTES_TO_TILES: macro reg
+	lsr.w  #SIZE_TILE_SHIFT_B, \reg
+	endm
+
 ; Converts tile count to word offset
 VRAM_TILES_TO_WORDS: macro reg
 	lsl.w  #SIZE_TILE_SHIFT_W, \reg
