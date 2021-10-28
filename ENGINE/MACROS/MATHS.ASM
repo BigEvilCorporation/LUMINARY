@@ -6,6 +6,16 @@
 ; MATHS.ASM - Maths utility macros
 ; ============================================================================================
 
+BYTES_TO_WORDS: macro reg
+    ; ======================================
+    ; Converts bytes to words
+    ; ======================================
+    ; .X         - Element size
+	; reg        - In/out: value to convert
+	; ======================================
+	lsl.\0 \reg
+	endm
+
 CLAMP: macro valuereg,min,max
     ; ======================================
     ; Clamps a value from min to max

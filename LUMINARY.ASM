@@ -22,6 +22,7 @@
     include 'engine/macros/memory.asm'
     include 'engine/macros/sprites.asm'
     include 'engine/macros/stack.asm'
+    include 'engine/macros/strings.asm'
     include 'engine/macros/struct.asm'
     include 'engine/macros/vdp.asm'
 
@@ -66,6 +67,7 @@
     include 'framewk/scene.asm'
     include 'framewk/script.asm'
     include 'framewk/scriptfn.asm'
+    include 'framewk/text.asm'
 
     ; Entities and components
     include 'framewk/entities/ephysbas.asm'

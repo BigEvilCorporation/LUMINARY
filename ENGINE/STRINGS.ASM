@@ -6,6 +6,28 @@
 ; STRINGS.ASM - String manipulation
 ; ============================================================================================
 
+STR_LenA:
+	; ======================================
+    ; Walks an ASCII string to calculate its
+	; length
+    ; ======================================
+    ; In:
+	; a0   String
+	; Out:
+	; d0.w Length
+    ; ======================================
+
+	move.l a0, a1
+	moveq  #0, d0
+	@Lp:
+	tst.b  (a1)+
+	beq    @End
+	addq.w #1, d0
+	bra    @Lp
+	@End:
+
+	rts
+
 STR_CopyA:
 	; ======================================
     ; Copy a null terminated ASCII string
@@ -48,6 +70,39 @@ STR_ConcatA:
 	@CopyLp:
 	move.b (a1)+, (a0)+
 	bne    @CopyLp
+
+	move.l a0, a1	; String end
+	move.l a2, a0	; String start
+
+	rts
+
+STR_ConcatLong:
+	; ======================================
+    ; Concatenates a packed 4-char string
+	; from a register, and termminates
+    ; ======================================
+    ; In:
+	; a0   String to append to
+	; d0.l String to append (4 chars packed)
+    ; ======================================
+    ; Out:
+    ; a0   String address
+	; a1   String end address
+    ; ======================================
+
+	move.l a0, a2
+
+	; Copy from reg
+	move.b d0, (a0)+
+	lsr.l  #0x8, d0
+	move.b d0, (a0)+
+	lsr.l  #0x8, d0
+	move.b d0, (a0)+
+	lsr.l  #0x8, d0
+	move.b d0, (a0)+
+
+	; Terminate
+	move.b #0x0, (a0)+
 
 	move.l a0, a1	; String end
 	move.l a2, a0	; String start
