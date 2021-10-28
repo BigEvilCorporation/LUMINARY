@@ -57,7 +57,7 @@ VDPDMA_AddJob:
 	move.l a0, d2
 	bsr    VDPDMA_AddToQueue
 	
-	bra    @End
+	rts
 	
 	@SplitJobs:
 	
@@ -85,8 +85,6 @@ VDPDMA_AddJob:
 	lsr.w  #0x1, d4			; Job 1 size to words
 	sub.w  d4, d1			; Subtract job 1 size (words)
 	bsr    VDPDMA_AddToQueue
-	
-	@End:
 	
 	rts
 
