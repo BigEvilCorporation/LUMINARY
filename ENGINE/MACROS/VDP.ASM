@@ -73,7 +73,7 @@ VDP_VRAM_ADDR_INCREMENT_PLANE_Y: macro destreg,tmpreg,vdp_ctrl_reg
 	endm
 
 ; Converts cell X/Y coords to VRAM plane byte offset
-VRAM_CELL_COORDS_TO_BYTES: macro x,y,output
+VDP_CELL_COORDS_TO_BYTES: macro x,y,output
     move.w \y, \output
     lsl.w  #(VDP_PLANE_WIDTH_SHIFT+1), \output	; Y to row offset in words
     add.w  \x, \output							; +X
@@ -81,17 +81,17 @@ VRAM_CELL_COORDS_TO_BYTES: macro x,y,output
     endm
 
 ; Converts tile count to byte offset
-VRAM_TILES_TO_BYTES: macro reg
+VDP_TILES_TO_BYTES: macro reg
 	lsl.w  #SIZE_TILE_SHIFT_B, \reg
 	endm
 
 ; Converts byte offset to tile index
-VRAM_BYTES_TO_TILES: macro reg
+VDP_BYTES_TO_TILES: macro reg
 	lsr.w  #SIZE_TILE_SHIFT_B, \reg
 	endm
 
 ; Converts tile count to word offset
-VRAM_TILES_TO_WORDS: macro reg
+VDP_TILES_TO_WORDS: macro reg
 	lsl.w  #SIZE_TILE_SHIFT_W, \reg
 	endm
 

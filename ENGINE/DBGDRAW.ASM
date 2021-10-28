@@ -29,7 +29,7 @@ DBG_DrawStringS:
 
     ; Get font addr
     move.l RAM_DBG_FONT_VRAM, d5
-    VRAM_BYTES_TO_TILES d5
+    VDP_BYTES_TO_TILES d5
 
     ; Loop until terminator
     @CharLp:
@@ -60,12 +60,12 @@ DBG_DrawStringA:
     ; ======================================
 
     ; Coord to plane offset, set address for writing
-    VRAM_CELL_COORDS_TO_BYTES d0, d1, d3
+    VDP_CELL_COORDS_TO_BYTES d0, d1, d3
     VDP_SETADDRESS d3, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
 
     ; Get font addr
     move.l RAM_DBG_FONT_VRAM, d0
-    VRAM_BYTES_TO_TILES d0
+    VDP_BYTES_TO_TILES d0
 
     ; Loop until terminator
     @CharLp:
@@ -95,7 +95,7 @@ DBG_DrawStringA_Pal:
     ; ======================================
 
     ; Coord to plane offset, set address for writing
-    VRAM_CELL_COORDS_TO_BYTES d0, d1, d3
+    VDP_CELL_COORDS_TO_BYTES d0, d1, d3
     VDP_SETADDRESS d3, #VRAM_ADDR_PLANE_A, #VDP_CMD_VRAM_WRITE
 
     ; Palette to bits
@@ -105,7 +105,7 @@ DBG_DrawStringA_Pal:
 
     ; Get font addr
     move.l RAM_DBG_FONT_VRAM, d0
-    VRAM_BYTES_TO_TILES d0
+    VDP_BYTES_TO_TILES d0
 
     ; Loop until terminator
     @CharLp:
