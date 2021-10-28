@@ -33,7 +33,7 @@ TXT_LoadSpriteTiles:
     move.b (a3)+, d7
     beq    @End
     addq.w #1, d1                       ; String count
-    PUSH.W d0
+    PUSH.W d1
     sub.b  #STR_ASCII_START, d7         ; Tile idx = char - ascii start + font addr
     VDP_TILES_TO_BYTES d7               ; Tile to bytes
     add.l  d7, a0                       ; DMA src
@@ -62,11 +62,11 @@ TXT_DrawLineS:
     ; d1.w Y coord (plane cells)
     ; d2.l VRAM hndl (>= string length)
     ; d3.b Palette
-    ; d2.w String length
+    ; d4.w String length
     ; ======================================
 
-    move.w d2, d5
-    move.w d2, d7
+    move.w d4, d5
+    move.w d4, d7
 
     ; Coords to sprite space
     VDP_TILES_TO_PIXELS d0
@@ -83,8 +83,8 @@ TXT_DrawLineS:
     
     ; Draw all 4x1 sprites
     lsr.w  #2, d5 ; Quotient
-    subq   #1, d5
     beq    @No4x1
+    subq   #1, d5
     @Lp4x1:
     PUSH.W d2
     bsr    SPR_Draw
