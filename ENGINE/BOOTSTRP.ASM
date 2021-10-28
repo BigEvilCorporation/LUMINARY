@@ -53,5 +53,8 @@ Bootstrap:
     ; Init status register
 	move.w #CPU_STATUS_REG_INIT, sr	    ; INT level 3 (all interrupts) + supervisor
 
+    ; Flush DMA queue
+    bsr    VDPDMA_CommitAndClearQueue
+
     ; Jump to program main
     jmp    Main
