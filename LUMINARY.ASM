@@ -59,6 +59,7 @@
     ; Game framework
     include 'framewk/canvas.asm'
     include 'framewk/camera.asm'
+    include 'framewk/dialogue.asm'
     include 'framewk/entity.asm'
     include 'framewk/entmgr.asm'
     include 'framewk/geometry.asm'
@@ -68,6 +69,7 @@
     include 'framewk/script.asm'
     include 'framewk/scriptfn.asm'
     include 'framewk/text.asm'
+    include 'framewk/yarn.asm'
 
     ; Entities and components
     include 'framewk/entities/ephysbas.asm'

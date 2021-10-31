@@ -41,3 +41,16 @@ PHYS_TERRAIN_PROBE_OFFSET               equ 0x0000
 
 PHYS_DEFAULT_MAX_VEL_X                  equ 0x0008
 PHYS_DEFAULT_MAX_VEL_Y                  equ 0x0010
+
+; Dialog system
+DLG_DEFAULT_X                           equ 1       ; Default X position
+DLG_DEFAULT_Y                           equ 20      ; Default Y position
+DLG_TEXT_BORDER_X                       equ 1       ; Text border left
+DLG_TEXT_BORDER_Y                       equ 1       ; Text border top
+DLG_MAX_TEXT_WIDTH                      equ 28      ; Max width of text strings within dialog boxes
+DLG_MAX_TEXT_HEIGHT                     equ 4       ; Max height of text strings within dialog boxes
+DLG_DEFAULT_TYPE_DELAY                  equ 2       ; Frames per character in typewriter mode
+DLG_VRAM_BUFF_SIZE                      equ DLG_MAX_TEXT_WIDTH*DLG_MAX_TEXT_HEIGHT
+
+; Yarn
+YARN_STACK_SIZE_L                       equ 16      ; Yarn stack size in longwords

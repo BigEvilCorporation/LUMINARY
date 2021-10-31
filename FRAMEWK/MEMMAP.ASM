@@ -29,6 +29,23 @@ RAM_SCENE_DATA                          rs.l 1
 RAM_CAMERA_CURRENT                  	rs.l 1
     STRUCT_ALLOC Camera,RAM_CAMERA_DEFAULT
 
+; Dialog system
+RAM_DIALOG_VRAM_BUFFER                  rs.l 1  ; VRAM buffer for dialog text
+RAM_DIALOG_STRING_LEN                   rs.w 1  ; Current string length
+RAM_DIALOG_TYPEWRITER_LEN               rs.w 1  ; Current string length being drawn
+RAM_DIALOG_TYPEWRITER_TIMER             rs.w 1  ; Frames until next character
+RAM_DIALOG_WAIT_INPUT                   rs.b 1  ; Currently waiting for user input
+RAM_DIALOG_LAST_CHOICE                  rs.b 1  ; Last choice selected by user
+    STRUCT_ALIGN
+
+; Yarn
+RAM_YARN_ENTRY_ADDR                     rs.l 1  ; Re-entry address into a script after an rts
+RAM_YARN_STACK                          rs.l YARN_STACK_SIZE_L ; Yarn stack
+RAM_YARN_STACK_PTR                      rs.l 1  ; Current stack ptr
+RAM_YARN_FONT                           rs.l 1  ; Address of current font
+RAM_YARN_STATE                          rs.b 1  ; Current state
+    STRUCT_ALIGN
+
     STRUCT_ALIGN
 RAM_GAME_START                          rs.b 0
 
