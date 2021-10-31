@@ -10,10 +10,7 @@ Yarn_Initialise:
 	; =======================================
 	; Initialises the Yarn VM
 	; =======================================
-	; a0   - Default font
-	; =======================================
 
-	move.l a0, RAM_YARN_FONT
 	move.l #0, RAM_YARN_ENTRY_ADDR
 	move.b #YARN_STATE_STOPPED, RAM_YARN_STATE
 	move.l #RAM_YARN_STACK, RAM_YARN_STACK_PTR
@@ -45,6 +42,18 @@ Yarn_Update:
 	@WaitingChoice:
 	tst.b  RAM_DIALOG_WAIT_INPUT
 	beq    @End
+
+	; Re-entry
+	moveq  #0, d0
+	move.b RAM_DIALOG_CURR_CHOICE, d0
+	lsl.w  #3, d0   					; count * longwords * 2
+	addq.w #SIZE_LONG, d0				; skip string
+	lea    RAM_YARN_CHOICE_LIST, a0
+	adda.w d0, a0
+	move.l (a0), a3
+	move.l #0, RAM_YARN_CHOICE_LIST
+	move.b #0, RAM_YARN_CHOICE_COUNT
+	jsr    (a3)
 
 	@End:
 	rts

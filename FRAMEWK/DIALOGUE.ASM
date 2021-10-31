@@ -10,6 +10,24 @@ DLG_Initialise:
     ; ======================================
     ; Initialises the dialog system
     ; ======================================
+    ; a0   Default font
+    ; a1   Default cursor
+    ; ======================================
+
+    move.l a0, RAM_DIALOG_DEFAULT_FONT
+    move.l a1, RAM_DIALOG_DEFAULT_CURSOR
+
+    ; Load cursor
+    move.w #1, d0
+    PUSH.L a1
+    bsr    VRAMMGR_Alloc
+    POP.L  a1
+    move.l d1, RAM_DIALOG_VRAM_CURSOR
+    VDP_TILES_TO_BYTES d1               ; Tile to bytes
+    move.l a1, a0                       ; DMA src
+    move.w d1, d0                       ; DMA dest
+    move.w #SIZE_TILE_W, d1             ; DMA size
+    bsr    VDPDMA_TransferImmediateVRAM
 
     ; Alloc VRAM text buffer
     move.w #DLG_VRAM_BUFF_SIZE, d0
@@ -19,7 +37,7 @@ DLG_Initialise:
     move.l #0, RAM_DIALOG_CHOICE_LIST
     move.b #0, RAM_DIALOG_CHOICE_COUNT
     move.b #0, RAM_DIALOG_WAIT_INPUT
-    move.b #0, RAM_DIALOG_LAST_CHOICE
+    move.b #0, RAM_DIALOG_CURR_CHOICE
 
     rts
 
@@ -29,7 +47,6 @@ DLG_Open:
     ; for user input
     ; ======================================
 	; a0   String
-    ; a1   Font
     ; d0.b Wait for user input (0 or 1)
     ; ======================================
 
@@ -43,6 +60,7 @@ DLG_Open:
 
     ; Load glyphs into VRAM
     move.l RAM_DIALOG_VRAM_BUFFER, d0
+    move.l RAM_DIALOG_DEFAULT_FONT, a1
     bsr    TXT_LoadSpriteTiles
 
     rts
@@ -53,17 +71,18 @@ DLG_OpenChoice:
     ; and begins waiting for selection
     ; ======================================
 	; a0   String (prefixed w/ word length)
-    ; a1   Font
     ; a2   Choice list (str,addr,str,addr...)
     ; d0.b Number of user choices in list
     ; ======================================
 
     move.l a2, RAM_DIALOG_CHOICE_LIST
     move.b d0, RAM_DIALOG_CHOICE_COUNT
+    move.b #0, RAM_DIALOG_CURR_CHOICE
     move.w #0, RAM_DIALOG_STRING_LEN
     move.w #0, RAM_DIALOG_TYPEWRITER_LEN
     
     move.l RAM_DIALOG_VRAM_BUFFER, d0
+    move.l RAM_DIALOG_DEFAULT_FONT, a1
 
     cmpa.l #0, a0
     beq    @NoQuestion
@@ -97,7 +116,10 @@ DLG_Close:
     ; Closes the current dialog box
     ; ======================================
 
+    move.l #0, RAM_DIALOG_CHOICE_LIST
     move.w #0, RAM_DIALOG_STRING_LEN
+    move.b #0, RAM_DIALOG_CHOICE_COUNT
+    move.b #0, RAM_DIALOG_WAIT_INPUT
 
     rts
 
@@ -112,7 +134,34 @@ DLG_Update:
     ; If waiting for user input
     tst.b  RAM_DIALOG_WAIT_INPUT
     beq    @EndInput
+
     move.w RAM_GAMEPAD_DBNC_1, d0
+
+    ; If a choice dialog, process up/down
+    moveq  #0, d3
+    moveq  #0, d4
+    move.b RAM_DIALOG_CHOICE_COUNT, d3
+    move.b RAM_DIALOG_CURR_CHOICE, d4
+
+    btst   #PAD_BUTTON_UP, d0
+    beq    @EndUp
+    subq   #1, d4
+    bge    @EndUp
+    move.b d3, d4
+    subq   #1, d4
+    @EndUp:
+
+    btst   #PAD_BUTTON_DOWN, d0
+    beq    @EndDown
+    addq   #1, d4
+    cmp    d3, d4
+    blt    @EndDown
+    move.b #0, d4
+    @EndDown:
+
+    move.b d4, RAM_DIALOG_CURR_CHOICE
+
+    ; Process OK button
     btst   #PAD_BUTTON_A, d0
     beq    @EndInput
 
@@ -187,6 +236,21 @@ DLG_Render:
     dbra   d3, @ChoiceLp
     
     ; Draw cursor
+    move.w #DLG_DEFAULT_X+DLG_TEXT_BORDER_X, d0   ; X
+    move.w #DLG_DEFAULT_Y+DLG_TEXT_BORDER_Y+1, d1 ; Y + 1 + current choice
+    moveq  #0, d2
+    move.b RAM_DIALOG_CURR_CHOICE, d2
+    add.w  d2, d1
+
+    VDP_TILES_TO_PIXELS d0              ; Coords to sprite space
+    VDP_TILES_TO_PIXELS d1
+    addi.w #VDP_SPRITE_BORDER_X, d0
+    addi.w #VDP_SPRITE_BORDER_Y, d1
+
+    move.l RAM_DIALOG_VRAM_CURSOR, d2   ; Tile
+    move.w #0, d3                       ; Palette
+    move.b #VDP_SPRITE_LAYOUT_1x1, d4   ; Layout
+    bsr    SPR_Draw
     
     @NoChoices:
 
