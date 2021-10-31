@@ -6,45 +6,41 @@
 ; YARN.ASM - A Yarn VM implementation, designed for use with data from YarnToLuminary.exe
 ; ============================================================================================
 
-Yarn_Initialise:
+YARN_RUNLINE: macro string
 	; =======================================
-	; Initialises the Yarn VM
+	; Displays a dialog line, waits for input
 	; =======================================
-	; a0   - Default font
+	; string   - Address of string to display
 	; =======================================
-
-	move.l a0, RAM_YARN_FONT
-	move.l #0, RAM_YARN_ENTRY_ADDR
-	move.b #YARN_STATE_STOPPED, RAM_YARN_STATE
-	move.l #RAM_YARN_STACK, RAM_YARN_STACK_PTR
-
+	move.l \string, a0
+	move.l RAM_YARN_FONT, a1
+	jsr    DLG_Open
+	move.l #\@NextInstr\@, RAM_YARN_ENTRY_ADDR
+	move.b #YARN_STATE_WAITING_DLG, RAM_YARN_STATE
 	rts
+	\@NextInstr\@:
+	endm
 
-Yarn_Update:
-	; =======================================
-	; Ticks the Yarn VM
-	; =======================================
+YARN_ADDOPTION: macro string,address
+	endm
 
-	move.b RAM_YARN_STATE, d0
-	cmp.b  #YARN_STATE_WAITING_DLG, d0
-	beq    @WaitingDlg
-	cmp.b  #YARN_STATE_WAITING_CHOICE, d0
-	beq    @WaitingChoice
-	bra    @End
+YARN_SHOWOPTIONS: macro
+	endm
 
-	@WaitingDlg:
-	tst.b  RAM_DIALOG_WAIT_INPUT
-	bne    @End
-	
-	; Re-entry
-	move.b #YARN_STATE_RUNNING, RAM_YARN_STATE
-	move.l RAM_YARN_ENTRY_ADDR, a0
-	jsr    (a0)
-	rts
+YARN_JUMP: macro
+	endm
 
-	@WaitingChoice:
-	tst.b  RAM_DIALOG_WAIT_INPUT
-	beq    @End
+YARN_JUMPTO: macro address
+	endm
 
-	@End:
-	rts
+YARN_PUSHSTRING: macro string
+	endm
+
+YARN_POP: macro
+	endm
+
+YARN_RUNNODE: macro
+	endm
+
+YARN_STOP: macro
+	endm

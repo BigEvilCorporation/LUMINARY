@@ -54,3 +54,7 @@ DLG_VRAM_BUFF_SIZE                      equ DLG_MAX_TEXT_WIDTH*DLG_MAX_TEXT_HEIG
 
 ; Yarn
 YARN_STACK_SIZE_L                       equ 16      ; Yarn stack size in longwords
+YARN_STATE_STOPPED			            equ 0	    ; Stopped
+YARN_STATE_RUNNING			            equ 1	    ; Running instructions
+YARN_STATE_WAITING_DLG		            equ 2	    ; Waiting for dialog dismissal from user
+YARN_STATE_WAITING_CHOICE	            equ 3	    ; Waiting for dialog choice selection from user
