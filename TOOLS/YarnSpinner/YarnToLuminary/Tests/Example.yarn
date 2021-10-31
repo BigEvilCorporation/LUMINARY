@@ -1,33 +1,25 @@
 title: Start
-tags: 
-colorID: 0
-position: 592,181
 ---
-A: Hey, I'm a character in a script!
-B: And I am too! You are talking to me!
--> What's going on
-    A: Why this is a demo of the script system!
-    B: And you're in it!
--> Um ok
-A: How delightful!
-B: What would you prefer to do next?
--> Leave
-    <<jump Leave>>
--> Learn more
-    <<jump LearnMore>>
+A: Hello world!
+B: Make a selection...
+-> Choice 1
+    A: Answer 1.1
+    B: Answer 1.2
+-> Choice 2
+A: Text line 3
+B: Choices with consequences...
+-> Answer 1
+    <<jump Answer1>>
+-> Answer 2
+    <<jump Answer2>>
 ===
-title: Leave
-tags: 
-colorID: 0
-position: 387,487
+title: Answer1
 ---
-A: Oh, goodbye!
-B: You'll be back soon!
+A: You selected answer 1
+B: Goodbye!
 ===
-title: LearnMore
-tags: rawText
-colorID: 0
-position: 763,472
+title: Answer2
 ---
-A: HAHAHA
+A: You selected answer 2
+B: Goodbye!
 ===
