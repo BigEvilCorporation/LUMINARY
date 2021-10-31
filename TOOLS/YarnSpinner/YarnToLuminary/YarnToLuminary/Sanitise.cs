@@ -17,7 +17,7 @@ namespace YarnToLuminary
 
         public static string SanitiseText(string input)
         {
-            return Regex.Replace(input, "[^a-zA-Z0-9?!()/:', ]", "");
+            return Regex.Replace(input, "[^a-zA-Z0-9?!()/:'., ]", "");
         }
     }
 }

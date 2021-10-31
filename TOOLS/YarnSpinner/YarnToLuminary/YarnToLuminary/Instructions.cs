@@ -33,7 +33,7 @@ namespace YarnToLuminary
         // opA = string: label name
         static void JumpTo(string programName, Yarn.Instruction instruction, System.IO.StreamWriter writer)
         {
-            writer.WriteLine("\tYARN_JUMPTO @" + instruction.Operands[0].StringValue);
+            writer.WriteLine("\tYARN_JUMPTO " + Sanitise.GenerateLabel(programName, instruction.Operands[0].StringValue));
         }
 
         // Peeks a string from stack, and jumps to that named position in the node.
@@ -67,7 +67,7 @@ namespace YarnToLuminary
         ///   the game that the option should be not available)
         static void AddOption(string programName, Yarn.Instruction instruction, System.IO.StreamWriter writer)
         {
-            writer.WriteLine("\tYARN_ADDOPTION #" + Sanitise.GenerateLabel(programName, instruction.Operands[0].StringValue) + " @" + Sanitise.GenerateLabel(programName, instruction.Operands[1].StringValue));
+            writer.WriteLine("\tYARN_ADDOPTION #" + Sanitise.GenerateLabel(programName, instruction.Operands[0].StringValue) + ", #" + Sanitise.GenerateLabel(programName, instruction.Operands[1].StringValue));
         }
 
         // Presents the current list of options to the client, then clears the list. The most recently selected option will be on the top of the stack when execution resumes.

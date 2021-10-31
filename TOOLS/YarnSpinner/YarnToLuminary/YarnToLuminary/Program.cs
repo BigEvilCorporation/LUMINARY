@@ -50,10 +50,11 @@ namespace YarnToLuminary
                 writer.WriteLine("; String table");
                 foreach (var str in result.StringTable)
                 {
-                    writer.WriteLine(Sanitise.GenerateLabel(args[2], str.Key) + ": dc.b \"" + Sanitise.SanitiseText(str.Value.text) + "\",0");
+                    writer.WriteLine(Sanitise.GenerateLabel(args[2], str.Key) + ":"
+                        + "\n\tdc.w " + str.Value.text.Length.ToString()
+                        + "\n\tdc.b \"" + Sanitise.SanitiseText(str.Value.text) + "\",0"
+                        + "\n\teven");
                 }
-
-                writer.WriteLine("\teven");
 
                 writer.WriteLine("");
 
@@ -70,7 +71,7 @@ namespace YarnToLuminary
                     for (int i = 0; i < node.Value.Instructions.Count; i++)
                     {
                         if (labels.ContainsKey(i))
-                            writer.WriteLine("\t@" + labels[i] + ":");
+                            writer.WriteLine("\t" + Sanitise.GenerateLabel(args[2], labels[i]) + ":");
 
                         var instruction = node.Value.Instructions[i];
                         Instructions.ByOpcode[(int)instruction.Opcode](args[2], instruction, writer);
