@@ -41,7 +41,7 @@ Yarn_Update:
 
 	@WaitingChoice:
 	tst.b  RAM_DIALOG_WAIT_INPUT
-	beq    @End
+	bne    @End
 
 	; Re-entry
 	moveq  #0, d0

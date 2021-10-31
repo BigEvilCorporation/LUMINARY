@@ -34,6 +34,7 @@ DLG_Initialise:
     bsr    VRAMMGR_Alloc
     move.l d1, RAM_DIALOG_VRAM_BUFFER
 
+    move.l #0, RAM_DIALOG_OPEN_FRAME
     move.l #0, RAM_DIALOG_CHOICE_LIST
     move.b #0, RAM_DIALOG_CHOICE_COUNT
     move.b #0, RAM_DIALOG_WAIT_INPUT
@@ -57,6 +58,7 @@ DLG_Open:
     move.w #DLG_DEFAULT_TYPE_DELAY, RAM_DIALOG_TYPEWRITER_TIMER
     move.l #0, RAM_DIALOG_CHOICE_LIST
     move.b #0, RAM_DIALOG_CHOICE_COUNT
+    move.l RAM_VBLANK_COUNTER, RAM_DIALOG_OPEN_FRAME
 
     ; Load glyphs into VRAM
     move.l RAM_DIALOG_VRAM_BUFFER, d0
@@ -80,6 +82,7 @@ DLG_OpenChoice:
     move.b #0, RAM_DIALOG_CURR_CHOICE
     move.w #0, RAM_DIALOG_STRING_LEN
     move.w #0, RAM_DIALOG_TYPEWRITER_LEN
+    move.l RAM_VBLANK_COUNTER, RAM_DIALOG_OPEN_FRAME
     
     move.l RAM_DIALOG_VRAM_BUFFER, d0
     move.l RAM_DIALOG_DEFAULT_FONT, a1
@@ -130,6 +133,11 @@ DLG_Update:
 
     move.w RAM_DIALOG_TYPEWRITER_LEN, d1
     move.w RAM_DIALOG_STRING_LEN, d2
+
+    ; Don't process input on the same frame the dialog was opened
+    move.l RAM_VBLANK_COUNTER, d0
+    cmp.l  RAM_DIALOG_OPEN_FRAME, d0
+    beq    @EndInput
 
     ; If waiting for user input
     tst.b  RAM_DIALOG_WAIT_INPUT
