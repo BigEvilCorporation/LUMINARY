@@ -16,6 +16,8 @@ DLG_Initialise:
     bsr    VRAMMGR_Alloc
     move.l d1, RAM_DIALOG_VRAM_BUFFER
 
+    move.l #0, RAM_DIALOG_CHOICE_LIST
+    move.b #0, RAM_DIALOG_CHOICE_COUNT
     move.b #0, RAM_DIALOG_WAIT_INPUT
     move.b #0, RAM_DIALOG_LAST_CHOICE
 
@@ -23,7 +25,7 @@ DLG_Initialise:
 
 DLG_Open:
     ; ======================================
-    ; Draws a dialog box and begins waiting
+    ; Opens a dialog box and begins waiting
     ; for user input
     ; ======================================
 	; a0   String
@@ -33,13 +35,60 @@ DLG_Open:
 
     move.b d0, RAM_DIALOG_WAIT_INPUT
 
+    move.w (a0), RAM_DIALOG_STRING_LEN      ; String length
+    move.w #1, RAM_DIALOG_TYPEWRITER_LEN    ; Animated string length
+    move.w #DLG_DEFAULT_TYPE_DELAY, RAM_DIALOG_TYPEWRITER_TIMER
+    move.l #0, RAM_DIALOG_CHOICE_LIST
+    move.b #0, RAM_DIALOG_CHOICE_COUNT
+
     ; Load glyphs into VRAM
     move.l RAM_DIALOG_VRAM_BUFFER, d0
     bsr    TXT_LoadSpriteTiles
 
-    move.w d1, RAM_DIALOG_STRING_LEN        ; String length
+    rts
+
+DLG_OpenChoice:
+    ; ======================================
+    ; Opens a dialog box with user choices,
+    ; and begins waiting for selection
+    ; ======================================
+	; a0   String (prefixed w/ word length)
+    ; a1   Font
+    ; a2   Choice list (str,addr,str,addr...)
+    ; d0.b Number of user choices in list
+    ; ======================================
+
+    move.l a2, RAM_DIALOG_CHOICE_LIST
+    move.b d0, RAM_DIALOG_CHOICE_COUNT
+    move.w #0, RAM_DIALOG_STRING_LEN
+    move.w #0, RAM_DIALOG_TYPEWRITER_LEN
+    
+    move.l RAM_DIALOG_VRAM_BUFFER, d0
+
+    cmpa.l #0, a0
+    beq    @NoQuestion
+    move.w (a0), RAM_DIALOG_STRING_LEN      ; String length
     move.w #1, RAM_DIALOG_TYPEWRITER_LEN    ; Animated string length
     move.w #DLG_DEFAULT_TYPE_DELAY, RAM_DIALOG_TYPEWRITER_TIMER
+
+    ; Load glyphs for question string into VRAM
+    bsr    TXT_LoadSpriteTiles
+    @NoQuestion:
+
+    move.b #1, RAM_DIALOG_WAIT_INPUT
+
+    ; Load glyphs for answer strings into VRAM
+    move.l RAM_DIALOG_CHOICE_LIST, a2
+    moveq  #0, d1
+    move.b RAM_DIALOG_CHOICE_COUNT, d1
+    subq   #1, d1
+    @ChoiceLp:
+    move.l (a2)+, a0        ; String
+    adda.w #SIZE_LONG, a2   ; Skip address
+    PUSHM.L d1/a1-a2
+    bsr    TXT_LoadSpriteTiles
+    POPM.L  d1/a1-a2
+    dbra   d1, @ChoiceLp
 
     rts
 
@@ -98,15 +147,47 @@ DLG_Render:
     ; Draws the current dialog box
     ; ======================================
 
-    ; Draw text
+    ; Draw main text
     tst.w  RAM_DIALOG_STRING_LEN
-    beq    @NoText
+    beq    @NoMainText
     move.w RAM_DIALOG_TYPEWRITER_LEN, d4; Length to draw
     move.w #DLG_DEFAULT_X+DLG_TEXT_BORDER_X, d0 ; X
     move.w #DLG_DEFAULT_Y+DLG_TEXT_BORDER_Y, d1 ; Y
     move.l RAM_DIALOG_VRAM_BUFFER, d2   ; VRAM buffer
     move.b #0, d3                       ; Palette
     bsr    TXT_DrawLineS
-    @NoText:
+    @NoMainText:
+
+    ; If main text fully drawn, also draw choices and cursor
+    tst.b  RAM_DIALOG_CHOICE_COUNT
+    beq    @NoChoices
+    move.w RAM_DIALOG_TYPEWRITER_LEN, d0
+    cmp.w  RAM_DIALOG_STRING_LEN, d0
+    bne    @NoChoices
+
+    move.w #DLG_DEFAULT_X+DLG_TEXT_BORDER_X+1, d0 ; X+1
+    move.w #DLG_DEFAULT_Y+DLG_TEXT_BORDER_Y+1, d1 ; Y+1
+    move.l RAM_DIALOG_VRAM_BUFFER, d2   ; Skip past main text in VRAM buffer
+    add.w  RAM_DIALOG_STRING_LEN, d2
+
+    move.l RAM_DIALOG_CHOICE_LIST, a2
+    moveq  #0, d3
+    move.b RAM_DIALOG_CHOICE_COUNT, d3
+    subq   #1, d3
+    @ChoiceLp:
+    move.l (a2)+, a0                    ; String
+    move.w (a0)+, d4                    ; String length
+    adda.w #SIZE_LONG, a2               ; Skip address
+    PUSHM.L d0-d4/a2
+    move.b #0, d3                       ; Palette
+    bsr    TXT_DrawLineS
+    POPM.L  d0-d4/a2
+    add.w  d4, d2						; Next VRAM string
+    addq.w #1, d1                       ; Next Y
+    dbra   d3, @ChoiceLp
+    
+    ; Draw cursor
+    
+    @NoChoices:
 
     rts

@@ -13,10 +13,11 @@ TXT_LoadSpriteTiles:
     ; Assumes 2 byte VDP autoincrement.
     ; ======================================
     ; In:
-    ;  a0   String
+    ;  a0   String (prefixed w/ word length)
     ;  a1   Font
-    ;  d0.l VRAM hndl (>= string length)
+    ;  d0.w VRAM addr (tiles, >= string length)
     ; Out:
+    ;  d0.w End VRAM addr
     ;  d1.w String length
     ; ======================================
 
@@ -25,24 +26,24 @@ TXT_LoadSpriteTiles:
     move.w d0, d5
     VDP_TILES_TO_BYTES d5
 
-    ; Loop until terminator
-    moveq  #0, d1
+    ; Walk string
+    move.w (a3)+, d1
+    subq.w #1, d1
     @CharLp:
     move.l a4, a0                       ; Reset font base addr
     moveq  #0x0, d7
     move.b (a3)+, d7
-    beq    @End
-    addq.w #1, d1                       ; String count
-    PUSH.W d1
+    PUSHM.W d0-d1
     sub.b  #STR_ASCII_START, d7         ; Tile idx = char - ascii start + font addr
     VDP_TILES_TO_BYTES d7               ; Tile to bytes
     add.l  d7, a0                       ; DMA src
     move.w d5, d0                       ; DMA dest
     move.w #SIZE_TILE_W, d1             ; DMA size
     bsr    VDPDMA_TransferImmediateVRAM
-    POP.W  d1
+    POPM.W d0-d1
+    addq   #1, d0
     add.w  #SIZE_TILE_B, d5             ; Next tile
-    bra    @CharLp                      
+    dbra   d1, @CharLp                      
 
     @End:
 
