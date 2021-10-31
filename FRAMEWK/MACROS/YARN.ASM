@@ -45,18 +45,30 @@ YARN_SHOWOPTIONS: macro
 	endm
 
 YARN_JUMP: macro
+    move.l RAM_YARN_STACK_PTR, a1
+    move.l (a1), a0
+    jmp    (a0)
 	endm
 
 YARN_JUMPTO: macro address
+    jmp    \address
 	endm
 
 YARN_PUSHSTRING: macro string
+    move.l RAM_YARN_STACK_PTR, a1
+    move.l \string, (a1)+
+    move.l a1, RAM_YARN_STACK_PTR
 	endm
 
 YARN_POP: macro
+    move.l RAM_YARN_STACK_PTR, a1
+    move.l -(a1), a0
+    move.l a1, RAM_YARN_STACK_PTR
 	endm
 
 YARN_RUNNODE: macro
+    YARN_POP
+    jsr    (a0)
 	endm
 
 YARN_STOP: macro
