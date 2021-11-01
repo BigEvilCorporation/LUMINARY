@@ -6,7 +6,7 @@
 ; ERROR.ASM - Asserts and error message handling
 ; ============================================================================================
 
-ERR_TEXT_POS_X          equ 0x04
+ERR_TEXT_POS_X          equ 0x01
 ERR_TEXT_POS_Y          equ 0x02
 
 ERR_TEXT_PAL_TEXT       equ 0x0

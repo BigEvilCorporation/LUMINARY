@@ -77,7 +77,8 @@ ECSprite_Initialise:
     rts
 
     @Err_NoSpriteSheet:
-    DBG_RAISE_ERROR "ECSprite_Init: Null sprite sheet"
+    movea.w Component_Owner(a0), a4
+    ENTITY_ERROR "ECSprite_Init: Null sprite sheet", a4
     rts
 
 ECSprite_Shutdown:

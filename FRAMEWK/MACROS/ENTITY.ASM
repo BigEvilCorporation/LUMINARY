@@ -7,6 +7,33 @@
 ; ============================================================================================
 
     ; ======================================
+    ; Resets the system and draws an error
+    ; string, incl. entity name (if !FINAL)
+    ; ======================================
+    ; string    - Error string to draw
+    ; ent       - Entity address
+    ; ======================================
+ENTITY_ERROR: macro string,ent
+    PUSHALL
+    bsr    ERR_ResetForError
+    POPALL
+    IFND FINAL
+    move.w #ERR_TEXT_POS_X, d0                  ; Draw entity name
+    move.w #ERR_TEXT_POS_Y+2, d1
+    lea    EntityBlock_DebugName(\ent), a0
+    bsr    DBG_DrawStringA
+    ENDIF
+    move.w #ERR_TEXT_POS_X, d0                  ; Draw error msg
+    move.w #ERR_TEXT_POS_Y, d1
+    lea    @err_string\@, a0
+    bsr    DBG_DrawStringA
+    bra    *
+    @err_string\@:
+    dc.b   \string\,0
+    even
+    endm
+
+    ; ======================================
     ; Injects an entity debug name into
     ; structure (IF !FINAL)
     ; ======================================
