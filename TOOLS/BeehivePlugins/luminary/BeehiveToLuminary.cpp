@@ -32,6 +32,10 @@ namespace luminary
 			if (!spriteSheet)
 				spriteSheet = actor.GetSpriteSheet(gameObjectType.GetSpriteSheetId());
 
+			//First sprite sheet belonging to actor
+			if (!spriteSheet && actor.GetSpriteSheetCount() > 0)
+				spriteSheet = &actor.GetSpriteSheets().begin()->second;
+
 			return spriteSheet;
 		}
 
@@ -474,7 +478,7 @@ namespace luminary
 			if (gameObject.GetName().size() > 0)
 				entity.spawnData.name = gameObject.GetName();
 			else
-				entity.spawnData.name = std::string("ent") + std::to_string(gameObject.GetId());
+				entity.spawnData.name = gameObjectType.GetName() + std::to_string(gameObject.GetId());
 
 			//Spawn position
 			entity.spawnData.positionX = gameObject.GetPosition().x + GameObject::spriteSheetBorderX;
