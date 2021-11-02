@@ -14,7 +14,7 @@ namespace luminary
 {
 	bool MapExporter::ExportMap(const std::string& binFilename, const Map& map, int stampWidth, int stampHeight, StampId backgroundStamp)
 	{
-		ion::io::File file(binFilename, ion::io::File::eOpenWrite);
+		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			int widthStamps = map.GetWidth() / stampWidth;

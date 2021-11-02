@@ -14,7 +14,7 @@ namespace luminary
 {
 	bool TerrainExporter::ExportTerrainTileset(const std::string& binFilename, const TerrainTileset& tileset, int tileWidth)
 	{
-		ion::io::File file(binFilename, ion::io::File::eOpenWrite);
+		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			for (int i = 0; i < tileset.GetCount(); i++)
@@ -39,7 +39,7 @@ namespace luminary
 
 	bool TerrainExporter::ExportTerrainStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, const TerrainTileset& tileset, u32 defaultTileId)
 	{
-		ion::io::File file(binFilename, ion::io::File::eOpenWrite);
+		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			if (stamps.size() > 0)
@@ -140,7 +140,7 @@ namespace luminary
 	{
 		//Use ids from m_remap, export addr offsets (width*height*u32*numLayers)
 
-		ion::io::File file(binFilename, ion::io::File::eOpenWrite);
+		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			int widthStamps = map.GetWidth() / stampWidth;

@@ -14,7 +14,7 @@ namespace luminary
 {
 	bool TilesetExporter::ExportTileset(const std::string& binFilename, const Tileset& tileset)
 	{
-		ion::io::File file(binFilename, ion::io::File::eOpenWrite);
+		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			for (int i = 0; i < tileset.GetCount(); i++)
@@ -44,7 +44,7 @@ namespace luminary
 
 	bool TilesetExporter::ExportStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, const Tileset& tileset, u32 backgroundTileId)
 	{
-		ion::io::File file(binFilename, ion::io::File::eOpenWrite);
+		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			for (int i = 0; i < stamps.size(); i++)
