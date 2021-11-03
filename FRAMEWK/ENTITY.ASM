@@ -50,6 +50,7 @@ EntityTypeDesc_Update                   rs.w 1
     STRUCT_INHERIT EntityBase,EntityBlockData
 Entity_TypeDesc                         rs.w 1  ; Entity type
 Entity_Id                               rs.w 1  ; Unique id
+Entity_SpawnData                        rs.l 1  ; Spawn data
 Entity_PosX                             rs.l 1  ; World centre pos X (16.16)
 Entity_PosY                             rs.l 1  ; World centre pos Y (16.16)
 Entity_ExtentsX                         rs.w 1  ; Half width in pixels
@@ -88,8 +89,9 @@ Entity_Initialise:
     ; d3.w Height
     ; ======================================
 
-    ; Set type desc
+    ; Set type desc and spawn data
     move.w a5, Entity_TypeDesc(a0)
+    move.l a1, Entity_SpawnData(a0)
 
     ; Clear position fraction
     move.l #0x0, Entity_PosX(a0)
