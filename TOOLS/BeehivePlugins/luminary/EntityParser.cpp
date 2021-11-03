@@ -9,8 +9,8 @@
 
 #include "EntityParser.h"
 
-#include <ion/io/File.h>
-#include <ion/io/FileDevice.h>
+#include <ion/core/io/File.h>
+#include <ion/core/io/FileDevice.h>
 #include <ion/core/string/String.h>
 
 #include <cctype>
@@ -60,7 +60,7 @@ namespace luminary
 
 		for (int i = 0; i < contents.size(); i++)
 		{
-			if (contents[i].m_fileType == ion::io::FileDevice::eDirectory)
+			if (contents[i].m_fileType == ion::io::FileDevice::FileType::Directory)
 			{
 				if (contents[i].m_filename != "." && contents[i].m_filename != "..")
 				{
@@ -68,7 +68,7 @@ namespace luminary
 					RecursiveFindASMFiles(fileDevice, subDir, asmFiles);
 				}
 			}
-			else if (contents[i].m_fileType == ion::io::FileDevice::eFile)
+			else if (contents[i].m_fileType == ion::io::FileDevice::FileType::File)
 			{
 				for (int j = 0; j < s_asmExtensions.size(); j++)
 				{
@@ -196,7 +196,7 @@ namespace luminary
 
 	void EntityParser::FindTextBlocks(const std::string& filename)
 	{
-		ion::io::File file(filename, ion::io::File::eOpenRead);
+		ion::io::File file(filename, ion::io::File::OpenMode::Read);
 		if (file.IsOpen())
 		{
 			//Read file contents

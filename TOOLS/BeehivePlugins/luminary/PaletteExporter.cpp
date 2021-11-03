@@ -12,7 +12,7 @@ namespace luminary
 {
 	bool PaletteExporter::ExportPalettes(const std::string& filename, const std::vector<Palette>& palettes)
 	{
-		ion::io::File file(filename, ion::io::File::eOpenWrite);
+		ion::io::File file(filename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			std::stringstream stream;

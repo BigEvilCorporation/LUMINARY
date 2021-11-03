@@ -10,8 +10,8 @@
 
 #include <ion/core/string/String.h>
 #include <ion/core/memory/Endian.h>
-#include <ion/io/File.h>
-#include <ion/io/FileDevice.h>
+#include <ion/core/io/File.h>
+#include <ion/core/io/FileDevice.h>
 
 #include <sstream>
 #include <set>
@@ -56,7 +56,7 @@ namespace luminary
 	{
 		std::string filename = outputDir + "\\" + g_componentsInclude;
 
-		ion::io::File file(filename, ion::io::File::eOpenWrite);
+		ion::io::File file(filename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			std::stringstream stream;
@@ -138,7 +138,7 @@ namespace luminary
 	{
 		std::string filename = outputDir + "\\" + entity.typeName + ".h";
 
-		ion::io::File file(filename, ion::io::File::eOpenWrite);
+		ion::io::File file(filename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			std::stringstream stream;
@@ -227,7 +227,7 @@ namespace luminary
 	{
 		std::string filename = outputDir + "\\" + entity.typeName + ".cpp";
 
-		ion::io::File file(filename, ion::io::File::eOpenWrite);
+		ion::io::File file(filename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			std::stringstream stream;
@@ -278,7 +278,7 @@ namespace luminary
 			}
 		}
 
-		ion::io::File file(asmFilename, ion::io::File::eOpenWrite);
+		ion::io::File file(asmFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			std::stringstream stream;
@@ -455,12 +455,12 @@ namespace luminary
 
 	int ScriptCompiler::LinkProgram(const std::string& filename, std::vector<ScriptRelocation>& relocationTable, u16 globalOffsetTableSize, u16 binaryStartOffset)
 	{
-		ion::io::File file(filename, ion::io::File::eOpenEdit);
+		ion::io::File file(filename, ion::io::File::OpenMode::Edit);
 		if (file.IsOpen())
 		{
 			for (auto entry : relocationTable)
 			{
-				file.Seek(entry.address, ion::io::eSeekModeStart);
+				file.Seek(entry.address, ion::io::SeekMode::Start);
 
 				if (entry.name == "_GLOBAL_OFFSET_TABLE_")
 				{

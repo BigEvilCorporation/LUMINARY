@@ -10,7 +10,7 @@
 #include "SceneExporter.h"
 #include "EntityExporter.h"
 
-#include <ion/io/File.h>
+#include <ion/core/io/File.h>
 #include <ion/core/utils/STL.h>
 #include <ion/maths/Vector.h>
 
@@ -26,7 +26,7 @@ namespace luminary
 
 	bool SceneExporter::ExportScene(const std::string& filename, const std::string& sceneName, const SceneData& sceneData)
 	{
-		ion::io::File file(filename, ion::io::File::eOpenWrite);
+		ion::io::File file(filename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			std::stringstream stream;
