@@ -104,7 +104,7 @@ namespace luminary
 		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses)
 		{
 			param.name = variable.m_name;
-			param.value = "0x0";
+			param.value = "0";
 
 			std::string scriptAddress;
 
@@ -117,29 +117,36 @@ namespace luminary
 			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityArchetype)))
 			{
-				//Find entity type first
-				std::string entityTypeName;
-				const GameObjectVariable *typeVariable = nullptr;
-
-				if (archetype)
+				if (variable.m_value == "0")
 				{
-					//Find variable in archetype
-					typeVariable = archetype->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityDesc), variable.m_componentIdx);
+					param.value = "0";
 				}
-				if (gameObject && !typeVariable)
-				{
-					//Find variable on instance
-					typeVariable = gameObject->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityDesc), variable.m_componentIdx);
-				}
-
-				if (typeVariable)
-					entityTypeName = typeVariable->m_value;
 				else
-					entityTypeName = gameObjectType.GetName();
+				{
+					//Find entity type first
+					std::string entityTypeName;
+					const GameObjectVariable* typeVariable = nullptr;
 
-				std::stringstream stream;
-				stream << "Archetype_" << entityTypeName << "_" << variable.m_value;
-				param.value = stream.str();
+					if (archetype)
+					{
+						//Find variable in archetype
+						typeVariable = archetype->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityDesc), variable.m_componentIdx);
+					}
+					if (gameObject && !typeVariable)
+					{
+						//Find variable on instance
+						typeVariable = gameObject->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityDesc), variable.m_componentIdx);
+					}
+
+					if (typeVariable)
+						entityTypeName = typeVariable->m_value;
+					else
+						entityTypeName = gameObjectType.GetName();
+
+					std::stringstream stream;
+					stream << "Archetype_" << entityTypeName << "_" << variable.m_value;
+					param.value = stream.str();
+				}
 			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::PositionX)))
 			{
