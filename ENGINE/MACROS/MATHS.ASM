@@ -39,6 +39,7 @@ ABS: macro valuereg
     ; ======================================
     ; Get positive absolute
     ; ======================================
+    ; .X         - Element size
     ; valuereg   - In/out: value to abs
 	; ======================================
 	cmp.\0 #0x0, \valuereg
@@ -51,13 +52,12 @@ MAX: macro value_a,value_b,output
     ; ======================================
     ; Returns the max of two values
     ; ======================================
-    ; value_a    - Value 1
+    ; .X         - Element size
+    ; value_a    - In/out: Value 1
     ; value_b    - Value 2
-    ; output     - Return value
     ; ======================================
-	move.\0 \value_a, \output
-	cmp.\0  \value_a,\value_b
+	cmp.\0  \value_b, \value_a
 	blt     @A\@
-	move.\0 \value_b, \output
+	move.\0 \value_b, \value_a
 	@A\@:
 	endm
