@@ -264,6 +264,8 @@ namespace luminary
 				archetype.name = srcArchetype.name;
 				archetype.entityTypeName = gameObjectType->GetName();
 				const Actor* actor = project.GetActor(srcArchetype.spriteActorId);
+				if (!actor)
+					actor = project.GetActor(gameObjectType->GetSpriteActorId());
 
 				//Create archetype params
 				int paramIdx = 0;
