@@ -54,6 +54,7 @@
     include 'framewk/macros/entmgr.asm'
     include 'framewk/macros/script.asm'
     include 'framewk/macros/sprite.asm'
+    include 'framewk/macros/vector2.asm'
     include 'framewk/macros/vfx.asm'
     include 'framewk/macros/yarn.asm'
 
