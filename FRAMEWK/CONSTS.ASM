@@ -39,8 +39,8 @@ PHYS_TERRAIN_PROBE_OFFSET               equ 0x0009
 PHYS_TERRAIN_PROBE_OFFSET               equ 0x0000
     ENDIF
 
-PHYS_DEFAULT_MAX_VEL_X                  equ 0x0008
-PHYS_DEFAULT_MAX_VEL_Y                  equ 0x0010
+PHYS_DEFAULT_MAX_VEL_X                  equ 0x00100000
+PHYS_DEFAULT_MAX_VEL_Y                  equ 0x00100000
 
 ; Dialog system
 DLG_DEFAULT_X                           equ 1       ; Default X position
