@@ -18,6 +18,7 @@ namespace luminary
 		{
 			{ "POSITION_X", TagType::PositionX },
 			{ "POSITION_Y", TagType::PositionY },
+			{ "SPRITE_ACTOR" , TagType::SpriteActor },
 			{ "SPRITE_SHEET" , TagType::SpriteSheet },
 			{ "SPRITE_ANIM", TagType::SpriteAnimation },
 			{ "ENTITY_DESC", TagType::EntityDesc },

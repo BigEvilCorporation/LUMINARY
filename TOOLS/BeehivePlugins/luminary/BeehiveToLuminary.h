@@ -28,7 +28,7 @@ namespace luminary
 
 		void CreatePrefabType(GameObjectType& gameObjectType);
 
-		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses);
+		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const TActorMap& actors, const luminary::ScriptAddressMap& scriptAddresses);
 		void ConvertArchetype(const Project& project, const GameObjectArchetype& srcArchetype, const luminary::ScriptAddressMap& scriptAddresses, luminary::Archetype& archetype);
 		void ConvertPrefabType(const Project& project, const GameObjectType& gameObjectType, luminary::Prefab& prefab);
 		void ConvertPrefabChild(const Project& project, const GameObjectType& gameObjectType, const GameObjectType::PrefabChild& prefabChild, luminary::Entity& entity);

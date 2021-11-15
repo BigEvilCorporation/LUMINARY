@@ -18,6 +18,7 @@ namespace luminary
 		{
 			PositionX,
 			PositionY,
+			SpriteActor,
 			SpriteSheet,
 			SpriteAnimation,
 			EntityDesc,

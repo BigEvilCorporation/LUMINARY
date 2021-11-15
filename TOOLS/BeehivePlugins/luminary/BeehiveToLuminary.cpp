@@ -15,77 +15,113 @@ namespace luminary
 {
 	namespace beehive
 	{
-		const SpriteSheet* FindSpriteSheet(const Actor& actor, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const GameObjectVariable* variable)
+		const Actor* FindActorInComponent(const TActorMap& actors, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const GameObjectArchetype* archetype, int componentIdx)
 		{
-			//Sprite sheet from variable
-			const SpriteSheet* spriteSheet = variable ? actor.GetSpriteSheet(actor.FindSpriteSheetId(variable->m_value)) : nullptr;
+			const GameObjectVariable* actorVar = gameObject ? gameObject->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteActor), componentIdx) : nullptr;
 
-			//Sprite sheet from prefab
-			if (!spriteSheet && prefabChild)
-				spriteSheet = actor.GetSpriteSheet(prefabChild->spriteSheetId);
+			// From game object
+			if (!actorVar)
+				actorVar = gameObject ? gameObject->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteActor), componentIdx) : nullptr;
 
-			//Sprite sheet from game object
-			if (!spriteSheet && gameObject)
-				spriteSheet = actor.GetSpriteSheet(gameObject->GetSpriteSheetId());
+			// From prefab
+			if (!actorVar)
+				actorVar = prefabChild ? prefabChild->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteActor), componentIdx) : nullptr;
 
-			//Sprite sheet from game object type
-			if (!spriteSheet)
-				spriteSheet = actor.GetSpriteSheet(gameObjectType.GetSpriteSheetId());
+			// From archetype
+			if (!actorVar)
+				actorVar = archetype ? archetype->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteActor), componentIdx) : nullptr;
 
-			//First sprite sheet belonging to actor
-			if (!spriteSheet && actor.GetSpriteSheetCount() > 0)
-				spriteSheet = &actor.GetSpriteSheets().begin()->second;
+			// From game object type
+			if (!actorVar)
+				actorVar = gameObjectType.FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteActor), componentIdx);
+
+			const Actor* actor = nullptr;
+
+			if (actorVar)
+			{
+				for (TActorMap::const_iterator it = actors.begin(), end = actors.end(); it != end && !actor; ++it)
+				{
+					if (ion::string::CompareNoCase(it->second.GetName(), actorVar->m_value))
+					{
+						actor = &it->second;
+					}
+				}
+			}
+
+			return actor;
+		}
+
+		const SpriteSheet* FindSpriteSheetInComponent(const TActorMap& actors, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const GameObjectArchetype* archetype, int componentIdx, std::string& actorName)
+		{
+			//Get actor
+			const Actor* actor = FindActorInComponent(actors, gameObjectType, gameObject, prefabChild, archetype, componentIdx);
+			if (!actor)
+				return nullptr;
+
+			actorName = actor->GetName();
+
+			const SpriteSheet* spriteSheet = nullptr;
+
+			//From game object
+			const GameObjectVariable* spriteSheetVar = gameObject ? gameObject->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet), componentIdx) : nullptr;
+
+			//From prefab
+			if (!spriteSheetVar)
+				spriteSheetVar = prefabChild ? prefabChild->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet), componentIdx) : nullptr;
+
+			//From archetype
+			if (!spriteSheetVar)
+				spriteSheetVar = archetype ? archetype->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet), componentIdx) : nullptr;
+
+			//From game object type
+			if (!spriteSheetVar)
+				spriteSheetVar = gameObjectType.FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet), componentIdx);
+
+			if (spriteSheetVar)
+				spriteSheet = actor->FindSpriteSheet(spriteSheetVar->m_value);
 
 			return spriteSheet;
 		}
 
-		const SpriteAnimation* FindSpriteAnim(const Actor& actor, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const GameObjectArchetype* archetype, const GameObjectVariable& variable, std::string& sheetName)
+		const Actor* FindSpriteActor(const TActorMap& actors, const std::string& name)
 		{
-			const SpriteSheet* spriteSheet = nullptr;
-			const SpriteAnimation* spriteAnim = nullptr;
+			const Actor* actor = nullptr;
 
-			//Sprite sheet from variable
-			const GameObjectVariable* spriteSheetVar = gameObject ? gameObject->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet), variable.m_componentIdx) : nullptr;
-
-			if (!spriteSheetVar)
-				spriteSheetVar = archetype ? archetype->FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet), variable.m_componentIdx) : nullptr;
-
-			if (!spriteSheetVar)
-				spriteSheetVar = gameObjectType.FindVariableByTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet), variable.m_componentIdx);
-
-			if (spriteSheetVar)
-				spriteSheet = FindSpriteSheet(actor, gameObjectType, gameObject, prefabChild, spriteSheetVar);
-
-			//Sprite sheet from prefab
-			if (!spriteSheet && prefabChild)
-				spriteSheet = actor.GetSpriteSheet(prefabChild->spriteSheetId);
-
-			//Sprite sheet from game object
-			if (!spriteSheet && gameObject)
-				spriteSheet = actor.GetSpriteSheet(gameObject->GetSpriteSheetId());
-
-			//Sprite sheet from game object type
-			if (!spriteSheet)
-				spriteSheet = actor.GetSpriteSheet(gameObjectType.GetSpriteSheetId());
-
-			if (spriteSheet)
+			for (TActorMap::const_iterator it = actors.begin(), end = actors.end(); it != end && !actor; ++it)
 			{
-				//Get name
-				sheetName = spriteSheet->GetName();
-
-				//Sprite anim from variable
-				spriteAnim = spriteSheet->FindAnimation(variable.m_value);
-
-				//Sprite anim from game object
-				if (!spriteAnim && gameObject)
-					spriteAnim = spriteSheet->GetAnimation(gameObject->GetSpriteAnim());
-
-				//Sprite anim from game object type
-				if (!spriteAnim)
-					spriteAnim = spriteSheet->GetAnimation(gameObjectType.GetSpriteAnim());
+				if (ion::string::CompareNoCase(it->second.GetName(), name))
+				{
+					actor = &it->second;
+				}
 			}
 
-			return spriteAnim;
+			return actor;
+		}
+
+		const SpriteSheet* FindSpriteSheet(const TActorMap& actors, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const GameObjectArchetype* archetype, const std::string& name, int componentIdx, std::string& actorName)
+		{
+			//Get actor
+			const Actor* actor = FindActorInComponent(actors, gameObjectType, gameObject, prefabChild, archetype, componentIdx);
+			if (!actor)
+				return nullptr;
+
+			actorName = actor->GetName();
+
+			//Sprite sheet from variable
+			return actor->FindSpriteSheet(name);
+		}
+
+		const SpriteAnimation* FindSpriteAnim(const TActorMap& actors, const GameObjectType& gameObjectType, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const GameObjectArchetype* archetype, const std::string& name, int componentIdx, std::string& actorName, std::string& sheetName)
+		{
+			//Get sprite sheet
+			const SpriteSheet* spriteSheet = FindSpriteSheetInComponent(actors, gameObjectType, gameObject, prefabChild, archetype, componentIdx, actorName);
+			if (!spriteSheet)
+				return nullptr;
+
+			sheetName = spriteSheet->GetName();
+
+			//Sprite anim from variable
+			return spriteSheet->FindAnimation(name);
 		}
 
 		void CreatePrefabType(GameObjectType& gameObjectType)
@@ -101,7 +137,7 @@ namespace luminary
 			variable.m_tags.push_back(luminary::tags::GetTagName(luminary::tags::TagType::PrefabData));
 		}
 
-		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const Actor* actor, const luminary::ScriptAddressMap& scriptAddresses)
+		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const TActorMap& actors, const luminary::ScriptAddressMap& scriptAddresses)
 		{
 			param.name = variable.m_name;
 			param.value = "0";
@@ -158,33 +194,31 @@ namespace luminary
 				if (gameObject)
 					param.value = std::to_string(gameObject->GetPosition().y + GameObject::spriteSheetBorderY);
 			}
+			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteActor)))
+			{
+				//Unused
+				param.value = "0";
+			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteSheet)))
 			{
-				if (actor)
+				std::string actorName;
+				if (const SpriteSheet* spriteSheet = FindSpriteSheet(actors, gameObjectType, gameObject, prefabChild, archetype, variable.m_value, variable.m_componentIdx, actorName))
 				{
-					if (const SpriteSheet* spriteSheet = FindSpriteSheet(*actor, gameObjectType, gameObject, prefabChild, &variable))
-					{
-						std::stringstream stream;
-						stream << "actor_" << actor->GetName() << "_spritesheet_" << spriteSheet->GetName();
-						param.value = stream.str();
-					}
+					std::stringstream stream;
+					stream << "actor_" << actorName << "_spritesheet_" << spriteSheet->GetName();
+					param.value = stream.str();
 				}
 			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::SpriteAnimation)))
 			{
-				if (actor)
+				std::string actorName;
+				std::string sheetName;
+				if (const SpriteAnimation* spriteAnim = FindSpriteAnim(actors, gameObjectType, gameObject, prefabChild, archetype, variable.m_value, variable.m_componentIdx, actorName, sheetName))
 				{
-					if (const SpriteSheet* spriteSheet = FindSpriteSheet(*actor, gameObjectType, gameObject, prefabChild, &variable))
-					{
-						std::string sheetName;
-						if (const SpriteAnimation* spriteAnim = FindSpriteAnim(*actor, gameObjectType, gameObject, prefabChild, archetype, variable, sheetName))
-						{
-							std::stringstream stream;
-							stream << "actor_" << actor->GetName() << "_sheet_" << spriteSheet->GetName() << "_anim_" << spriteAnim->GetName();
+					std::stringstream stream;
+					stream << "actor_" << actorName << "_sheet_" << sheetName << "_anim_" << spriteAnim->GetName();
 
-							param.value = stream.str();
-						}
-					}
+					param.value = stream.str();
 				}
 			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::ScriptData)))
@@ -306,7 +340,7 @@ namespace luminary
 						param = &archetype.components[componentIdx].spawnData.params[paramIdx];
 					}
 
-					ConvertParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, nullptr, actor, scriptAddresses);
+					ConvertParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, nullptr, project.GetActors(), scriptAddresses);
 				}
 			}
 		}
@@ -397,7 +431,7 @@ namespace luminary
 					param = &entity.components[componentIdx].spawnData.params[paramIdx];
 				}
 
-				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, &prefabChild, actor, scriptAddresses);
+				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, &prefabChild, project.GetActors(), scriptAddresses);
 			}
 		}
 
@@ -450,7 +484,7 @@ namespace luminary
 					param = &entity.components[componentIdx].spawnData.params[paramIdx];
 				}
 
-				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, nullptr, actor, scriptAddresses);
+				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, nullptr, project.GetActors(), scriptAddresses);
 			}
 
 			//Convert entity/component script functions
@@ -541,7 +575,7 @@ namespace luminary
 					param = &entity.components[componentIdx].spawnData.params[paramIdx];
 				}
 
-				ConvertParam(*param, *variable, gameObjectType, nullptr, &gameObject, nullptr, actor, scriptAddresses);
+				ConvertParam(*param, *variable, gameObjectType, nullptr, &gameObject, nullptr, project.GetActors(), scriptAddresses);
 			}
 
 			//Create entity/component script functions
