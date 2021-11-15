@@ -122,7 +122,6 @@ ECPhysBodyBasic_StepAll:
     add.l  d5, d3
 
     ; Clamp X velocity
-    moveq  #0x0, d4
     move.l ECPhysBodyBasic_MaxVelX(a3), d4
     move.l d4, d5
     neg.l  d5

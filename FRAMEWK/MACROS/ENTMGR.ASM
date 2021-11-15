@@ -27,6 +27,16 @@ ENT_COMPONENT_LIST: macro component_name
     STRUCT_ALLOC EntityBlockList,EntityBlockList_\component_name
     endm
 
+ENT_COMPONENT_GET_LIST: macro component_name, dst_reg
+    ; ======================================
+    ; Gets a component list
+    ; ======================================
+    ; component_name - Component name
+    ; dts_reg        - Destination reg
+    ; ======================================
+    lea    EntityBlockList_\component_name, \dst_reg
+    endm
+
 ENT_COMPONENT_GET_LIST_HEAD: macro component_name, dst_reg
     ; ======================================
     ; Gets a component list head

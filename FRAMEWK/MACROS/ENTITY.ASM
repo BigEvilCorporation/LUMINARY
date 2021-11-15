@@ -101,7 +101,11 @@ ENTITY_BEGIN: macro name
     ; ======================================
 __ENTITY_NAME equs "\name\"                                         ; Store entity name for ENTITY_END
 __ENTITY_COMPONENT_COUNT = 0                                        ; Begin counting components
+    IFD  __SIZEOF_\__ENTITY_NAME\__SPAWNDATA
 __COMPONENT_SPAWN_DATA_OFFSET = __SIZEOF_\__ENTITY_NAME\__SPAWNDATA ; Begin counting component spawn data size
+    ELSE
+__COMPONENT_SPAWN_DATA_OFFSET = SIZEOF_EntitySpawnDataBase
+    ENDIF
 ENTITY_\__ENTITY_NAME\_COMPONENT_SLOTDESC_TABLE:                    ; Begin component slot desc table
     RSSET  SIZEOF_EntityBase
 	endm

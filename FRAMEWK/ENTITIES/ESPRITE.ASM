@@ -16,6 +16,7 @@ ECSPRITE_STATE_FLAG_DIRTY               equ 0x4 ; Anim changed, forcefully load 
     ; Sprite component
     ; ======================================
     COMPONENT_SPAWN_DATA_BEGIN ECSprite
+SDSprite_Actor                          rs.l 1  ; [TAGS=SPRITE_ACTOR]
 SDSprite_Sheet                          rs.l 1  ; [TAGS=SPRITE_SHEET]
 SDSprite_Animation                      rs.l 1  ; [TAGS=SPRITE_ANIM]
 SDSprite_DrawPriority                   rs.b 1
