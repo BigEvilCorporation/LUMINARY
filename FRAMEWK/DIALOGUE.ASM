@@ -49,11 +49,19 @@ DLG_Open:
     ; ======================================
 	; a0   String
     ; d0.b Wait for user input (0 or 1)
+    ; d1.w X position
+    ; d2.w Y position
     ; ======================================
 
     move.b d0, RAM_DIALOG_WAIT_INPUT
+    move.w d1, RAM_DIALOG_POS_X
+    move.w d2, RAM_DIALOG_POS_Y
 
-    move.w (a0), RAM_DIALOG_STRING_LEN      ; String length
+    PUSHM.L d0/a1                           ; String length
+    bsr    STR_LenA
+    move.w d0, RAM_DIALOG_STRING_LEN
+    POPM.L d0/a1
+
     move.w #1, RAM_DIALOG_TYPEWRITER_LEN    ; Animated string length
     move.w #DLG_DEFAULT_TYPE_DELAY, RAM_DIALOG_TYPEWRITER_TIMER
     move.l #0, RAM_DIALOG_CHOICE_LIST
@@ -73,12 +81,16 @@ DLG_OpenChoice:
     ; and begins waiting for selection
     ; ======================================
 	; a0   String (prefixed w/ word length)
-    ; a2   Choice list (str,addr,str,addr...)
+    ; a2   Choice list (str,addr,data,str,addr,data...)
     ; d0.b Number of user choices in list
+    ; d1.w X position
+    ; d2.w Y position
     ; ======================================
 
     move.l a2, RAM_DIALOG_CHOICE_LIST
     move.b d0, RAM_DIALOG_CHOICE_COUNT
+    move.w d1, RAM_DIALOG_POS_X
+    move.w d2, RAM_DIALOG_POS_Y
     move.b #0, RAM_DIALOG_CURR_CHOICE
     move.w #0, RAM_DIALOG_STRING_LEN
     move.w #0, RAM_DIALOG_TYPEWRITER_LEN
@@ -89,7 +101,10 @@ DLG_OpenChoice:
 
     cmpa.l #0, a0
     beq    @NoQuestion
-    move.w (a0), RAM_DIALOG_STRING_LEN      ; String length
+    PUSHM.L d0/a1                       ; String length
+    bsr    STR_LenA
+    move.w d0, RAM_DIALOG_STRING_LEN
+    POPM.L d0/a1
     move.w #1, RAM_DIALOG_TYPEWRITER_LEN    ; Animated string length
     move.w #DLG_DEFAULT_TYPE_DELAY, RAM_DIALOG_TYPEWRITER_TIMER
 
@@ -107,6 +122,7 @@ DLG_OpenChoice:
     @ChoiceLp:
     move.l (a2)+, a0        ; String
     adda.w #SIZE_LONG, a2   ; Skip address
+    adda.w #SIZE_LONG, a2   ; Skip data
     PUSHM.L d1/a1-a2
     bsr    TXT_LoadSpriteTiles
     POPM.L  d1/a1-a2
@@ -119,9 +135,6 @@ DLG_Close:
     ; Closes the current dialog box
     ; ======================================
 
-    move.l #0, RAM_DIALOG_CHOICE_LIST
-    move.w #0, RAM_DIALOG_STRING_LEN
-    move.b #0, RAM_DIALOG_CHOICE_COUNT
     move.b #0, RAM_DIALOG_WAIT_INPUT
 
     rts
@@ -208,8 +221,10 @@ DLG_Render:
     tst.w  RAM_DIALOG_STRING_LEN
     beq    @NoMainText
     move.w RAM_DIALOG_TYPEWRITER_LEN, d4; Length to draw
-    move.w #DLG_DEFAULT_X+DLG_TEXT_BORDER_X, d0 ; X
-    move.w #DLG_DEFAULT_Y+DLG_TEXT_BORDER_Y, d1 ; Y
+    move.w RAM_DIALOG_POS_X, d0
+    move.w RAM_DIALOG_POS_Y, d1
+    addi.w #DLG_TEXT_BORDER_X, d0 ; X
+    addi.w #DLG_TEXT_BORDER_Y, d1 ; Y
     move.l RAM_DIALOG_VRAM_BUFFER, d2   ; VRAM buffer
     move.b #0, d3                       ; Palette
     bsr    TXT_DrawLineS
@@ -222,8 +237,10 @@ DLG_Render:
     cmp.w  RAM_DIALOG_STRING_LEN, d0
     bne    @NoChoices
 
-    move.w #DLG_DEFAULT_X+DLG_TEXT_BORDER_X+1, d0 ; X+1
-    move.w #DLG_DEFAULT_Y+DLG_TEXT_BORDER_Y+1, d1 ; Y+1
+    move.w RAM_DIALOG_POS_X, d0
+    move.w RAM_DIALOG_POS_Y, d1
+    addi.w #DLG_TEXT_BORDER_X+2, d0     ; X+2 (leave space for cursor)
+    addi.w #DLG_TEXT_BORDER_Y+1, d1     ; Y+1
     move.l RAM_DIALOG_VRAM_BUFFER, d2   ; Skip past main text in VRAM buffer
     add.w  RAM_DIALOG_STRING_LEN, d2
 
@@ -233,8 +250,12 @@ DLG_Render:
     subq   #1, d3
     @ChoiceLp:
     move.l (a2)+, a0                    ; String
-    move.w (a0)+, d4                    ; String length
+    PUSHM.L a0/d0                       ; String length
+    bsr    STR_LenA
+    move.w d0, d4
+    POPM.L a0/d0
     adda.w #SIZE_LONG, a2               ; Skip address
+    adda.w #SIZE_LONG, a2               ; Skip data
     PUSHM.L d0-d4/a2
     move.b #0, d3                       ; Palette
     bsr    TXT_DrawLineS
@@ -244,8 +265,10 @@ DLG_Render:
     dbra   d3, @ChoiceLp
     
     ; Draw cursor
-    move.w #DLG_DEFAULT_X+DLG_TEXT_BORDER_X, d0   ; X
-    move.w #DLG_DEFAULT_Y+DLG_TEXT_BORDER_Y+1, d1 ; Y + 1 + current choice
+    move.w RAM_DIALOG_POS_X, d0
+    move.w RAM_DIALOG_POS_Y, d1
+    addi.w #DLG_TEXT_BORDER_X, d0       ; X
+    addi.w #DLG_TEXT_BORDER_Y+1, d1     ; Y + 1 + current choice
     moveq  #0, d2
     move.b RAM_DIALOG_CURR_CHOICE, d2
     add.w  d2, d1

@@ -13,7 +13,7 @@ TXT_LoadSpriteTiles:
     ; Assumes 2 byte VDP autoincrement.
     ; ======================================
     ; In:
-    ;  a0   String (prefixed w/ word length)
+    ;  a0   String (zero terminated)
     ;  a1   Font
     ;  d0.w VRAM addr (tiles, >= string length)
     ; Out:
@@ -25,9 +25,13 @@ TXT_LoadSpriteTiles:
     move.l a1, a4
     move.w d0, d5
     VDP_TILES_TO_BYTES d5
+    
+    PUSH.W d0                       ; String length
+    bsr    STR_LenA
+    move.w d0, d1
+    POP.W  d0
 
     ; Walk string
-    move.w (a3)+, d1
     subq.w #1, d1
     @CharLp:
     move.l a4, a0                       ; Reset font base addr

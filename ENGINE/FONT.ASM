@@ -70,3 +70,17 @@ FNT_LoadFontShadowed:
     dbf     d1, @RowLoop                ; Go for next row
 
     rts
+
+FNT_LoadDebugFont:
+
+    lea    RAM_VRAM_MANAGER, a0
+    move.w #SIZEOF_debug_font/SIZE_TILE_B, d0
+    bsr    VRAMMGR_Alloc
+    move.l d1, RAM_DBG_FONT_VRAM
+
+    lea    debug_font, a0
+    move.w d1, d0
+    move.w #SIZEOF_debug_font/SIZE_TILE_B, d1
+    bsr    VDP_LoadTiles
+
+    rts

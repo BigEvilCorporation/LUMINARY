@@ -69,6 +69,11 @@ VRAMMGR_Initialise:
     move.w #0x0, VRAMManager_TilesFree(a0)
     ;move.w #0xFFFF, VRAMManager_LastFreeHandle(a0)
 
+    ; TODO: Take initial pools from table
+    move.w #0x0000, d0
+    move.w #0xB000/SIZE_TILE_B, d1
+    bsr    VRAMMGR_AddPool
+
     rts
 
 VRAMMGR_AddPool:

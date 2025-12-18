@@ -37,6 +37,8 @@ RAM_DIALOG_VRAM_BUFFER                  rs.l 1  ; VRAM handle for dialog text bu
 RAM_DIALOG_VRAM_CURSOR                  rs.l 1  ; VRAM handle for cursor
 RAM_DIALOG_CHOICE_LIST                  rs.l 1  ; Current choice list addr (string,addr,string,addr...)
 RAM_DIALOG_OPEN_FRAME                   rs.l 1  ; The frame at which the dialog was opened
+RAM_DIALOG_POS_X                        rs.w 1
+RAM_DIALOG_POS_Y                        rs.w 1
 RAM_DIALOG_STRING_LEN                   rs.w 1  ; Current string length
 RAM_DIALOG_TYPEWRITER_LEN               rs.w 1  ; Current string length being drawn
 RAM_DIALOG_TYPEWRITER_TIMER             rs.w 1  ; Frames until next character

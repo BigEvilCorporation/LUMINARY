@@ -25,6 +25,15 @@ ENT_Initialise:
     ; No params
     ; ======================================
 
+    ; Clear entity block table
+    lea    RAM_ENTITYBLOCKTABLE, a0
+    move.w #ENT_MGR_MAX_BLOCKS-1, d5
+    @BlockLp:
+    move.b #0x0, EntityBlock_Flags(a0)
+    adda.w #ENT_MGR_BLOCK_SIZE, a0
+    dbra   d5, @BlockLp
+
+    ; Set free blocks
     lea    RAM_ENTITYMANAGER, a0
     move.w #RAM_ENTITYBLOCKTABLE&0xFFFF, EntityManager_LastFreeBlock(a0)
     move.w #0x0, EntityManager_EntityCount(a0)
