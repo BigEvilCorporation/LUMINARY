@@ -11,6 +11,7 @@
 #include <ion/core/io/File.h>
 #include <ion/core/utils/STL.h>
 #include <ion/maths/Vector.h>
+#include <ion/maths/Fixed.h>
 
 #include <sstream>
 
@@ -112,6 +113,159 @@ namespace luminary
 				stream << std::endl;
 			}
 
+			file.Write(stream.str().c_str(), stream.str().size());
+			file.Close();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	bool EntityExporter::ExportAnimations(const std::string& filename, const std::vector<Animation>& animations)
+	{
+		ion::io::File file(filename, ion::io::File::OpenMode::Write);
+		if (file.IsOpen())
+		{
+			std::stringstream stream;
+
+			for (const auto& animation : animations)
+			{
+				const int megaDriveFramesPerSecond = 60;
+				const int keyframesPerSecond = 15;
+				const int numKeyframes = animation.length * keyframesPerSecond;
+				float keyframeStep = animation.length / numKeyframes;
+				float megaDriveFramesPerKeyframe = (keyframeStep * megaDriveFramesPerSecond);
+
+				// STRUCT_BEGIN ECAnimData
+				// ECAnimData_InitialPosList          rs.l 1
+				// ECAnimData_KeyframeTimesList       rs.l 1
+				// ECAnimData_KeyframeTrackListPos    rs.l 1
+				// ECAnimData_ActorCount              rs.w 1
+				// ECAnimData_KeyframeCount           rs.w 1
+				// ECAnimData_Looping                 rs.b 1
+				// STRUCT_END
+
+				stream << animation.name << "_ActorCount\t\tequ " << animation.actorNames.size() << std::endl;
+				stream << animation.name << "_KeyframeCount\t\tequ " << numKeyframes << std::endl;
+				stream << animation.name << "_Looping\t\tequ " << (animation.looping ? "1" : "0") << std::endl;
+
+				stream << std::endl;
+
+				stream << animation.name << ":" << std::endl;
+				stream << "\tdc.l " << animation.name << "_InitialPositions" << std::endl;
+				stream << "\tdc.l " << animation.name << "_KeyframeTimes" << std::endl;
+				stream << "\tdc.l " << animation.name << "_KeyframeTrackList_Pos" << std::endl;
+				stream << "\tdc.w " << animation.name << "_ActorCount" << std::endl;
+				stream << "\tdc.w " << animation.name << "_KeyframeCount" << std::endl;
+				stream << "\tdc.b " << animation.name << "_Looping" << std::endl;
+				stream << "\teven" << std::endl;
+
+				stream << std::endl;
+
+				// =========================================================================================================================
+
+				//; Initial object positions
+				//SceneAnim_l1a1_BossTest11_InitialPositions:
+				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Core_3
+				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_4
+				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_5
+				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_6
+				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_7
+
+				stream << "; Initial object positions" << std::endl;
+				stream << animation.name << "_InitialPositions:" << std::endl;
+
+				for (const auto& positionTrack : animation.positionTracks)
+				{
+					//	dc.w 0x0001, 0x0000
+
+					ion::Vector2i position = positionTrack.GetValue(0.0f);
+
+					stream << "\tdc.w 0x" << SSTREAM_HEX4(position.x) << ", 0x" << SSTREAM_HEX4(position.y) << std::endl;
+				}
+
+				stream << std::endl;
+
+				// =========================================================================================================================
+
+				//; Keyframe times
+				//SceneAnim_l1a1_BossTest11_KeyframeTimes :
+				//	dc.w 0x0000
+				//	dc.w 0x0004
+				//	dc.w 0x0008
+				//	dc.w 0x000C
+				//	dc.w 0x0010
+				//	dc.w 0x0014
+				//	dc.w 0x0018
+				//	dc.w 0x001C
+
+				stream << "; Keyframe times" << std::endl;
+				stream << animation.name << "_KeyframeTimes:" << std::endl;
+
+				for (int i = 0; i < numKeyframes; i++)
+				{
+					stream << "\tdc.w 0x" << SSTREAM_HEX4((int)(megaDriveFramesPerKeyframe * i)) << std::endl;
+				}
+
+				stream << std::endl;
+
+				// =========================================================================================================================
+
+				//; Keyframe tracks (position)
+				//SceneAnim_l1a1_BossTest11_KeyframeTrackList_Pos:
+				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Core_3
+				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_4
+				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_5
+				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_6
+				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_7
+
+				stream << "; Keyframe tracks (position)" << std::endl;
+				stream << animation.name << "_KeyframeTrackList_Pos:" << std::endl;
+
+				for (const auto& name : animation.actorNames)
+				{
+					stream << "\tdc.l " << animation.name << "_KeyframeTrack_Pos_" << name << std::endl;
+				}
+
+				stream << std::endl;
+
+				for(int i = 0; i < animation.actorNames.size(); i++)
+				{
+					//; Keyframe track(position, actor Core_3)
+					//SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Core_3:
+					//	dc.w 0x0001, 0x0000
+					//	dc.w 0x0000, 0x0001
+					//	dc.w 0x0002, 0x0000
+					//	dc.w 0x0000, 0x0002
+					//	dc.w 0x0003, 0x0000
+					//	dc.w 0x0000, 0x0003
+					//	dc.w 0x0004, 0x0000
+					//	dc.w 0x0000, 0x0004
+
+					const auto& name = animation.actorNames[i];
+					const auto& positionTrack = animation.positionTracks[i];
+
+					stream << "; Keyframe track (position, actor " << name << ")" << std::endl;
+					stream << animation.name << "_KeyframeTrack_Pos_" << name << ":" << std::endl;
+
+					ion::Vector2i lastPosition = positionTrack.GetValue(0.0f);
+
+					for (int i = 1; i < numKeyframes + 1; i++)
+					{
+						ion::Vector2i position = positionTrack.GetValue(keyframeStep * i);
+
+						ion::Vector2i delta = position - lastPosition;
+						ion::Vector2 velocity((float)delta.x / megaDriveFramesPerKeyframe, (float)delta.y / megaDriveFramesPerKeyframe);
+						lastPosition = position;
+						stream << "\tdc.l 0x" << SSTREAM_HEX8(ion::maths::FloatToFixed1616(velocity.x)) << ", 0x" << SSTREAM_HEX8(ion::maths::FloatToFixed1616(velocity.y)) << std::endl;
+					}
+
+					stream << std::endl;
+				}
+			}
+
+			stream << std::endl;
 			file.Write(stream.str().c_str(), stream.str().size());
 			file.Close();
 

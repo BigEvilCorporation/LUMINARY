@@ -34,5 +34,6 @@ namespace luminary
 		void ConvertPrefabChild(const Project& project, const GameObjectType& gameObjectType, const GameObjectType::PrefabChild& prefabChild, luminary::Entity& entity);
 		void ConvertEntityType(const Project& project, const GameObjectType& gameObjectType, luminary::Entity& entity);
 		void ConvertEntityInstance(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity);
+		void ConvertPrefabAnimation(const Project& project, const ::Animation& srcAnimation, luminary::Animation& animation);
 	}
 }

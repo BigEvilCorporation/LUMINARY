@@ -601,5 +601,41 @@ namespace luminary
 				}
 			}
 		}
+
+		void ConvertPrefabAnimation(const Project& project, const ::Animation& srcAnimation, luminary::Animation& animation)
+		{
+			//Output requires 1 anim track per prefab child
+			GameObjectTypeId prefabTypeId = srcAnimation.GetPrefabId();
+			if (const GameObjectType* prefabType = project.GetGameObjectType(prefabTypeId))
+			{
+				animation.name = "anim_" + prefabType->GetPrefabName() + "_" + srcAnimation.GetName();
+				animation.length = srcAnimation.GetLength();
+				animation.looping = (srcAnimation.GetPlaybackBehaviour() == ion::render::Animation::PlaybackBehaviour::Loop);
+
+				for (const auto& prefabChild : prefabType->GetPrefabChildren())
+				{
+					animation.actorNames.push_back(prefabChild.name);
+					animation.positionTracks.push_back(AnimTrackPosition());
+					animation.spriteAnimTracks.push_back(AnimTrackSpriteAnim());
+				}
+
+				//Input only contains anim tracks for objects with keyframes
+				for (TAnimActorMap::const_iterator it = srcAnimation.ActorsBegin(), end = srcAnimation.ActorsEnd(); it != end; ++it)
+				{
+					if (const GameObjectType::PrefabChild* prefabChild = prefabType->FindPrefabChild(it->second.GetGameObjectId()))
+					{
+						for(int i = 0; i < animation.actorNames.size(); i++)
+						{
+							if (animation.actorNames[i] == prefabChild->name)
+							{
+								animation.positionTracks[i] = it->second.m_trackPosition;
+								animation.spriteAnimTracks[i] = it->second.m_trackSpriteAnim;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
