@@ -16,3 +16,4 @@ LUMINARY features:
 - Support for the Echo sound system by Sik (with a view to switch to Sona when it's ready)
 
 LUMINARY supports scene, sprite, animation, entity, and script data exported by the Beehive toolsuite, see: https://github.com/BigEvilCorporation/Beehive
+
