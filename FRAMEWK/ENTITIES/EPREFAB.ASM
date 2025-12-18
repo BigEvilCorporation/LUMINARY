@@ -92,7 +92,6 @@ EPrefab_Initialise:
     movea.w EPrefab_Children(a0), a2
     lea     EPrefabChildList_Children(a2), a2   
     move.w  a2, ECAnimation_ActorList(a1)
-    move.w  a0, ECAnimation_RootActor(a1)
     move.w  d2, ECAnimation_ActorCount(a1)
     
     rts

@@ -23,7 +23,6 @@ ECAnimData_Looping                 rs.b 1
 	ENTITY_COMPONENT_BEGIN ECAnimation
 ECAnimation_ActiveAnim		       rs.l 1
 ECAnimation_ActorCount             rs.w 1
-ECAnimation_RootActor              rs.w 1
 ECAnimation_ActorList              rs.w 1
 ECAnimation_AnimPosX		       rs.w 1
 ECAnimation_AnimPosY		       rs.w 1
@@ -69,29 +68,7 @@ ECAnimation_Play:
 	move.w #0x0, ECAnimation_NextKeyframeIdx(a0)
 
 	; Set initial actor positions
-    movea.w ECAnimation_RootActor(a0), a2
-	movea.w ECAnimation_ActorList(a0), a3
-	move.l  ECAnimData_InitialPosList(a1), a4
-
-    move.w Entity_PosX(a2), d2
-    move.w Entity_PosY(a2), d3
-
-	move.w ECAnimData_ActorCount(a1), d1
-	subi.w #0x1, d1
-	@ActorLp:
-
-	; Get actor address
-	movea.w (a3)+, a6
-
-	; Set actor relative pos
-	move.w (a4)+, d6
-	move.w (a4)+, d7
-    add.w  d2, d6
-    add.w  d3, d7
-	move.w d6, Entity_PosX(a6)
-	move.w d7, Entity_PosY(a6)
-
-	dbra   d1, @ActorLp
+	bsr    ECAnimation_ResetActors
 
 	rts
 
@@ -118,7 +95,7 @@ ECAnimation_Update:
 	beq    @NotLooping
 	move.w #0x0, ECAnimation_NextKeyframeIdx(a0); Reset next keyframe
 	move.w #0x0, ECAnimation_Time(a0)			; Reset animation time
-	;jsr    ECAnimation_ResetActors				; Reset actor positions
+	jsr    ECAnimation_ResetActors				; Reset actor positions
 	bra    @Looping
 	@NotLooping:
 	move.l #0x0, ECAnimation_ActiveAnim(a0)		; Stop animation
@@ -153,6 +130,41 @@ ECAnimation_Update:
 	move.w d1, ECAnimation_Time(a0)
 
 	@NoAnim:
+
+	rts
+
+ECAnimation_ResetActors:
+    ; ============================================
+    ; Resets anim actors back to initial positions
+    ; ============================================
+	; a0   Component
+	; a1   EntityAnim
+	; ============================================
+
+	; Set initial actor positions (relative to owning actor)
+    movea.w Component_Owner(a0), a2
+	movea.w ECAnimation_ActorList(a0), a3
+	move.l  ECAnimData_InitialPosList(a1), a4
+
+    move.w Entity_PosX(a2), d2
+    move.w Entity_PosY(a2), d3
+
+	move.w ECAnimData_ActorCount(a1), d1
+	subi.w #0x1, d1
+	@ActorLp:
+
+	; Get actor address
+	movea.w (a3)+, a6
+
+	; Set actor relative pos
+	move.w (a4)+, d6
+	move.w (a4)+, d7
+    add.w  d2, d6
+    add.w  d3, d7
+	move.w d6, Entity_PosX(a6)
+	move.w d7, Entity_PosY(a6)
+
+	dbra   d1, @ActorLp
 
 	rts
 
