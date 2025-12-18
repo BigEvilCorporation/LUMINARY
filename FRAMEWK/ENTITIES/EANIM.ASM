@@ -144,6 +144,7 @@ ECAnimation_Update:
 	@NotAdvanced:
 
 	; Update all actors
+	move.l d3, d0
 	jsr    ECAnimation_UpdateActors
 
 	; Advance time
@@ -156,14 +157,12 @@ ECAnimation_Update:
 	rts
 
 ECAnimation_UpdateActors:
-	; a0 --- Component
-	; a1 --- EntityAnim
-
-	moveq  #0x0, d0
-	move.w ECAnimation_NextKeyframeIdx(a0), d0	; Get next keyframe index
+	; a0   Component
+	; a1   EntityAnim
+	; d0.l Keyframe
 
 	; Keyframe to velocity offset (longwords*2)
-	lsl.l  #0x3, d3
+	lsl.l  #0x3, d0
 
 	move.l ECAnimation_ActiveAnim(a0), a1
 	move.l ECAnimData_KeyframeTrackListPos(a1), a4
@@ -180,7 +179,7 @@ ECAnimation_UpdateActors:
 	move.l (a4)+, a6
 
 	; Get current keyframe
-	add.l  d3, a6
+	add.l  d0, a6
 	move.l (a6)+, d5	; X vel
 	move.l (a6)+, d6	; Y vel
 

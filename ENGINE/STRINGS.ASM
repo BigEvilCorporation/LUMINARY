@@ -43,6 +43,26 @@ STR_CopyA:
 
 	rts
 
+STR_CopyA_s:
+	; ======================================
+    ; Copy a null terminated ASCII string
+	; with max destination count
+    ; ======================================
+    ; In:
+	; a0   Destination
+	; a1   String to copy
+	; d0.w Max string length
+    ; ======================================
+
+	subi.w #0x1, d0
+	@CopyLp:
+	move.b (a1)+, (a0)+
+	beq    @End
+	dbra.w d0, @CopyLp
+	@End:
+
+	rts
+
 STR_ConcatA:
 	; ======================================
     ; Concatenates two ASCII strings

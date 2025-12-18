@@ -6,7 +6,7 @@
 ; PREFAB.ASM - Prefabricated group of entities
 ; ============================================================================================
 
-EPREFAB_MAXCHILDREN                   equ (ENT_MGR_BLOCK_SIZE-SIZEOF_EntityBase-(SIZE_LONG*2))/SIZE_WORD ; Spare space at end of EPrefab block
+EPREFAB_MAXCHILDREN                   equ (ENT_MGR_BLOCK_SIZE-SIZEOF_EntityBlockData)/SIZE_WORD
 
     STRUCT_BEGIN PrefabData
 Prefab_TypeId                         rs.w 1
@@ -18,9 +18,13 @@ Prefab_SpawnTable                     rs.l 1
 SDPrefab_Data                         rs.l 1  ; [TAGS=PREFAB_DATA]
     ENTITY_SPAWN_DATA_END
 
+    STRUCT_INHERIT EPrefabChildList,EntityBlockData
+EPrefabChildList_Children             rs.w EPREFAB_MAXCHILDREN
+    STRUCT_END
+
     ENTITY_BEGIN EPrefab
 EPrefab_Data                          rs.l 1
-EPrefab_Children                      rs.w EPREFAB_MAXCHILDREN
+EPrefab_Children                      rs.w 1
     ENT_COMPONENT ECAnimation
     ENTITY_END
 
@@ -43,17 +47,24 @@ EPrefab_Initialise:
 
 	move.w #EPREFAB_MAXCHILDREN, d1
     cmp.w  d2, d1
-    blt    @CountOk
+    bgt    @CountOk
     DBG_RAISE_ERROR "EPrefab_Initialise: Too many children"
     @CountOk:
+
+    ; Create child block
+    PUSH.L a0
+    bsr    ENT_AllocEntityBlock
+    move.l a0, a3
+    POP.L  a0
+    move.w a3, EPrefab_Children(a0)
 
     ; Position offset
     move.w Entity_PosX(a0), d4
     move.w Entity_PosY(a0), d5
 
-    move.l Prefab_SpawnTable(a1), a2        ; Get entity table
-    lea    EPrefab_Children(a0), a3         ; Get instance list
-    subi.w #0x1, d2
+    move.l  Prefab_SpawnTable(a1), a2        ; Get entity table
+    lea     EPrefabChildList_Children(a3), a3; Get instance list      
+    subi.w  #0x1, d2
     @EntityLp:
     PUSHM.L d2-d5/a0-a3
 
@@ -76,12 +87,13 @@ EPrefab_Initialise:
     @NoChildren:
 
     ; Set entity list on anim component
-    move.w Prefab_ChildCount(a1), d2
+    move.w  Prefab_ChildCount(a1), d2
     ENT_GETCOMPONENT EPrefab,ECAnimation,a0,a1
-    lea    EPrefab_Children(a0), a2
-    move.w a2, ECAnimation_ActorList(a1)
-    move.w a0, ECAnimation_RootActor(a1)
-    move.w d2, ECAnimation_ActorCount(a1)
+    movea.w EPrefab_Children(a0), a2
+    lea     EPrefabChildList_Children(a2), a2   
+    move.w  a2, ECAnimation_ActorList(a1)
+    move.w  a0, ECAnimation_RootActor(a1)
+    move.w  d2, ECAnimation_ActorCount(a1)
     
     rts
 
@@ -102,12 +114,13 @@ EPrefab_Shutdown:
     ; ======================================
 
     ; Destroy all child entities
-    move.l EPrefab_Data(a0), a1
-    lea    EPrefab_Children(a0), a2
-    move.w Prefab_ChildCount(a1), d2
-    tst.w  d2
-    beq    @NoChildren
-    subi.w #0x1, d2
+    move.l  EPrefab_Data(a0), a1
+    movea.w EPrefab_Children(a0), a2
+    lea     EPrefabChildList_Children(a2), a2   
+    move.w  Prefab_ChildCount(a1), d2
+    tst.w   d2
+    beq     @NoChildren
+    subi.w  #0x1, d2
     @EntityLp:
 
     move.w (a2)+, a0
@@ -117,6 +130,12 @@ EPrefab_Shutdown:
     POPM.L d2/a0-a2
 
     dbra   d2, @EntityLp
+
+    ; Free child list block
+    PUSH.L  a0
+    movea.w EPrefab_Children(a0), a0
+    bsr     ENT_FreeEntityBlock
+    POP.L   a0
 
     @NoChildren:
 

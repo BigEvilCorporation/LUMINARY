@@ -71,11 +71,12 @@ ENT_SpawnEntity:
 
     IFND FINAL
     ; Set debug name
-    PUSHM.L a0-a1
+    PUSHM.L a0-a1/d0
     lea    EntityBlock_DebugName(a0), a0
     lea    EntitySpawnData_DebugName(a1), a1
-    bsr    STR_CopyA
-    POPM.L a0-a1
+    move.w #ENT_DEBUG_NAME_LEN, d0
+    bsr    STR_CopyA_s
+    POPM.L a0-a1/d0
 	ENDIF
 
     ; Call base constructor
@@ -163,8 +164,12 @@ ENT_DespawnEntity:
     move.l a0, a3												; Get entity
     adda.w ComponentSlotDesc_AddrOffset(a2), a3                 ; Get component addr offset
     movea.w (a3), a3                                            ; Get component address
-    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a3) ; Clear alloc'd flag
-    addi.w #0x1, EntityManager_BlocksFree(a4)                   ; Keep count
+
+    ; Free entity block
+    PUSH.L a0
+    move.l a3, a0
+    bsr    ENT_FreeEntityBlock
+    POP.L  a0
 
     ; Unlink from component list
     PUSHM.L d0/a0-a4
@@ -189,11 +194,7 @@ ENT_DespawnEntity:
     @NoComponents:
 
     ; Free entity
-    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
-    addi.w #0x1, EntityManager_BlocksFree(a4)
-
-    ; Set last free block
-    move.w a0, EntityManager_LastFreeBlock(a4)
+    bsr    ENT_FreeEntityBlock
 
     rts
 
@@ -237,6 +238,25 @@ ENT_AllocEntityBlock:
 
     @Err_NoFreeBlocks:
     DBG_RAISE_ERROR "ENT_AllocEntityBlock: No free blocks"
+
+    rts
+
+ENT_FreeEntityBlock:
+    ; ======================================
+    ; Frees an entity/component block
+    ; ======================================
+    ; In:
+    ; a0   Block addr
+    ; ======================================
+
+    lea RAM_ENTITYMANAGER, a4
+
+    ; Free block
+    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
+    addi.w #0x1, EntityManager_BlocksFree(a4)
+
+    ; Set last free block
+    move.w a0, EntityManager_LastFreeBlock(a4)
 
     rts
 
