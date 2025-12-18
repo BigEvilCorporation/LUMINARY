@@ -74,6 +74,7 @@
     include 'framewk/yarn.asm'
 
     ; Entities and components
+    include 'framewk/entities/eanim.asm'
     include 'framewk/entities/ephysbas.asm'
     include 'framewk/entities/ephyschr.asm'
     include 'framewk/entities/eplatfrm.asm'

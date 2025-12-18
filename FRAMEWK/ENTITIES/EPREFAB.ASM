@@ -6,7 +6,7 @@
 ; PREFAB.ASM - Prefabricated group of entities
 ; ============================================================================================
 
-EPREFAB_MAXCHILDREN                   equ (ENT_MGR_BLOCK_SIZE-SIZEOF_EntityBase-SIZE_LONG)/SIZE_WORD
+EPREFAB_MAXCHILDREN                   equ (ENT_MGR_BLOCK_SIZE-SIZEOF_EntityBase-(SIZE_LONG*2))/SIZE_WORD ; Spare space at end of EPrefab block
 
     STRUCT_BEGIN PrefabData
 Prefab_TypeId                         rs.w 1
@@ -21,6 +21,7 @@ SDPrefab_Data                         rs.l 1  ; [TAGS=PREFAB_DATA]
     ENTITY_BEGIN EPrefab
 EPrefab_Data                          rs.l 1
 EPrefab_Children                      rs.w EPREFAB_MAXCHILDREN
+    ENT_COMPONENT ECAnimation
     ENTITY_END
 
 EPrefab_Initialise:
@@ -39,6 +40,12 @@ EPrefab_Initialise:
     move.w Prefab_ChildCount(a1), d2
     tst.w  d2
     beq    @NoChildren
+
+	move.w #EPREFAB_MAXCHILDREN, d1
+    cmp.w  d2, d1
+    blt    @CountOk
+    DBG_RAISE_ERROR "EPrefab_Initialise: Too many children"
+    @CountOk:
 
     ; Position offset
     move.w Entity_PosX(a0), d4
@@ -67,6 +74,14 @@ EPrefab_Initialise:
     dbra   d2, @EntityLp
 
     @NoChildren:
+
+    ; Set entity list on anim component
+    move.w Prefab_ChildCount(a1), d2
+    ENT_GETCOMPONENT EPrefab,ECAnimation,a0,a1
+    lea    EPrefab_Children(a0), a2
+    move.w a2, ECAnimation_ActorList(a1)
+    move.w a0, ECAnimation_RootActor(a1)
+    move.w d2, ECAnimation_ActorCount(a1)
     
     rts
 
