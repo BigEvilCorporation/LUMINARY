@@ -14,6 +14,10 @@
 ; - No slope correction
 ; ============================================================================================
 
+ECPHYSBODY_FLAG_BIT_GRAVITY     equ 0x0
+ECPHYSBODY_FLAG_BIT_COL_FLOOR   equ 0x1
+ECPHYSBODY_FLAG_BIT_COL_WALL    equ 0x2
+
     COMPONENT_SPAWN_DATA_BEGIN ECPhysBodyBasic
     COMPONENT_SPAWN_DATA_END
     
@@ -25,6 +29,7 @@ ECPhysBodyBasic_AccelX                    rs.w 1
 ECPhysBodyBasic_AccelY                    rs.w 1
 ECPhysBodyBasic_DecelX                    rs.w 1
 ECPhysBodyBasic_LastTerrainFlags          rs.w 1
+ECPhysBodyBasic_Flags                     rs.b 1
     ENTITY_COMPONENT_END
 
 ECPhysBodyBasic_Initialise:
@@ -41,6 +46,12 @@ ECPhysBodyBasic_Initialise:
     move.w #0x0, ECPhysBodyBasic_AccelX(a0)
     move.w #0x0, ECPhysBodyBasic_AccelY(a0)
     move.w #0x0, ECPhysBodyBasic_LastTerrainFlags(a0)
+
+    ; Default flags
+    move.b #0x0, ECPhysBodyBasic_Flags(a0)
+    bset   #ECPHYSBODY_FLAG_BIT_GRAVITY, ECPhysBodyBasic_Flags(a0)
+    bset   #ECPHYSBODY_FLAG_BIT_COL_FLOOR, ECPhysBodyBasic_Flags(a0)
+    bset   #ECPHYSBODY_FLAG_BIT_COL_WALL, ECPhysBodyBasic_Flags(a0)
 
     rts
 
@@ -92,8 +103,11 @@ ECPhysBodyBasic_StepAll:
 
     ; ======================================
     ; Step
-    ; ======================================                  
+    ; ======================================
+    btst   #ECPHYSBODY_FLAG_BIT_GRAVITY, ECPhysBodyBasic_Flags(a3)
+    beq    @NoGravity
     addi.l #PHYS_GRAVITY_Y, d5          ; Apply gravity to Y accel
+    @NoGravity:
 
     tst.l  d4
     bne    @Accelerate
@@ -154,10 +168,16 @@ ECPhysBodyBasic_StepAll:
     move.w #0x0, ECPhysBodyBasic_LastTerrainFlags(a3)
 
     ; Search down for floor
+    btst   #ECPHYSBODY_FLAG_BIT_COL_FLOOR, ECPhysBodyBasic_Flags(a3)
+    beq    @NoFloorCollision
     bsr    ECPhysBodyBasic_TerrainSearch_Down
+    @NoFloorCollision:
 
     ; Search horizontally for walls
+    btst   #ECPHYSBODY_FLAG_BIT_COL_WALL, ECPhysBodyBasic_Flags(a3)
+    beq    @NoWallCollision
     jsr    ECPhysBodyBasic_WallSearch
+    @NoWallCollision:
 
     POP.W  d7                           ; Restore map width
 
