@@ -62,3 +62,48 @@ VEC2_REFLECT: macro vec,norm,tmpreg1,tmpreg2,tmpreg3
 	sub.w  \norm, \vec						;           vec.x -
 	swap   \norm
 	endm
+
+VEC2_ANGLE: macro pos1,pos2,ang,tmp1,tmpa
+	VEC2_SUB \pos1,\pos2
+	move.w \pos2, \ang	; Y
+	swap   \pos2
+	move.w \pos2, \tmp1	; X
+
+	; Div/2 until distance is within table range
+	@RangeDivLp\@:
+	cmp.w  #ATAN2_MIN, \tmp1
+	ble    @RangeDiv\@
+	cmp.w  #ATAN2_MIN, \ang
+	ble    @RangeDiv\@
+	cmp.w  #ATAN2_MAX, \tmp1
+	bge    @RangeDiv\@
+	cmp.w  #ATAN2_MAX, \ang
+	bge    @RangeDiv\@
+	bra    @RangeDivEnd\@
+	@RangeDiv\@:
+	asr.w  \tmp1
+	asr.w  \ang
+	bra    @RangeDivLp\@
+	@RangeDivEnd\@:
+
+	; Angle table lookup
+	addi.w #ATAN2_MAX, \tmp1			; -min-max to table range
+	addi.w #ATAN2_MAX, \ang
+	mulu   #ATAN2_TBL_SIZE, \tmp1		; X offset
+	add.w  \tmp1, \ang					; Table offset
+	lsl.w  #0x1, \ang					; To words
+	lea    atan2table, \tmpa
+	move.w (\tmpa,\ang\.w), \ang
+	endm
+
+VEC2_ANG_TO_DIR: macro ang,vec,tmpa
+	; Angle to direction
+	lsl.w  #0x1, \ang 				; To words
+    lea    sinetable, \tmpa
+    move.w (\tmpa,\ang\.w), \vec			; X direction
+	neg.w  \vec
+	swap   \vec
+	addi.w #SINE_TBL_COS_OFFS, \ang
+    move.w (\tmpa,\ang\.w), \vec			; Y direction
+	neg.w  \vec
+	endm

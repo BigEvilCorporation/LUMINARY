@@ -6,6 +6,10 @@
 ; ASSETS.ASM - Assets required for engine code
 ; ============================================================================================
 
+    ; Maths tables
+    include 'engine/sinewave.asm'
+    include 'engine/atan2.asm'
+
     ; Default VDP registers
     ASSET_INCLUDE_ASM default_vdp_regs, 'engine/assets/vdp/vdpregs.asm'
 

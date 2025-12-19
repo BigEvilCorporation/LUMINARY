@@ -286,6 +286,22 @@ ENT_GETBOUNDS: macro ent_addr,topleft_reg,bottomright_reg
 
 	endm
 
+ENT_GETPOS_VEC2: macro vec2reg,ent_addr
+    ; ======================================
+    ; Returns entity position (integer part)
+    ; as a vec2
+    ; ======================================
+    ; In:
+    ; ent_addr   - Entity address
+    ; ======================================
+    ; Out:
+    ; vec2reg.l  - Position as vec2
+    ; ======================================
+	move.w   Entity_PosX(\ent_addr), \vec2reg
+	swap     \vec2reg
+	move.w   Entity_PosY(\ent_addr), \vec2reg
+	endm
+
 ENT_CHECKCAMERABOUNDS: macro ent_addr,obj_x,obj_y,left,top,right,bottom,result,tmp_reg
     ; ======================================
     ; Checks and entity's bounds against

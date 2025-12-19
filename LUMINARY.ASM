@@ -38,7 +38,6 @@
     include 'engine/map.asm'
     include 'engine/palettes.asm'
     include 'engine/ram.asm'
-    include 'engine/sinewave.asm'
     include 'engine/sprites.asm'
     include 'engine/strings.asm'
     include 'engine/tiles.asm'
