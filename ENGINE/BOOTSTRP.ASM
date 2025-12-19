@@ -37,6 +37,9 @@ Bootstrap:
     ; Load debug font
     bsr    FNT_LoadDebugFont
 
+    ; Push new VRAM context (so debug font can't be freed)
+    bsr    VRAMMGR_PushContext
+
     ; Init status register
 	move.w #CPU_STATUS_REG_INIT, sr	    ; INT level 3 (all interrupts) + supervisor
 
