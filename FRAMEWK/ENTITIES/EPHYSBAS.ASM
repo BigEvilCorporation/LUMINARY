@@ -45,6 +45,7 @@ ECPhysBodyBasic_Initialise:
     move.l #PHYS_DEFAULT_MAX_VEL_X, ECPhysBodyBasic_MaxVelX(a0)
     move.w #0x0, ECPhysBodyBasic_AccelX(a0)
     move.w #0x0, ECPhysBodyBasic_AccelY(a0)
+    move.w #0x0, ECPhysBodyBasic_DecelX(a0)
     move.w #0x0, ECPhysBodyBasic_LastTerrainFlags(a0)
 
     ; Default flags

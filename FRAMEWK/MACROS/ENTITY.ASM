@@ -72,9 +72,10 @@ SIZEOF_\__ENTITY_NAME\__SPAWNDATA     rs.b 0
     ; ======================================
     ; Name - Spawn data name
     ; ======================================
-ENTITY_SPAWN_DATA: macro label
+ENTITY_SPAWN_DATA: macro label,id
 \label\:
     ENTITY_DEBUG_NAME \label\
+    dc.w \id
     endm
 
     ; ======================================
