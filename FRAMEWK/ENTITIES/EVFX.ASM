@@ -25,8 +25,8 @@ EVisualEffect_Initialise:
     ; ======================================
 
     ; Set palette from spawn data and disable looping
-    ENT_GETCOMPONENT EVisualEffect,ECSprite,a0,a1
     move.b SDVisualEffect_PaletteIdx(a1), d0
+    ENT_GETCOMPONENT EVisualEffect,ECSprite,a0,a1
     SPRITE_COMPONENT_SETPALETTE_REG a1,d0
     bclr   #ECSPRITE_STATE_FLAG_LOOPING, ECSprite_StateFlags(a1)
 
