@@ -25,8 +25,9 @@ DBG_STATIC_ERROR: macro string
 DBG_RAISE_ERROR: macro string
     bsr    ERR_ResetForError
     lea    @err_string\@, a0
-    bsr    ERR_DrawMessage
-    bra    *
+    PUSH.l a0
+    PUSH.w #ERR_EXCEPTIONTYPE_ASSERT
+    jmp    ERR_HandleException
     @err_string\@:
     dc.b   \string\,0
     even

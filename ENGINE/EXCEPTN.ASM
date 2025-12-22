@@ -32,6 +32,8 @@ ERR_EXCEPTION_HEADERPOSX		equ 0x02
 ERR_EXCEPTION_HEADERPOSY		equ 0x01
 ERR_EXCEPTION_MSGPOSX			equ 0x02
 ERR_EXCEPTION_MSGPOSY			equ 0x05
+ERR_EXCEPTION_USERPOSX			equ 0x02
+ERR_EXCEPTION_USERPOSY			equ 0x03
 ERR_EXCEPTION_REGDPOSX			equ 0x02
 ERR_EXCEPTION_REGDPOSY			equ 0x07
 ERR_EXCEPTION_REGAPOSX			equ 0x0F
@@ -63,6 +65,7 @@ ERR_EXCEPTIONTYPE_PRIVILEGE		equ 0x6
 ERR_EXCEPTIONTYPE_UNHANDLEDINT	equ 0x7
 ERR_EXCEPTIONTYPE_UNHANDLEDTRAP	equ 0x8
 ERR_EXCEPTIONTYPE_UNKNOWN		equ 0x9
+ERR_EXCEPTIONTYPE_ASSERT		equ 0xA
 
 	; 4 byte strings
 ERR_Exception_RegNames:
@@ -110,6 +113,7 @@ ERR_Exception_Msgs:
 	dc.b "Unhandled Interrupt ",0,0,0,0
 	dc.b "Unhandled Trap      ",0,0,0,0
 	dc.b "Unhandled Exception ",0,0,0,0
+	dc.b "Assertion Failed    ",0,0,0,0
 	even
 
 ERR_Exception_Str_Stack:
@@ -151,15 +155,32 @@ ERR_HandleException:
 	; Pop error type
 	moveq  #0x0, d0
 	move.w (sp)+, d0
-	mulu   #ERR_EXCEPTION_ERROR_STRLEN, d0 
 	
-	; Draw error message
+	; Get exception type message
+	move.l d0, d1
+	mulu   #ERR_EXCEPTION_ERROR_STRLEN, d1 
 	lea    ERR_Exception_Msgs, a0
-	adda.l d0, a0
+	adda.l d1, a0
+
+	; Draw exception type
+	move.w d0, -(sp)
 	move.w #ERR_EXCEPTION_MSGPOSX, d0
 	move.w #ERR_EXCEPTION_MSGPOSY, d1
 	move.b #ERR_TEXT_PAL_LABEL, d2
 	bsr    DBG_DrawStringA_Pal
+	move.w (sp)+, d0
+
+	cmp.w  #ERR_EXCEPTIONTYPE_ASSERT, d0
+	bne    @NotUserError
+
+	; Draw user message
+	move.l (sp)+, a0
+	move.w #ERR_EXCEPTION_USERPOSX, d0
+	move.w #ERR_EXCEPTION_USERPOSY, d1
+	move.b #ERR_TEXT_PAL_LABEL, d2
+	bsr    DBG_DrawStringA_Pal
+
+	@NotUserError:
 
 	;==============================================================
 	
