@@ -54,6 +54,7 @@ EPrefab_Initialise:
     ; Create child block
     PUSH.L a0
     bsr    ENT_AllocEntityBlock
+    bset   #ENT_MGR_BLOCK_FLAG_NO_FREE, EntityBlock_Flags(a0)
     move.l a0, a3
     POP.L  a0
     move.w a3, EPrefab_Children(a0)
@@ -77,6 +78,7 @@ EPrefab_Initialise:
     add.w  d4, d0                           ; Relative to world pos
     add.w  d5, d1
     bsr    ENT_SpawnEntity                  ; Spawn entity
+    bset   #ENT_MGR_BLOCK_FLAG_NO_FREE, EntityBlock_Flags(a0)
     move.l a0, a4
     
     POPM.L d2-d5/a0-a3

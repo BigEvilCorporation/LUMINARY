@@ -181,11 +181,14 @@ ENT_DespawnEntity:
     POP.L  a0
 
     ; Unlink from component list
+    btst   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a3)
+    beq    @NotInComponentList
     PUSHM.L d0/a0-a4
     move.l a3, a0
     move.l ComponentSlotDesc_LinkedList(a2), a1
     bsr    ENT_UnlinkEntityBlock
     POPM.L  d0/a0-a4
+    @NotInComponentList:
 
     ; Call destructor
     PUSHM.L d0/a0-a4
@@ -234,7 +237,8 @@ ENT_AllocEntityBlock:
 
     @Found:
 
-    ; Set allocated flag
+    ; Clear flags and set allocated
+    move.b #0x0, EntityBlock_Flags(a0)
     bset   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
 
     ; Keep count
@@ -280,6 +284,12 @@ ENT_LinkEntityBlock:
 
 	; Sanity check - make sure block isn't already in a list
 	IFND FINAL
+
+    ; Check block is not in list
+    btst   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
+    beq    @NotInList
+    DBG_RAISE_ERROR "ENT_LinkEntityBlock: Already in list"
+    @NotInList:
 
 	; Check block's next ptr is null
 	cmp.w  #0x0, EntityBlock_Next(a0)
@@ -340,6 +350,9 @@ ENT_LinkEntityBlock:
 	move.w a0, EntityBlockList_Tail(a1)
 	
 	@End:
+
+    ; Set in list
+    bset   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
 	
 	; Increment count
 	addq.w #0x1, EntityBlockList_Size(a1)
@@ -355,15 +368,22 @@ ENT_UnlinkEntityBlock:
     ; a1   Linked list
     ; ======================================
 
+    btst   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
+    beq    @NotInList
+
 	move.w  #0x0, a2
 	
 	move.w EntityBlockList_Head(a1), a3	; Get list head
 	@BlockLp:						    ; For all blocks in list
-	cmp.w  a0, a3						; Check if block to remove
+	cmpa.w #0x0, a3
+	beq    @NotInList
+	cmpa.w a0, a3						; Check if block to remove
 	beq    @Found
 	move.w a3, a2						; Backup prev
 	move.w EntityBlock_Next(a3), a3	    ; Get next ptr
 	bra    @BlockLp
+	
+	@NotInList:
 
 	; Error, block wasn't in this list
 	IFND FINAL
@@ -400,6 +420,7 @@ ENT_UnlinkEntityBlock:
 	
 	; Clear removed block's next link
 	move.w #0x0, EntityBlock_Next(a0)
+    bclr   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
 
 	; Decrement count
 	subq.w #0x1, EntityBlockList_Size(a1)
@@ -417,6 +438,8 @@ ENT_UpdateAll:
     ; Update all static entities
     ; TODO: Only update entities in active grid
     move.l RAM_SCENE_DATA, a2
+    cmpa.w #0x0, a2
+    beq    @NoStaticEntities
     move.w SceneData_StaticEntityCount(a2), d2
     tst.w  d2
     beq    @NoStaticEntities
@@ -453,6 +476,54 @@ ENT_UpdateAll:
     bne    @DynamicEntLp
 
     @NoDynamicEntities:
+
+    rts
+
+ENT_DespawnAll:
+    ; ======================================
+    ; Despawns all entities
+    ; ======================================
+
+    ; Despawn all static entities
+    move.l RAM_SCENE_DATA, a2
+    cmpa.w #0x0, a2
+    beq    @NoStaticEntities
+    move.w SceneData_StaticEntityCount(a2), d2
+    tst.w  d2
+    beq    @NoStaticEntities
+
+    move.l SceneData_StaticEntities(a2), a3
+    subi.w #0x1, d2
+
+    @StaticEntLp:
+    move.l (a3)+, a0                      ; Get entity
+    movea.w Entity_TypeDesc(a0), a1       ; Get type desc
+    movea.w EntityTypeDesc_Update(a1), a1 ; Get update func
+    PUSHM.L d2/a0-a3
+    bsr     ENT_DespawnEntity
+    POPM.L  d2/a0-a3
+    dbra   d2, @StaticEntLp
+
+    @NoStaticEntities:
+
+    ; Despawn all dynamic entities
+    @DynamicEntLp:
+    ; Find first in list that can be freed
+    lea     EntityBlockList_Entities, a0
+    movea.w EntityBlockList_Head(a0), a0
+    @NextEntity:
+    cmp.w   #0x0, a0
+    beq     @EndDynamicEntities
+    btst    #ENT_MGR_BLOCK_FLAG_NO_FREE, EntityBlock_Flags(a0)
+    beq     @Despawn
+    movea.w EntityBlock_Next(a0), a0
+    bra     @NextEntity
+    @Despawn:
+    movea.w Entity_TypeDesc(a0), a1       ; Get type desc
+    movea.w EntityTypeDesc_Update(a1), a1 ; Get update func
+    bsr     ENT_DespawnEntity
+    bra     @DynamicEntLp
+    @EndDynamicEntities:
 
     rts
 

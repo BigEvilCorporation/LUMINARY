@@ -9,7 +9,11 @@
 ; Entity manager
 ENT_MGR_BLOCK_SIZE                      equ BLDCONF_ENT_MGR_BLOCK_SIZE
 ENT_MGR_MAX_BLOCKS                      equ BLDCONF_ENT_MGR_BLOCK_MAX_BLOCKS
-ENT_MGR_BLOCK_FLAG_ALLOCATED            equ 0x1
+
+; Entity block flags
+ENT_MGR_BLOCK_FLAG_ALLOCATED            equ 0x1 ; Block is allocated
+ENT_MGR_BLOCK_FLAG_NO_FREE              equ 0x2 ; Block should not be freed by manager
+ENT_MGR_BLOCK_FLAG_IN_LIST              equ 0x3 ; Is in a linked list
 
 ; Entities
 ENT_DEBUG_NAME_LEN                      equ 0x10
