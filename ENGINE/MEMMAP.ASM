@@ -15,6 +15,14 @@ RAM_VBLANK_COUNTER                      rs.l 1
 RAM_VDP_DMA_QUEUE                       rs.b (SIZEOF_VDPDMAJob*VDPDMA_MAX_QUEUE_SIZE)
 RAM_VDP_DMA_QUEUE_NEXT                  rs.l 1
 
+    ; Palettes
+RAM_VDP_PALETTES                        rs.l 4                      ; Current palette addresses
+RAM_VDP_PAL_FADE_DST                    rs.l 4                      ; Palette addresses that we're fading to
+RAM_VDP_PAL_FADE_SRC                    rs.b (16*3*SIZE_WORD*4)     ; Current palette fade colours (16x RGB 8.8 words per palettes)
+RAM_VDP_PAL_FADE_DELTA                  rs.w (16*3*SIZE_WORD*4)     ; Palette fade deltas per frame (16x RGB 8.8 words per palettes)
+RAM_VDP_PAL_FADE_TEMP                   rs.b (SIZE_PALETTE_B*4)     ; Last calculated fade palettes
+RAM_VDP_PAL_FADE_FRAME                  rs.b 4                      ; Palette fade frames
+
     ; Debug
 RAM_DBG_FONT_VRAM                       rs.l 1
 

@@ -529,7 +529,7 @@ VRAMMGR_DrawTable:
     @EntryLp:
     move.w #0x04, d0                    ; X
 
-    STACK_ALLOC 64, a0                  ; Alloc space for string
+    STACK_ALLOC #64, a0                  ; Alloc space for string
 
     PUSHM.L d0-d3/a0-a2
    
@@ -579,7 +579,7 @@ VRAMMGR_DrawTable:
 
     POPM.L d0-d3/a0-a2
 
-    STACK_FREE 64                       ; Free string
+    STACK_FREE #64                       ; Free string
 
     addi.w #0x1, d1
     addi.l #SIZEOF_VRAMBlock, a2

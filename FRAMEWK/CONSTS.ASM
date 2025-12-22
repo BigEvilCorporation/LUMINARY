@@ -6,6 +6,9 @@
 ; CONSTS.ASM - Global constants for Luminary Game Framework code
 ; ============================================================================================
 
+; VDP
+DEFAULT_PAL_FADE_FRAMES                 equ 30
+
 ; Entity manager
 ENT_MGR_BLOCK_SIZE                      equ BLDCONF_ENT_MGR_BLOCK_SIZE
 ENT_MGR_MAX_BLOCKS                      equ BLDCONF_ENT_MGR_BLOCK_MAX_BLOCKS

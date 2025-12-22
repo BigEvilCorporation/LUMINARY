@@ -28,6 +28,20 @@ VDP_Initialise:
 
     ; TODO: CRAM/VSRAM
 
+    ; Initialise palettes
+    lea    RAM_VDP_PALETTES, a0
+    move.l #palette_black, (a0)+
+    move.l #palette_black, (a0)+
+    move.l #palette_black, (a0)+
+    move.l #palette_black, (a0)+
+
+    ; Initialise fader
+    lea    RAM_VDP_PAL_FADE_FRAME, a0
+    move.w #-1, (a0)+
+    move.w #-1, (a0)+
+    move.w #-1, (a0)+
+    move.w #-1, (a0)+
+
     rts
 
 VDP_WriteTMSS:

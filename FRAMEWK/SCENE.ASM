@@ -74,11 +74,12 @@ SCN_LoadScene:
     bsr    MAP_PreLoad
     POPM.L a0-a1
 
-    ; Load palettes
+    ; Fade in palettes
     PUSHM.L a0-a1
     move.w SceneData_PaletteCount(a1), d0
     move.l SceneData_Palettes(a1), a0
-    bsr    VDP_LoadPalettes
+    move.w #DEFAULT_PAL_FADE_FRAMES, d1
+    bsr    VDP_FadePalettes
     POPM.L a0-a1
 
     ; Initialise all static entities

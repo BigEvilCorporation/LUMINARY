@@ -202,7 +202,7 @@ ERR_HandleException:
 	move.l  (sp)+, d0
 
 	; Alloc string space
-	STACK_ALLOC_STRING 0x10, a0
+	STACK_ALLOC_STRING #0x10, a0
 	
 	; Reg value to string
 	jsr     STR_Concat_ItoA_Hex_l
@@ -214,7 +214,7 @@ ERR_HandleException:
 	bsr     DBG_DrawStringA
 
 	; Free string space
-	STACK_FREE 0x10
+	STACK_FREE #0x10
 	
 	addq.l  #0x1, d7
 	cmp.l   #ERR_EXCEPTION_REGCOUNTD, d7
@@ -239,7 +239,7 @@ ERR_HandleException:
 	move.l  (sp)+, d0
 
 	; Alloc string space
-	STACK_ALLOC_STRING 0x10, a0
+	STACK_ALLOC_STRING #0x10, a0
 	
 	; Reg value to string
 	jsr     STR_Concat_ItoA_Hex_l
@@ -251,7 +251,7 @@ ERR_HandleException:
 	bsr     DBG_DrawStringA
 
 	; Free string space
-	STACK_FREE 0x10
+	STACK_FREE #0x10
 	
 	addq.l  #0x1, d7
 	cmp.l   #ERR_EXCEPTION_REGCOUNTA, d7
@@ -276,7 +276,7 @@ ERR_HandleException:
 	move.l  (sp)+, d0
 
 	; Alloc string space
-	STACK_ALLOC_STRING 0x10, a0
+	STACK_ALLOC_STRING #0x10, a0
 	
 	; Reg value to string
 	jsr     STR_Concat_ItoA_Hex_l
@@ -288,7 +288,7 @@ ERR_HandleException:
 	bsr     DBG_DrawStringA
 
 	; Free string space
-	STACK_FREE 0x10
+	STACK_FREE #0x10
 	
 	addq.l  #0x1, d7
 	cmp.l   #ERR_EXCEPTION_REGCOUNTS, d7
@@ -316,7 +316,7 @@ ERR_HandleException:
 	@NotStackTop:
 
 	; Alloc string space
-	STACK_ALLOC 0x10, a4
+	STACK_ALLOC #0x10, a4
 	
 	; Stack value to string
 	move.l  a4, a0
@@ -329,7 +329,7 @@ ERR_HandleException:
 	bsr     DBG_DrawStringA
 	
 	; Free string space
-	STACK_FREE 0x10
+	STACK_FREE #0x10
 	
 	addq.l  #0x1, d7
 	cmp.l   #ERR_EXCEPTION_MAXSTACK, d7

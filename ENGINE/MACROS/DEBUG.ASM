@@ -94,13 +94,13 @@ DBG_DRAW_STRING_A: macro x,y,string
     ; ======================================
 DBG_DRAW_BYTE_S: macro x,y,byte
     PUSHM.L d0-d3/a0-a1
-    STACK_ALLOC 4, a0                   ; Alloc space for string
+    STACK_ALLOC #4, a0                   ; Alloc space for string
     move.l \byte, d0
     bsr    STR_ItoA_Hex_b
     move.w \x, d0
     move.w \y, d1
     bsr    DBG_DrawStringS
-    STACK_FREE 4                        ; Free string
+    STACK_FREE #4                        ; Free string
     POPM.L d0-d3/a0-a1
     endm
 
@@ -117,13 +117,13 @@ DBG_DRAW_BYTE_S: macro x,y,byte
     ; ======================================
 DBG_DRAW_BYTE_A: macro x,y,byte
     PUSHM.L d0-d3/a0-a1
-    STACK_ALLOC 4, a0                   ; Alloc space for string
+    STACK_ALLOC #4, a0                   ; Alloc space for string
     move.l \byte, d0
     bsr    STR_ItoA_Hex_b
     move.w \x, d0
     move.w \y, d1
     bsr    DBG_DrawStringA
-    STACK_FREE 4                        ; Free string
+    STACK_FREE #4                        ; Free string
     POPM.L d0-d3/a0-a1
     endm
 
@@ -139,13 +139,13 @@ DBG_DRAW_BYTE_A: macro x,y,byte
     ; ======================================
 DBG_DRAW_WORD_S: macro x,y,word
     PUSHM.L d0-d3/a0-a1
-    STACK_ALLOC 6, a0                   ; Alloc space for string
+    STACK_ALLOC #6, a0                   ; Alloc space for string
     move.l \word, d0
     bsr    STR_ItoA_Hex_w
     move.w \x, d0
     move.w \y, d1
     bsr    DBG_DrawStringS
-    STACK_FREE 6                        ; Free string
+    STACK_FREE #6                        ; Free string
     POPM.L d0-d3/a0-a1
     endm
 
@@ -162,13 +162,13 @@ DBG_DRAW_WORD_S: macro x,y,word
     ; ======================================
 DBG_DRAW_WORD_A: macro x,y,word
     PUSHM.L d0-d3/a0-a1
-    STACK_ALLOC 6, a0                   ; Alloc space for string
+    STACK_ALLOC #6, a0                   ; Alloc space for string
     move.l \word, d0
     bsr    STR_ItoA_Hex_w
     move.w \x, d0
     move.w \y, d1
     bsr    DBG_DrawStringA
-    STACK_FREE 6                        ; Free string
+    STACK_FREE #6                        ; Free string
     POPM.L d0-d3/a0-a1
     endm
 
@@ -185,13 +185,13 @@ DBG_DRAW_WORD_A: macro x,y,word
     ; ======================================
 DBG_DRAW_LONG_S: macro x,y,long
     PUSHM.L d0-d3/a0-a1
-    STACK_ALLOC 10, a0                  ; Alloc space for string
+    STACK_ALLOC #10, a0                  ; Alloc space for string
     move.l \long, d0
     bsr    STR_ItoA_Hex_l
     move.w \x, d0
     move.w \y, d1
     bsr    DBG_DrawStringS
-    STACK_FREE 10                       ; Free string
+    STACK_FREE #10                       ; Free string
     POPM.L d0-d3/a0-a1
     endm
 
@@ -208,12 +208,12 @@ DBG_DRAW_LONG_S: macro x,y,long
     ; ======================================
 DBG_DRAW_LONG_A: macro x,y,long
     PUSHM.L d0-d3/a0-a1
-    STACK_ALLOC 10, a0                  ; Alloc space for string
+    STACK_ALLOC #10, a0                  ; Alloc space for string
     move.l \long, d0
     bsr    STR_ItoA_Hex_l
     move.w \x, d0
     move.w \y, d1
     bsr    DBG_DrawStringA
-    STACK_FREE 10                       ; Free string
+    STACK_FREE #10                       ; Free string
     POPM.L d0-d3/a0-a1
     endm

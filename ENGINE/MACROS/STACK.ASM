@@ -71,7 +71,7 @@ STACK_ALLOC: macro bytes,addr_reg
     ; bytes    - Bytes to alloc
     ; addr_reg - Dest address reg
     ; ======================================
-	sub.l  #\bytes, sp
+	sub.l  \bytes, sp
     move.l sp, \addr_reg
 	endm
 
@@ -83,7 +83,7 @@ STACK_ALLOC_STRING: macro bytes,addr_reg
     ; bytes    - Bytes to alloc
     ; addr_reg - Dest address reg
     ; ======================================
-	sub.l  #\bytes, sp
+	sub.l  \bytes, sp
     move.l sp, \addr_reg
     move.b #0x0, (\addr_reg)
 	endm
@@ -94,5 +94,5 @@ STACK_FREE: macro bytes
     ; ======================================
     ; bytes    - Bytes to free
     ; ======================================
-	addi.l #\bytes, sp
+	addi.l \bytes, sp
 	endm

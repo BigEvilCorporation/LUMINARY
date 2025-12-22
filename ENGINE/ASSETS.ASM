@@ -18,3 +18,7 @@
 
     ; Error draw palette
     ASSET_INCLUDE_ASM error_palette, 'engine/assets/palettes/errorpal.asm'
+
+    ; Fixed palettes
+    ASSET_INCLUDE_ASM palette_black, 'engine/assets/palettes/palblack.asm'
+    ASSET_INCLUDE_ASM palette_white, 'engine/assets/palettes/palwhite.asm'
