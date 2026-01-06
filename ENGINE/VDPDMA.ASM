@@ -7,7 +7,7 @@
 ; ============================================================================================
 
 ; Constants
-VDPDMA_MAX_QUEUE_SIZE    				equ 0x28  ; Queue max size
+DMA_MAX_QUEUE_SIZE    				equ 0x28  ; Queue max size
 
 	STRUCT_BEGIN VDPDMAJob
 VDPDMAJob_SizeHiLoCmd					rs.l 1	; Set DMA size command
@@ -17,10 +17,10 @@ VDPDMAJob_AutoIncCmd					rs.w 1	; Autoincrement set reg command
 VDPDMAJob_DestAddrCmd					rs.l 1	; Set dest address command
 	STRUCT_END
 
-VDPDMA_TRANSFER_VRAM       				equ 0x0
-VDPDMA_TRANSFER_CRAM       				equ 0x1
+DMA_TRANSFER_VRAM       				equ 0x0
+DMA_TRANSFER_CRAM       				equ 0x1
 
-VDPDMA_Initialise:
+DMA_Initialise:
     ; ======================================
     ; Initialises DMA queue
     ; ======================================
@@ -29,14 +29,14 @@ VDPDMA_Initialise:
 	move.l #RAM_VDP_DMA_QUEUE, RAM_VDP_DMA_QUEUE_NEXT
 	rts
 
-VDPDMA_AddJob:
+DMA_AddJob:
     ; ======================================
     ; Pushes a DMA job to the queue
     ; ======================================
 	; a0   Source addr (68k space)
 	; d0.w Dest addr (VRAM space)
 	; d1.w Data size (words)
-	; d2.b Dest memory (VDPDMA_TRANSFER_VRAM/VDPDMA_TRANSFER_CRAM)
+	; d2.b Dest memory (DMA_TRANSFER_VRAM/DMA_TRANSFER_CRAM)
 	; d3.b Data stride (bytes)
     ; ======================================
 
@@ -55,7 +55,7 @@ VDPDMA_AddJob:
 	
 	; Add single job
 	move.l a0, d2
-	bsr    VDPDMA_AddToQueue
+	bsr    DMA_AddToQueue
 	
 	rts
 	
@@ -75,7 +75,7 @@ VDPDMA_AddJob:
 	move.w d3, d4			; Backup job 1 size
 	move.w d3, d1			; Size to d1
 	lsr.w  #0x1, d1			; Size diff to words
-	bsr    VDPDMA_AddToQueue
+	bsr    DMA_AddToQueue
 	
 	; Job 2
 	move.l a0, d2			; Source address to d2
@@ -84,20 +84,20 @@ VDPDMA_AddJob:
 	add.w  d4, d0			; Offset dest address (bytes)
 	lsr.w  #0x1, d4			; Job 1 size to words
 	sub.w  d4, d1			; Subtract job 1 size (words)
-	bsr    VDPDMA_AddToQueue
+	bsr    DMA_AddToQueue
 	
 	rts
 
-VDPDMA_AddToQueue:
+DMA_AddToQueue:
     ; ======================================
     ; Pushes a DMA job to the queue - for
-	; internal use only. Use VDPDMA_AddJob.
+	; internal use only. Use DMA_AddJob.
     ; ======================================
 	; d0 (w) - Dest addr (VRAM space)
 	; d1 (w) - Data size (words)
 	; d2 (l) - Source addr (68k space)
 	; d6 (b) - Autoincrement
-	; d7 (b) - Dest memory (VDPDMA_TRANSFER_VRAM/VDPDMA_TRANSFER_CRAM)
+	; d7 (b) - Dest memory (DMA_TRANSFER_VRAM/DMA_TRANSFER_CRAM)
     ; ======================================
 
 	; Get queue address
@@ -108,7 +108,7 @@ VDPDMA_AddToQueue:
 	bne   @NonZero
 	DBG_RAISE_ERROR "Error: DMA size is 0"
 	@NonZero:
-	cmp.l #RAM_VDP_DMA_QUEUE+(SIZEOF_VDPDMAJob*VDPDMA_MAX_QUEUE_SIZE), a1
+	cmp.l #RAM_VDP_DMA_QUEUE+(SIZEOF_VDPDMAJob*DMA_MAX_QUEUE_SIZE), a1
 	bne   @NotFull
 	DBG_RAISE_ERROR "Error: DMA queue full"
 	@NotFull:
@@ -136,7 +136,7 @@ VDPDMA_AddToQueue:
 	lsl.l   #0x2, d0						; Shift bits 14/15 of dest address to bits 16/17
 	lsr.w   #0x2, d0						; Shift lower word back
 	swap    d0								; Swap address hi/lo
-	cmp.b   #VDPDMA_TRANSFER_VRAM, d7
+	cmp.b   #DMA_TRANSFER_VRAM, d7
 	bne     @CRAM
 	ori.l   #VDP_CMD_DMA_VRAM_WRITE, d0		; OR in VRAM+DMA write command
 	bra     @VRAM
@@ -150,7 +150,7 @@ VDPDMA_AddToQueue:
 
 	rts
 	
-VDPDMA_CommitAndClearQueue:
+DMA_CommitAndClearQueue:
     ; ======================================
     ; Processes all DMA transfers and clears
 	; the job queue
@@ -216,7 +216,7 @@ VDPDMA_CommitAndClearQueue:
 
 	rts
 	
-VDPDMA_TransferImmediateVRAM:
+DMA_TransferImmediateVRAM:
     ; ======================================
     ; DMA transfer from 68K space to VRAM
 	; immediately (bypassing queue). Splits
@@ -239,7 +239,7 @@ VDPDMA_TransferImmediateVRAM:
 	@SingleDMA:
 	
 	; Single DMA
-	bsr    VDPDMA_TransferImmediateVRAM_NoBoundary
+	bsr    DMA_TransferImmediateVRAM_NoBoundary
 	
 	rts
 	
@@ -260,7 +260,7 @@ VDPDMA_TransferImmediateVRAM:
 	move.w d3, d1			; Size to d1
 	lsr.w  #0x1, d1			; Size diff to words
     move.l d2, a0           ; Source address
-	bsr    VDPDMA_TransferImmediateVRAM_NoBoundary
+	bsr    DMA_TransferImmediateVRAM_NoBoundary
 	
 	; DMA 2
 	POPM.W  d0/d1			; Restore original size/dest
@@ -268,11 +268,11 @@ VDPDMA_TransferImmediateVRAM:
 	add.w  d6, d0			; Offset dest address (bytes)
 	lsr.w  #0x1, d6			; Job 1 size to words
 	sub.w  d6, d1			; Subtract job 1 size (words)
-	bsr    VDPDMA_TransferImmediateVRAM_NoBoundary
+	bsr    DMA_TransferImmediateVRAM_NoBoundary
 	
 	rts
 
-VDPDMA_TransferImmediateVRAM_NoBoundary:
+DMA_TransferImmediateVRAM_NoBoundary:
     ; ======================================
     ; DMA transfer from 68K space to VRAM
 	; immediately (bypassing queue).

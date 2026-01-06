@@ -12,7 +12,7 @@
 RAM_VBLANK_COUNTER                      rs.l 1
 
     ; DMA queue
-RAM_VDP_DMA_QUEUE                       rs.b (SIZEOF_VDPDMAJob*VDPDMA_MAX_QUEUE_SIZE)
+RAM_VDP_DMA_QUEUE                       rs.b (SIZEOF_VDPDMAJob*DMA_MAX_QUEUE_SIZE)
 RAM_VDP_DMA_QUEUE_NEXT                  rs.l 1
 
     ; Palettes

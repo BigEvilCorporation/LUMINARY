@@ -75,7 +75,7 @@ FNT_LoadDebugFont:
 
     lea    RAM_VRAM_MANAGER, a0
     move.w #SIZEOF_debug_font/SIZE_TILE_B, d0
-    bsr    VRAMMGR_Alloc
+    bsr    VMR_Alloc
     move.l d1, RAM_DBG_FONT_VRAM
 
     lea    debug_font, a0

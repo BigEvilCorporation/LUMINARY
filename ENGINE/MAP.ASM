@@ -72,7 +72,7 @@ MAP_PreLoad:
     move.w #0x0, StreamingMap_ScrollY(a4)
 
     ; Alloc VRAM
-    bsr    VRAMMGR_Alloc
+    bsr    VMR_Alloc
     lea    RAM_STREAMING_MAP_A, a4
     move.l d1, StreamingMap_VRAMhndl(a4)
     lea    RAM_STREAMING_MAP_B, a4

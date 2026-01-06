@@ -23,7 +23,7 @@ Bootstrap:
     bsr    VDP_Initialise
 
     ; Initialise VDP DMA queue
-    bsr    VDPDMA_Initialise
+    bsr    DMA_Initialise
 
     ; Initialise sprite table
     bsr    SPR_Initialise
@@ -32,19 +32,19 @@ Bootstrap:
     bsr    PAD_Initialise
 
     ; Initialise VRAM manager
-    bsr    VRAMMGR_Initialise
+    bsr    VMR_Initialise
  
     ; Load debug font
     bsr    FNT_LoadDebugFont
 
     ; Push new VRAM context (so debug font can't be freed)
-    bsr    VRAMMGR_PushContext
+    bsr    VMR_PushContext
 
     ; Init status register
 	move.w #CPU_STATUS_REG_INIT, sr	    ; INT level 3 (all interrupts) + supervisor
 
     ; Flush DMA queue
-    bsr    VDPDMA_CommitAndClearQueue
+    bsr    DMA_CommitAndClearQueue
 
     ; Jump to program main
     jmp    Main

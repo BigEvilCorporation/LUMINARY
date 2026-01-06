@@ -91,7 +91,7 @@ ECSprite_Shutdown:
 
     move.l ECSprite_VRAMHndl(a0), d0
     beq    @NotLoaded
-    bsr    VRAMMGR_Free
+    bsr    VMR_Free
     @NotLoaded:
 
     rts
@@ -108,7 +108,7 @@ ECSprite_LoadTiles:
 
     ; Alloc tiles
     PUSH.L a0
-    bsr    VRAMMGR_Alloc
+    bsr    VMR_Alloc
     POP.L  a0
     move.l d1, ECSprite_VRAMHndl(a0)    ; Store VRAM handle
 	
@@ -336,9 +336,9 @@ ECSprite_DrawAll:
     move.l SpriteFrame_TileData(a1), a0 ; Load tiles to VRAM
     lsl.w  #SIZE_TILE_SHIFT_B, d0
     lsl.w  #SIZE_TILE_SHIFT_W, d1
-    move.b #VDPDMA_TRANSFER_VRAM, d2
+    move.b #DMA_TRANSFER_VRAM, d2
     move.b #SIZE_WORD, d3
-    bsr    VDPDMA_AddJob
+    bsr    DMA_AddJob
     POPM.L d0-d3/a0-a3
 
     @AnimNotPlaying:

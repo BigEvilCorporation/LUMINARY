@@ -63,7 +63,7 @@ VDP_CanvasCreate:
     PUSHALL
     PUSH.L a0
     mulu   d1, d0
-    bsr VRAMMGR_Alloc
+    bsr VMR_Alloc
     POP.L  a0
     move.l d1, Canvas_VRAMHndl(a0)
     POPALL
@@ -217,7 +217,7 @@ VDP_CanvasPresent:
     move.w Canvas_SizeWords(a0), d1
     move.l Canvas_FrameBuffer(a0), a0
 
-    jsr    VDPDMA_TransferImmediateVRAM
+    jsr    DMA_TransferImmediateVRAM
 
     POP.L   a0
 

@@ -20,18 +20,18 @@ DLG_Initialise:
     ; Load cursor
     move.w #1, d0
     PUSH.L a1
-    bsr    VRAMMGR_Alloc
+    bsr    VMR_Alloc
     POP.L  a1
     move.l d1, RAM_DIALOG_VRAM_CURSOR
     VDP_TILES_TO_BYTES d1               ; Tile to bytes
     move.l a1, a0                       ; DMA src
     move.w d1, d0                       ; DMA dest
     move.w #SIZE_TILE_W, d1             ; DMA size
-    bsr    VDPDMA_TransferImmediateVRAM
+    bsr    DMA_TransferImmediateVRAM
 
     ; Alloc VRAM text buffer
     move.w #DLG_VRAM_BUFF_SIZE, d0
-    bsr    VRAMMGR_Alloc
+    bsr    VMR_Alloc
     move.l d1, RAM_DIALOG_VRAM_BUFFER
 
     move.l #0, RAM_DIALOG_OPEN_FRAME

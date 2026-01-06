@@ -43,7 +43,7 @@ TXT_LoadSpriteTiles:
     add.l  d7, a0                       ; DMA src
     move.w d5, d0                       ; DMA dest
     move.w #SIZE_TILE_W, d1             ; DMA size
-    bsr    VDPDMA_TransferImmediateVRAM
+    bsr    DMA_TransferImmediateVRAM
     POPM.W d0-d1
     addq   #1, d0
     add.w  #SIZE_TILE_B, d5             ; Next tile
