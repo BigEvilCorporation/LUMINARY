@@ -259,12 +259,11 @@ DMA_TransferImmediateVRAM:
 	move.w d3, d6			; Backup job 1 size
 	move.w d3, d1			; Size to d1
 	lsr.w  #0x1, d1			; Size diff to words
-    move.l d2, a0           ; Source address
 	bsr    DMA_TransferImmediateVRAM_NoBoundary
 	
 	; DMA 2
-	POPM.W  d0/d1			; Restore original size/dest
-	add.l  d6, d2			; Offset source address (bytes)
+	POPM.W d0/d1			; Restore original size/dest
+	add.l  d6, a0			; Offset source address (bytes)
 	add.w  d6, d0			; Offset dest address (bytes)
 	lsr.w  #0x1, d6			; Job 1 size to words
 	sub.w  d6, d1			; Subtract job 1 size (words)
