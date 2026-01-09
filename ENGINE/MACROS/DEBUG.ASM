@@ -23,11 +23,32 @@ DBG_STATIC_ERROR: macro string
     ; string - Error string to draw
     ; ======================================
 DBG_RAISE_ERROR: macro string
-    bsr    ERR_ResetForError
-    lea    @err_string\@, a0
-    PUSH.l a0
-    PUSH.w #ERR_EXCEPTIONTYPE_ASSERT
+
+    ; Push PC
+    @nextpc\@:
+    lea    @nextpc\@(pc), a6
+    PUSH.L a6
+
+    ; Push status reg, pad to longword
+    PUSH.W sr
+	PUSH.W #0x0
+
+	; Push stack ptr
+	PUSH.L sp
+	
+	; Push all registers
+	PUSHM.L d0-d7/a0-a6
+
+	; Push error message
+    lea     @err_string\@, a6
+    PUSH.L a6
+
+    ; Push error type
+    PUSH.W #ERR_EXCEPTIONTYPE_ASSERT
+
+    ; Show error screen
     jmp    ERR_HandleException
+
     @err_string\@:
     dc.b   \string\,0
     even
