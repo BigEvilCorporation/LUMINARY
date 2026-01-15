@@ -267,6 +267,7 @@ ENT_FreeEntityBlock:
     ; Free block
     bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
     addi.w #0x1, EntityManager_BlocksFree(a4)
+    move.w #0x0, EntityBlock_Next(a0)
 
     ; Set last free block
     move.w a0, EntityManager_LastFreeBlock(a4)
