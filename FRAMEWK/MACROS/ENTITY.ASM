@@ -63,7 +63,7 @@ __ENTITY_NAME equs "\entity_name\"
 
 ENTITY_SPAWN_DATA_END: macro
     STRUCT_ALIGN
-__SIZEOF_\__ENTITY_NAME\__SPAWNDATA     rs.b 0
+SIZEOF_\__ENTITY_NAME\__SPAWNDATA     rs.b 0
     endm
 
     ; ======================================
@@ -72,9 +72,10 @@ __SIZEOF_\__ENTITY_NAME\__SPAWNDATA     rs.b 0
     ; ======================================
     ; Name - Spawn data name
     ; ======================================
-ENTITY_SPAWN_DATA: macro label
+ENTITY_SPAWN_DATA: macro label,id
 \label\:
     ENTITY_DEBUG_NAME \label\
+    dc.w \id
     endm
 
     ; ======================================
@@ -90,7 +91,7 @@ __COMPONENT_NAME equs "\component_name\"
 
 COMPONENT_SPAWN_DATA_END: macro
     STRUCT_ALIGN
-__SIZEOF_\__COMPONENT_NAME\__SPAWNDATA     rs.b 0
+SIZEOF_\__COMPONENT_NAME\__SPAWNDATA     rs.b 0
     endm
 
 ENTITY_BEGIN: macro name
@@ -101,8 +102,8 @@ ENTITY_BEGIN: macro name
     ; ======================================
 __ENTITY_NAME equs "\name\"                                         ; Store entity name for ENTITY_END
 __ENTITY_COMPONENT_COUNT = 0                                        ; Begin counting components
-    IFD  __SIZEOF_\__ENTITY_NAME\__SPAWNDATA
-__COMPONENT_SPAWN_DATA_OFFSET = __SIZEOF_\__ENTITY_NAME\__SPAWNDATA ; Begin counting component spawn data size
+    IFD  SIZEOF_\__ENTITY_NAME\__SPAWNDATA
+__COMPONENT_SPAWN_DATA_OFFSET = SIZEOF_\__ENTITY_NAME\__SPAWNDATA ; Begin counting component spawn data size
     ELSE
 __COMPONENT_SPAWN_DATA_OFFSET = SIZEOF_EntitySpawnDataBase
     ENDIF
@@ -116,9 +117,9 @@ ENTITY_END: macro
     ; ======================================
     ; No params
     ; ======================================
-__SIZEOF_\__ENTITY_NAME rs.b 0
-    IF __SIZEOF_\__ENTITY_NAME>ENT_MGR_BLOCK_SIZE
-    DBG_STATIC_ERROR "Entity type \__ENTITY_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__ENTITY_NAME, ENT_MGR_BLOCK_SIZE
+SIZEOF_\__ENTITY_NAME rs.b 0
+    IF SIZEOF_\__ENTITY_NAME>ENT_MGR_BLOCK_SIZE
+    DBG_STATIC_ERROR "Entity type \__ENTITY_NAME\ (%d bytes) exceeds block size (%d bytes)", SIZEOF_\__ENTITY_NAME, ENT_MGR_BLOCK_SIZE
     ENDIF
 ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
 
@@ -144,7 +145,7 @@ __ENTITY_NAME equs "\name\"
     endm
 
 STATIC_ENTITY_END: macro
-__SIZEOF_\__ENTITY_NAME rs.b 0
+SIZEOF_\__ENTITY_NAME rs.b 0
     ; Fill in EntityTypeDesc data
 \__ENTITY_NAME\_TypeDesc:
     dc.w   0
@@ -171,9 +172,9 @@ ENTITY_COMPONENT_END: macro
     ; ======================================
     ; No params
     ; ======================================
-__SIZEOF_\__COMPONENT_NAME rs.b 0
-    IF __SIZEOF_\__COMPONENT_NAME>ENT_MGR_BLOCK_SIZE
-    DBG_STATIC_ERROR "Component type \__COMPONENT_NAME\ (%d bytes) exceeds block size (%d bytes)", __SIZEOF_\__COMPONENT_NAME, ENT_MGR_BLOCK_SIZE
+SIZEOF_\__COMPONENT_NAME rs.b 0
+    IF SIZEOF_\__COMPONENT_NAME>ENT_MGR_BLOCK_SIZE
+    DBG_STATIC_ERROR "Component type \__COMPONENT_NAME\ (%d bytes) exceeds block size (%d bytes)", SIZEOF_\__COMPONENT_NAME, ENT_MGR_BLOCK_SIZE
     ENDIF
 	endm
 
@@ -201,7 +202,7 @@ ENT_COMPONENT: macro component_typename
     ENDIF
     STRUCT_ALIGN
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
-__COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_typename\__SPAWNDATA  ; Offset spawn data ptr
+__COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+SIZEOF_\component_typename\__SPAWNDATA  ; Offset spawn data ptr
 Entity_\__ENTITY_NAME\_Component_\component_typename rs.w 1 ; Struct space for component address
     endm
 
@@ -230,7 +231,7 @@ ENT_COMPONENT_NAMED: macro component_typename,component_name
     ENDIF
     STRUCT_ALIGN
 __ENTITY_COMPONENT_COUNT = __ENTITY_COMPONENT_COUNT+1   ; Increment constructor count
-__COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+__SIZEOF_\component_typename\__SPAWNDATA  ; Offset spawn data ptr
+__COMPONENT_SPAWN_DATA_OFFSET = __COMPONENT_SPAWN_DATA_OFFSET+SIZEOF_\component_typename\__SPAWNDATA  ; Offset spawn data ptr
 Entity_\__ENTITY_NAME\_Component_\component_name rs.w 1 ; Struct space for component address
     endm
 
@@ -284,6 +285,22 @@ ENT_GETBOUNDS: macro ent_addr,topleft_reg,bottomright_reg
 	; Bottom
 	add.w  Entity_ExtentsY(\ent_addr), \bottomright_reg ; Bottom bounds
 
+	endm
+
+ENT_GETPOS_VEC2: macro vec2reg,ent_addr
+    ; ======================================
+    ; Returns entity position (integer part)
+    ; as a vec2
+    ; ======================================
+    ; In:
+    ; ent_addr   - Entity address
+    ; ======================================
+    ; Out:
+    ; vec2reg.l  - Position as vec2
+    ; ======================================
+	move.w   Entity_PosX(\ent_addr), \vec2reg
+	swap     \vec2reg
+	move.w   Entity_PosY(\ent_addr), \vec2reg
 	endm
 
 ENT_CHECKCAMERABOUNDS: macro ent_addr,obj_x,obj_y,left,top,right,bottom,result,tmp_reg

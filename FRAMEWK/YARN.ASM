@@ -46,7 +46,7 @@ Yarn_Update:
 	; Re-entry
 	moveq  #0, d0
 	move.b RAM_DIALOG_CURR_CHOICE, d0
-	lsl.w  #3, d0   					; count * longwords * 2
+	mulu   #SIZE_LONG*3, d0				; count * longwords * 3 (str, addr, data)
 	addq.w #SIZE_LONG, d0				; skip string
 	lea    RAM_YARN_CHOICE_LIST, a0
 	adda.w d0, a0

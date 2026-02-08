@@ -21,6 +21,6 @@ VDP_LoadTiles:
     lsl.w  #SIZE_TILE_SHIFT_W, d1
 	
 	; Immediate DMA
-	bsr    VDPDMA_TransferImmediateVRAM
+	bsr    DMA_TransferImmediateVRAM
 
     rts

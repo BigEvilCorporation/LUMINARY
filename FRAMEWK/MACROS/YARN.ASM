@@ -13,6 +13,8 @@ YARN_RUNLINE: macro string
 	; string   - Address of string to display
 	; =======================================
 	move.l \string, a0
+    move.w #DLG_DEFAULT_X, d1
+    move.w #DLG_DEFAULT_Y, d2
 	jsr    DLG_Open
 	move.l #\@NextInstr\@, RAM_YARN_ENTRY_ADDR
 	move.b #YARN_STATE_WAITING_DLG, RAM_YARN_STATE
@@ -29,6 +31,7 @@ YARN_ADDOPTION: macro string,address
     adda.w d0, a0
     move.l \string, (a0)+
     move.l \address, (a0)+
+    move.l #0x0, (a0)+
     addq.w #1, d1
     move.b d1, RAM_YARN_CHOICE_COUNT
 	endm
@@ -37,6 +40,8 @@ YARN_SHOWOPTIONS: macro
     move.l #0, a0
     lea    RAM_YARN_CHOICE_LIST, a2
     move.b RAM_YARN_CHOICE_COUNT, d0
+    move.w #DLG_DEFAULT_X, d1
+    move.w #DLG_DEFAULT_Y, d2
 	jsr    DLG_OpenChoice
 	move.l #\@NextInstr\@, RAM_YARN_ENTRY_ADDR
 	move.b #YARN_STATE_WAITING_CHOICE, RAM_YARN_STATE

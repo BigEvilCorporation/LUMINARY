@@ -23,7 +23,7 @@ Bootstrap:
     bsr    VDP_Initialise
 
     ; Initialise VDP DMA queue
-    bsr    VDPDMA_Initialise
+    bsr    DMA_Initialise
 
     ; Initialise sprite table
     bsr    SPR_Initialise
@@ -32,29 +32,19 @@ Bootstrap:
     bsr    PAD_Initialise
 
     ; Initialise VRAM manager
-    bsr    VRAMMGR_Initialise
-
-    ; TODO: Take initial pools from table
-    move.w #0x0000, d0
-    move.w #0xB000/SIZE_TILE_B, d1
-    bsr    VRAMMGR_AddPool
-    
+    bsr    VMR_Initialise
+ 
     ; Load debug font
-    lea    RAM_VRAM_MANAGER, a0
-    move.w #SIZEOF_debug_font/SIZE_TILE_B, d0
-    bsr    VRAMMGR_Alloc
-    move.l d1, RAM_DBG_FONT_VRAM
+    bsr    FNT_LoadDebugFont
 
-    lea    debug_font, a0
-    move.w d1, d0
-    move.w #SIZEOF_debug_font/SIZE_TILE_B, d1
-    bsr    VDP_LoadTiles
+    ; Push new VRAM context (so debug font can't be freed)
+    bsr    VMR_PushContext
 
     ; Init status register
 	move.w #CPU_STATUS_REG_INIT, sr	    ; INT level 3 (all interrupts) + supervisor
 
     ; Flush DMA queue
-    bsr    VDPDMA_CommitAndClearQueue
+    bsr    DMA_CommitAndClearQueue
 
     ; Jump to program main
     jmp    Main

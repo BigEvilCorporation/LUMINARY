@@ -38,7 +38,6 @@
     include 'engine/map.asm'
     include 'engine/palettes.asm'
     include 'engine/ram.asm'
-    include 'engine/sinewave.asm'
     include 'engine/sprites.asm'
     include 'engine/strings.asm'
     include 'engine/tiles.asm'
@@ -74,6 +73,7 @@
     include 'framewk/yarn.asm'
 
     ; Entities and components
+    include 'framewk/entities/eanim.asm'
     include 'framewk/entities/ephysbas.asm'
     include 'framewk/entities/ephyschr.asm'
     include 'framewk/entities/eplatfrm.asm'

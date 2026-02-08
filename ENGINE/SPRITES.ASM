@@ -230,7 +230,7 @@ SPR_CommitAndClearTable:
 	lea    RAM_SPRITE_TABLE, a0
 	move.w #VRAM_ADDR_SPRITE_TABLE, d0
 	mulu.w #SIZEOF_VDPSprite/SIZE_WORD, d1
-	bsr    VDPDMA_TransferImmediateVRAM
+	bsr    DMA_TransferImmediateVRAM
 
     ; Reset sprite link counter and table ptr
     move.l #RAM_SPRITE_TABLE, RAM_SPRITE_TABLE_PTR

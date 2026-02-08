@@ -42,6 +42,22 @@ STR_INLINE: macro str,reg_addr
     @_end\@:
     endm
 
+    ; ======================================
+    ; Embeds a string inline into ROM, pads
+    ; to max length
+    ; ======================================
+    ; "str"  - String to embed
+    ; length - Max length (incl. terminator)
+    ; ======================================
+STR_EMBED: macro str,maxlength
+__STR__ substr ,\maxlength\-1,\str\                ; Truncate str to max chars -terminator
+__STRLEN__ = strlen("\__STR__\")                    ; Get new length
+    dc.b   "\__STR__\",0                            ; Name data + terminator
+    IF __STRLEN__<(\maxlength\-1)                 ; If too short
+    dcb.b (\maxlength\-__STRLEN__-1),0          ; Pad to len + terminator
+    ENDIF
+    endm
+
 STR_PACKLONG: macro str reg
     ; ======================================
     ; Packs 4 chars from a string into a

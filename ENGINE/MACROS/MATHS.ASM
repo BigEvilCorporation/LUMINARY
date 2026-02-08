@@ -61,3 +61,24 @@ MAX: macro value_a,value_b,output
 	move.\0 \value_b, \value_a
 	@A\@:
 	endm
+
+LERP_INT1024: macro destreg,A,B,T,tempreg
+    ; ======================================
+    ; Integer linear interpolation between A and B by T (0-1024)
+    ; (A*(1024-T) + B * T) >> 10
+    ; ======================================
+    ; destreg    - Output
+    ; A          - Source value
+    ; B          - Target value
+    ; T          - Time (0-1024)
+    ; tempreg    - Temp reg
+    ; ======================================
+	move.l #1024,\tempreg		; Backup T
+	sub.l  \T,\tempreg	; (1024-T)
+	mulu   \tempreg,\A		; A*(1024-T)
+	mulu   \T,\B			; B*T
+	add.l  \A,\B			; (A*(1024-T) + B * T)
+	lsr.l  #0x8,\B			; (A*(1024-T) + B * T) >> 10
+	lsr.l  #0x2,\B
+	move.l \B,\destreg
+	endm

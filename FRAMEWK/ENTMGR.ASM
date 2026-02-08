@@ -25,6 +25,15 @@ ENT_Initialise:
     ; No params
     ; ======================================
 
+    ; Clear entity block table
+    lea    RAM_ENTITYBLOCKTABLE, a0
+    move.w #ENT_MGR_MAX_BLOCKS-1, d5
+    @BlockLp:
+    move.b #0x0, EntityBlock_Flags(a0)
+    adda.w #ENT_MGR_BLOCK_SIZE, a0
+    dbra   d5, @BlockLp
+
+    ; Set free blocks
     lea    RAM_ENTITYMANAGER, a0
     move.w #RAM_ENTITYBLOCKTABLE&0xFFFF, EntityManager_LastFreeBlock(a0)
     move.w #0x0, EntityManager_EntityCount(a0)
@@ -71,11 +80,12 @@ ENT_SpawnEntity:
 
     IFND FINAL
     ; Set debug name
-    PUSHM.L a0-a1
+    PUSHM.L a0-a1/d0
     lea    EntityBlock_DebugName(a0), a0
     lea    EntitySpawnData_DebugName(a1), a1
-    bsr    STR_CopyA
-    POPM.L a0-a1
+    move.w #ENT_DEBUG_NAME_LEN, d0
+    bsr    STR_CopyA_s
+    POPM.L a0-a1/d0
 	ENDIF
 
     ; Call base constructor
@@ -163,15 +173,22 @@ ENT_DespawnEntity:
     move.l a0, a3												; Get entity
     adda.w ComponentSlotDesc_AddrOffset(a2), a3                 ; Get component addr offset
     movea.w (a3), a3                                            ; Get component address
-    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a3) ; Clear alloc'd flag
-    addi.w #0x1, EntityManager_BlocksFree(a4)                   ; Keep count
+
+    ; Free entity block
+    PUSH.L a0
+    move.l a3, a0
+    bsr    ENT_FreeEntityBlock
+    POP.L  a0
 
     ; Unlink from component list
+    btst   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a3)
+    beq    @NotInComponentList
     PUSHM.L d0/a0-a4
     move.l a3, a0
     move.l ComponentSlotDesc_LinkedList(a2), a1
     bsr    ENT_UnlinkEntityBlock
     POPM.L  d0/a0-a4
+    @NotInComponentList:
 
     ; Call destructor
     PUSHM.L d0/a0-a4
@@ -189,11 +206,7 @@ ENT_DespawnEntity:
     @NoComponents:
 
     ; Free entity
-    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
-    addi.w #0x1, EntityManager_BlocksFree(a4)
-
-    ; Set last free block
-    move.w a0, EntityManager_LastFreeBlock(a4)
+    bsr    ENT_FreeEntityBlock
 
     rts
 
@@ -224,7 +237,8 @@ ENT_AllocEntityBlock:
 
     @Found:
 
-    ; Set allocated flag
+    ; Clear flags and set allocated
+    move.b #0x0, EntityBlock_Flags(a0)
     bset   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
 
     ; Keep count
@@ -240,6 +254,26 @@ ENT_AllocEntityBlock:
 
     rts
 
+ENT_FreeEntityBlock:
+    ; ======================================
+    ; Frees an entity/component block
+    ; ======================================
+    ; In:
+    ; a0   Block addr
+    ; ======================================
+
+    lea RAM_ENTITYMANAGER, a4
+
+    ; Free block
+    bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
+    addi.w #0x1, EntityManager_BlocksFree(a4)
+    move.w #0x0, EntityBlock_Next(a0)
+
+    ; Set last free block
+    move.w a0, EntityManager_LastFreeBlock(a4)
+
+    rts
+
 ENT_LinkEntityBlock:
     ; ======================================
     ; Appends an entity/component block to
@@ -251,6 +285,12 @@ ENT_LinkEntityBlock:
 
 	; Sanity check - make sure block isn't already in a list
 	IFND FINAL
+
+    ; Check block is not in list
+    btst   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
+    beq    @NotInList
+    DBG_RAISE_ERROR "ENT_LinkEntityBlock: Already in list"
+    @NotInList:
 
 	; Check block's next ptr is null
 	cmp.w  #0x0, EntityBlock_Next(a0)
@@ -311,6 +351,9 @@ ENT_LinkEntityBlock:
 	move.w a0, EntityBlockList_Tail(a1)
 	
 	@End:
+
+    ; Set in list
+    bset   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
 	
 	; Increment count
 	addq.w #0x1, EntityBlockList_Size(a1)
@@ -326,15 +369,22 @@ ENT_UnlinkEntityBlock:
     ; a1   Linked list
     ; ======================================
 
+    btst   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
+    beq    @NotInList
+
 	move.w  #0x0, a2
 	
 	move.w EntityBlockList_Head(a1), a3	; Get list head
 	@BlockLp:						    ; For all blocks in list
-	cmp.w  a0, a3						; Check if block to remove
+	cmpa.w #0x0, a3
+	beq    @NotInList
+	cmpa.w a0, a3						; Check if block to remove
 	beq    @Found
 	move.w a3, a2						; Backup prev
 	move.w EntityBlock_Next(a3), a3	    ; Get next ptr
 	bra    @BlockLp
+	
+	@NotInList:
 
 	; Error, block wasn't in this list
 	IFND FINAL
@@ -371,6 +421,7 @@ ENT_UnlinkEntityBlock:
 	
 	; Clear removed block's next link
 	move.w #0x0, EntityBlock_Next(a0)
+    bclr   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
 
 	; Decrement count
 	subq.w #0x1, EntityBlockList_Size(a1)
@@ -388,6 +439,8 @@ ENT_UpdateAll:
     ; Update all static entities
     ; TODO: Only update entities in active grid
     move.l RAM_SCENE_DATA, a2
+    cmpa.w #0x0, a2
+    beq    @NoStaticEntities
     move.w SceneData_StaticEntityCount(a2), d2
     tst.w  d2
     beq    @NoStaticEntities
@@ -424,6 +477,54 @@ ENT_UpdateAll:
     bne    @DynamicEntLp
 
     @NoDynamicEntities:
+
+    rts
+
+ENT_DespawnAll:
+    ; ======================================
+    ; Despawns all entities
+    ; ======================================
+
+    ; Despawn all static entities
+    move.l RAM_SCENE_DATA, a2
+    cmpa.w #0x0, a2
+    beq    @NoStaticEntities
+    move.w SceneData_StaticEntityCount(a2), d2
+    tst.w  d2
+    beq    @NoStaticEntities
+
+    move.l SceneData_StaticEntities(a2), a3
+    subi.w #0x1, d2
+
+    @StaticEntLp:
+    move.l (a3)+, a0                      ; Get entity
+    movea.w Entity_TypeDesc(a0), a1       ; Get type desc
+    movea.w EntityTypeDesc_Update(a1), a1 ; Get update func
+    PUSHM.L d2/a0-a3
+    bsr     ENT_DespawnEntity
+    POPM.L  d2/a0-a3
+    dbra   d2, @StaticEntLp
+
+    @NoStaticEntities:
+
+    ; Despawn all dynamic entities
+    @DynamicEntLp:
+    ; Find first in list that can be freed
+    lea     EntityBlockList_Entities, a0
+    movea.w EntityBlockList_Head(a0), a0
+    @NextEntity:
+    cmp.w   #0x0, a0
+    beq     @EndDynamicEntities
+    btst    #ENT_MGR_BLOCK_FLAG_NO_FREE, EntityBlock_Flags(a0)
+    beq     @Despawn
+    movea.w EntityBlock_Next(a0), a0
+    bra     @NextEntity
+    @Despawn:
+    movea.w Entity_TypeDesc(a0), a1       ; Get type desc
+    movea.w EntityTypeDesc_Update(a1), a1 ; Get update func
+    bsr     ENT_DespawnEntity
+    bra     @DynamicEntLp
+    @EndDynamicEntities:
 
     rts
 

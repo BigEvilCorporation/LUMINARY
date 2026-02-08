@@ -17,6 +17,7 @@ VRAMBlock_Addr                          rs.w 1  ; Address of block
 VRAMBlock_SizeFlags                     rs.w 1  ; Size and alloc flags
 VRAMBlock_Prev                          rs.w 1  ; Prev block in table
 VRAMBlock_Next                          rs.w 1  ; Next block in table
+VRAMBlock_Context                       rs.w 1  ; Context stack index
     IF BLDCONF_VRAM_MGR_DEBUG
 VRAMBlock_DebugAllocAddr                rs.l 1  ; Address of callee to Alloc()
     ENDIF
@@ -27,7 +28,7 @@ VRAMManager_BlockTable                  rs.b (SIZEOF_VRAMBlock*VRAM_MGR_MAX_ALLO
 VRAMManager_PoolAddr                    rs.w 1
 VRAMManager_PoolSize                    rs.w 1
 VRAMManager_TilesFree                   rs.w 1
-;VRAMManager_LastFreeHandle              rs.w 1
+VRAMManager_Context                     rs.w 1
     STRUCT_END
 
 VRAM_BLOCK_IDX_TO_ADDR: macro idxreg
@@ -45,14 +46,14 @@ VRAM_ERROR: macro string
     lea    @err_string\@, a0
     bsr    ERR_DrawMessage
     lea    RAM_VRAM_MANAGER, a0
-    bsr    VRAMMGR_DrawTable
+    bsr    VMR_DrawTable
     bra    *
     @err_string\@:
     dc.b   \string\,0
     even
     endm
 
-VRAMMGR_Initialise:
+VMR_Initialise:
     ; ======================================
     ; Initialises a VRAM manager
     ; ======================================
@@ -67,11 +68,16 @@ VRAMMGR_Initialise:
     move.w #0x0, VRAMManager_PoolAddr(a0)
     move.w #0x0, VRAMManager_PoolSize(a0)
     move.w #0x0, VRAMManager_TilesFree(a0)
-    ;move.w #0xFFFF, VRAMManager_LastFreeHandle(a0)
+    move.w #0x0, VRAMManager_Context(a0)
+
+    ; TODO: Take initial pools from table
+    move.w #0x0000, d0
+    move.w #0xB000/SIZE_TILE_B, d1
+    bsr    VMR_AddPool
 
     rts
 
-VRAMMGR_AddPool:
+VMR_AddPool:
     ; ======================================
     ; Adds a pool to a VRAM manager
     ; ======================================
@@ -95,7 +101,70 @@ VRAMMGR_AddPool:
 
     rts
 
-VRAMMGR_Alloc:
+VMR_PushContext:
+    ; ======================================
+    ; Pushes a new context to the stack
+    ; ======================================
+
+    lea    RAM_VRAM_MANAGER, a0
+    addi.w #0x1, VRAMManager_Context(a0)
+
+    rts
+
+VMR_PopContext:
+    ; ======================================
+    ; Pops a context from the stack and
+    ; frees all allocations within it
+    ; ======================================
+
+    bsr    VMR_FreeContext
+    lea    RAM_VRAM_MANAGER, a0
+    tst.w  VRAMManager_Context(a0)
+    bne    @ContextOk
+    DBG_RAISE_ERROR "VMR_PopContext: Underrun"
+    @ContextOk:
+    subi.w #0x1, VRAMManager_Context(a0)
+
+    rts
+
+VMR_FreeContext:
+    ; ======================================
+    ; Frees all allocations in the current
+    ; context
+    ; ======================================
+
+    lea    RAM_VRAM_MANAGER, a0
+    move.w VRAMManager_Context(a0), d0
+
+    ; Iterate blocks and free any in current context
+    lea    VRAMManager_BlockTable(a0), a1
+    move.l a1, a5
+    adda.w #(SIZEOF_VRAMBlock*VRAM_MGR_MAX_ALLOCATIONS)-SIZEOF_VRAMBlock, a5
+    move.w #0x0, d4
+    @SearchLp:
+    
+    move.w VRAMBlock_SizeFlags(a1), d2  ; Get size and flags
+    btst   #VRAM_MGR_BIT_ALLOCATED, d2  ; Check if allocated
+    beq    @NextBlock
+    cmp.w  VRAMBlock_Context(a1), d0    ; Check context
+    bne    @NextBlock
+
+    PUSHM.L a0-a1/d0-d4
+    swap   d4                           ; Create a handle to the block
+    move.w VRAMBlock_Addr(a1), d4
+    move.l d4, d0
+    bsr    VMR_Free                 ; Free it
+    POPM.L a0-a1/d0-d4
+
+    @NextBlock:
+    adda.w #SIZEOF_VRAMBlock, a1        ; Next block
+    addi.w #SIZEOF_VRAMBlock, d4
+    cmp.l  a1, a5      					; If not end of list, loop
+    bne    @SearchLp
+
+    rts
+
+VMR_Alloc:
     ; ======================================
     ; Allocates a block of VRAM tiles
     ; ======================================
@@ -155,7 +224,7 @@ VRAMMGR_Alloc:
     @NewTableEntry:
     move.w d5, d6                       ; Backup next block
     move.l a2, a3
-    bsr    VRAMMGR_GetTableEntry    ; Find/alloc new table entry
+    bsr    VMR_GetTableEntry    ; Find/alloc new table entry
     move.w d4, VRAMBlock_Prev(a2)       ; Attach to left neighbour (a1)
     move.w d5, VRAMBlock_Next(a1)      
     tst.w  d6
@@ -188,6 +257,9 @@ VRAMMGR_Alloc:
     bset   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a1) ; Set allocated flag
     move.l d4, d1                       ; Return value
 
+    ; Set block context
+    move.w VRAMManager_Context(a0), VRAMBlock_Context(a1)
+
     ; Keep count
     sub.w  d0, VRAMManager_TilesFree(a0)
 
@@ -211,7 +283,7 @@ VRAMMGR_Alloc:
 
     rts
 
-VRAMMGR_Free:
+VMR_Free:
     ; ======================================
     ; Frees a block of VRAM tiles
     ; ======================================
@@ -245,6 +317,9 @@ VRAMMGR_Free:
     ; Mark as free
     bclr   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a1)
 
+    ; Clear context
+    move.w #-1, VRAMBlock_Context(a1)
+
     ; Keep count
     move.w VRAMBlock_SizeFlags(a1), d4
     andi.w #VRAM_MGR_SIZE_MASK, d4
@@ -270,7 +345,7 @@ VRAMMGR_Free:
     bne    @NoNext
     move.l a1, a3
     move.w d0, d5
-    bsr    VRAMMGR_MergeRightNeighbour
+    bsr    VMR_MergeRightNeighbour
 
     @NoNext:
 
@@ -285,7 +360,7 @@ VRAMMGR_Free:
     ; If left neighbour is free, merge this block into it
     btst   #VRAM_MGR_BIT_ALLOCATED, VRAMBlock_SizeFlags(a3)
     bne    @NoPrev
-    bsr    VRAMMGR_MergeRightNeighbour
+    bsr    VMR_MergeRightNeighbour
 
     @NoPrev:
 
@@ -306,7 +381,7 @@ VRAMMGR_Free:
 
     rts
 
-VRAMMGR_GetTableEntry:
+VMR_GetTableEntry:
     ; ======================================
     ; Finds or creates a new tracking entry
     ; ======================================
@@ -336,7 +411,7 @@ VRAMMGR_GetTableEntry:
 
     rts
 
-VRAMMGR_MergeRightNeighbour:
+VMR_MergeRightNeighbour:
     ; ======================================
     ; Merges right-hand neighbour into this
     ; block, and invalidates it
@@ -426,7 +501,7 @@ VRAMMGR_MergeRightNeighbour:
 
     rts
 
-VRAMMGR_DrawTable:
+VMR_DrawTable:
     ; ======================================
     ; Draws VRAM allocation table to screen
     ; (first 16 entries)
@@ -454,7 +529,7 @@ VRAMMGR_DrawTable:
     @EntryLp:
     move.w #0x04, d0                    ; X
 
-    STACK_ALLOC 64, a0                  ; Alloc space for string
+    STACK_ALLOC #64, a0                  ; Alloc space for string
 
     PUSHM.L d0-d3/a0-a2
    
@@ -504,7 +579,7 @@ VRAMMGR_DrawTable:
 
     POPM.L d0-d3/a0-a2
 
-    STACK_FREE 64                       ; Free string
+    STACK_FREE #64                       ; Free string
 
     addi.w #0x1, d1
     addi.l #SIZEOF_VRAMBlock, a2
