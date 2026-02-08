@@ -16,6 +16,7 @@
 #include <beehive/Project.h>
 #include <beehive/Actor.h>
 #include <beehive/GameObject.h>
+#include <beehive/GameObjectUtils.h>
 #include <beehive/SpriteSheet.h>
 #include <beehive/SpriteAnimation.h>
 
