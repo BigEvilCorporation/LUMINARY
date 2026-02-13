@@ -258,11 +258,11 @@ ECPhysBodyChar_StepAll:
 
     PUSH.W d7                           ; Backup map width
 
-    ; Apply velocity in tile*2 steps
+    ; Apply velocity in COLLISION_MAX_TERRAIN_SEARCH_TILES steps
     move.l d2, d4                       ; Clamp X/Y vel to tile width/height
     move.l d3, d5
-    CLAMP.L d4, #-((COLLISION_TILE_WIDTH*2)<<16), #((COLLISION_TILE_WIDTH*2)<<16)
-    CLAMP.L d5, #-((COLLISION_TILE_HEIGHT*2)<<16), #((COLLISION_TILE_HEIGHT*2)<<16)
+    CLAMP.L d4, #-((COLLISION_MAX_TERRAIN_SEARCH_TILES*COLLISION_TILE_WIDTH)<<16), #((COLLISION_MAX_TERRAIN_SEARCH_TILES*COLLISION_TILE_WIDTH)<<16)
+    CLAMP.L d5, #-((COLLISION_MAX_TERRAIN_SEARCH_TILES*COLLISION_TILE_HEIGHT)<<16), #((COLLISION_MAX_TERRAIN_SEARCH_TILES*COLLISION_TILE_HEIGHT)<<16)
 
     sub.l  d4, d2                       ; Subtract from total vel
     sub.l  d5, d3
@@ -688,7 +688,7 @@ ECPhysBodyChar_TerrainSearch_Right:
     addi.w #VDP_SPRITE_BORDER_X, d7     ; X back to sprite space
     sub.w  d4, d7                       ; X to centre
     subi.w #PHYS_STEP_HEIGHT, d7        ; - step height
-    cmp.w  d7, d0                       ; Check if left of wall
+    cmp.w  d7, d0                       ; Check if right of wall
     blt    @EndTerrain
     
     ; Within step height, snap to terrain
