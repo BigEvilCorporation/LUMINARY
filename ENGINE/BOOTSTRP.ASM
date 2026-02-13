@@ -34,9 +34,9 @@ Bootstrap:
     ; Initialise VRAM manager
     bsr    VMR_Initialise
  
-    ; Load debug font
-    bsr    FNT_LoadDebugFont
-
+    ; Load debug font etc
+    bsr    DBG_LoadResources
+    
     ; Push new VRAM context (so debug font can't be freed)
     bsr    VMR_PushContext
 
