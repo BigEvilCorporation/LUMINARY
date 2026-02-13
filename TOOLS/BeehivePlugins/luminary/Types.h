@@ -9,6 +9,7 @@
 #pragma once
 
 #include <ion/core/Types.h>
+#include <ion/beehive/Animation.h>
 
 #include <string>
 #include <vector>
@@ -97,6 +98,16 @@ namespace luminary
 		std::string entityTypeName;
 		std::vector<Param> params;
 		std::vector<Component> components;
+	};
+
+	struct Animation
+	{
+		std::string name;
+		float length;
+		bool looping;
+		std::vector<std::string> actorNames;
+		std::vector<AnimTrackPosition> positionTracks;
+		std::vector<AnimTrackSpriteAnim> spriteAnimTracks;
 	};
 
 	struct ScriptAddress

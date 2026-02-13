@@ -30,6 +30,7 @@ namespace luminary
 
 		bool ExportArchetypes(const std::string& filename, const std::vector<Archetype>& archetypes);
 		bool ExportPrefabs(const std::string& filename, const std::vector<Prefab>& prefabs);
+		bool ExportAnimations(const std::string& filename, const std::vector<Animation>& animations);
 
 		static std::string ExportSpawnParamsData(const std::string& name, unsigned short id, const std::vector<Param>& entityParams, const std::vector<Component>& components);
 		static std::string ExportStaticEntityData(const Entity& entity);

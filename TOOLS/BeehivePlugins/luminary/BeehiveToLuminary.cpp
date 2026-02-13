@@ -295,9 +295,9 @@ namespace luminary
 		{
 			if (const GameObjectType* gameObjectType = project.GetGameObjectType(srcArchetype.typeId))
 			{
-				archetype.name = srcArchetype.name;
+				archetype.name = srcArchetype.GetName();
 				archetype.entityTypeName = gameObjectType->GetName();
-				const Actor* actor = project.GetActor(srcArchetype.spriteActorId);
+				const Actor* actor = project.GetActor(srcArchetype.GetSpriteActorId());
 				if (!actor)
 					actor = project.GetActor(gameObjectType->GetSpriteActorId());
 
@@ -383,7 +383,7 @@ namespace luminary
 			//Convert base type
 			ConvertEntityType(project, gameObjectType, entity);
 
-			entity.spawnData.name = prefabChild.name;
+			entity.spawnData.name = prefabChild.GetName();
 
 			//Merge instance variables
 			int paramIdx = 0;
@@ -391,7 +391,7 @@ namespace luminary
 
 			const std::vector<GameObjectVariable>& typeVariables = gameObjectType.GetVariables();
 
-			const Actor* actor = project.GetActor(prefabChild.spriteActorId);
+			const Actor* actor = project.GetActor(prefabChild.GetSpriteActorId());
 
 			if (!actor)
 				actor = project.GetActor(gameObjectType.GetSpriteActorId());
@@ -401,7 +401,7 @@ namespace luminary
 			for (int j = 0; j < typeVariables.size(); j++, paramIdx++)
 			{
 				//Find overridden variable
-				const GameObjectVariable* variable = FindVariable(prefabChild.variables, typeVariables[j].m_name, typeVariables[j].m_componentIdx);
+				const GameObjectVariable* variable = FindVariable(prefabChild.GetVariables(), typeVariables[j].m_name, typeVariables[j].m_componentIdx);
 				if (!variable)
 				{
 					//Use variable from game object type
@@ -443,11 +443,10 @@ namespace luminary
 			entity.id = gameObjectType.GetId() & 0xFFFF;
 
 			//Size
-			entity.spawnData.width = gameObjectType.GetDimensions().x;
-			entity.spawnData.height = gameObjectType.GetDimensions().y;
-
-			//Sprite actor from game object type
-			const Actor* actor = project.GetActor(gameObjectType.GetSpriteActorId());
+			GameObjectDimensionsSource dimensionsSource;
+			ion::Vector2i dimensions = FindGameObjectDimensions(project, &gameObjectType, dimensionsSource);
+			entity.spawnData.width = dimensions.x;
+			entity.spawnData.height = dimensions.y;
 
 			//Create entity and component spawn params
 			int paramIdx = 0;
@@ -526,15 +525,12 @@ namespace luminary
 			//Spawn position
 			entity.spawnData.positionX = gameObject.GetPosition().x + GameObject::spriteSheetBorderX;
 			entity.spawnData.positionY = gameObject.GetPosition().y + GameObject::spriteSheetBorderY;
-			entity.spawnData.width = (gameObject.GetDimensions().x > 0) ? gameObject.GetDimensions().x : gameObjectType.GetDimensions().x;
-			entity.spawnData.height = (gameObject.GetDimensions().y > 0) ? gameObject.GetDimensions().y : gameObjectType.GetDimensions().y;
 
-			//Sprite actor from game object
-			const Actor* actor = project.GetActor(gameObject.GetSpriteActorId());
-
-			//Sprite actor from game object type
-			if (!actor)
-				actor = project.GetActor(gameObjectType.GetSpriteActorId());
+			//Size
+			GameObjectDimensionsSource dimensionsSource;
+			ion::Vector2i dimensions = FindGameObjectDimensions(project, &gameObject, dimensionsSource);
+			entity.spawnData.width = dimensions.x;
+			entity.spawnData.height = dimensions.y;
 
 			//Create entity and component spawn params
 			int paramIdx = 0;
@@ -598,6 +594,42 @@ namespace luminary
 				{
 					scriptFunc.scope = entity.components[scriptFuncs[j].componentIdx].name;
 					entity.components[scriptFuncs[j].componentIdx].scriptFuncs.push_back(scriptFunc);
+				}
+			}
+		}
+
+		void ConvertPrefabAnimation(const Project& project, const ::Animation& srcAnimation, luminary::Animation& animation)
+		{
+			//Output requires 1 anim track per prefab child
+			GameObjectTypeId prefabTypeId = srcAnimation.GetPrefabId();
+			if (const GameObjectType* prefabType = project.GetGameObjectType(prefabTypeId))
+			{
+				animation.name = "anim_" + prefabType->GetPrefabName() + "_" + srcAnimation.GetName();
+				animation.length = srcAnimation.GetLength();
+				animation.looping = (srcAnimation.GetPlaybackBehaviour() == ion::render::Animation::PlaybackBehaviour::Loop);
+
+				for (const auto& prefabChild : prefabType->GetPrefabChildren())
+				{
+					animation.actorNames.push_back(prefabChild.GetName());
+					animation.positionTracks.push_back(AnimTrackPosition());
+					animation.spriteAnimTracks.push_back(AnimTrackSpriteAnim());
+				}
+
+				//Input only contains anim tracks for objects with keyframes
+				for (TAnimActorMap::const_iterator it = srcAnimation.ActorsBegin(), end = srcAnimation.ActorsEnd(); it != end; ++it)
+				{
+					if (const GameObjectType::PrefabChild* prefabChild = prefabType->FindPrefabChild(it->second.GetGameObjectId()))
+					{
+						for(int i = 0; i < animation.actorNames.size(); i++)
+						{
+							if (animation.actorNames[i] == prefabChild->GetName())
+							{
+								animation.positionTracks[i] = it->second.m_trackPosition;
+								animation.spriteAnimTracks[i] = it->second.m_trackSpriteAnim;
+								break;
+							}
+						}
+					}
 				}
 			}
 		}
