@@ -584,8 +584,10 @@ ECPhysBodyChar_TerrainSearch_Down:
     POPM.L  d0-d5/a0-a4
     cmp.w  #-1, d6
     beq    @NoPlatform
+    subi.w #PHYS_STEP_HEIGHT, d6        ; - step height
     cmp.w  d6, d1                       ; Check if on or below platform
-    bgt    @NoPlatform
+    blt    @NoPlatform
+    addi.w #PHYS_STEP_HEIGHT, d6        ; + step height
     move.l d6, d1
     move.w #0x0, ECPhysBodyChar_LastTerrainFlags(a3) ; Angle is always up for a platform
     bset   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
