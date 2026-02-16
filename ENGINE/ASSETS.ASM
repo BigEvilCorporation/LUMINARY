@@ -16,6 +16,9 @@
     ; Debug draw font
 	ASSET_INCLUDE_BIN debug_font, 'engine/assets/fonts/sans.bin'
 
+    ; Tiles for debug draw tools
+    ASSET_INCLUDE_ASM debug_tiles, 'engine/assets/debug/dbgtiles.asm'
+
     ; Error draw palette
     ASSET_INCLUDE_ASM error_palette, 'engine/assets/palettes/errorpal.asm'
 

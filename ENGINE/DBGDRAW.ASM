@@ -6,6 +6,91 @@
 ; DBGDRAW.ASM - Debug drawing routines
 ; ============================================================================================
 
+; Offset to locator tile centre
+DBG_LOCATOR_OFFS_X  equ 0x4
+DBG_LOCATOR_OFFS_Y  equ 0x4
+
+DBG_LoadResources:
+    ; ======================================
+    ; Loads tiles needed for debug tools
+    ; such as system font and locator
+    ; ======================================
+
+    ; Load debug font
+    lea    RAM_VRAM_MANAGER, a0
+    move.w #SIZEOF_debug_font/SIZE_TILE_B, d0
+    bsr    VMR_Alloc
+    move.l d1, RAM_DBG_FONT_VRAM
+
+    lea    debug_font, a0
+    move.w d1, d0
+    move.w #SIZEOF_debug_font/SIZE_TILE_B, d1
+    bsr    VDP_LoadTiles
+
+    ; Load debug tool tiles
+    lea    RAM_VRAM_MANAGER, a0
+    move.w #SIZEOF_debug_tiles/SIZE_TILE_B, d0
+    bsr    VMR_Alloc
+    move.l d1, RAM_DBG_TILES_VRAM
+    lea    debug_tiles, a0
+    move.w d1, d0
+    move.w #SIZEOF_debug_tiles/SIZE_TILE_B, d1
+    bsr    VDP_LoadTiles
+
+    rts
+
+DBG_DrawLocator:
+    ; ======================================
+    ; Draws a locator tile as a sprite to
+    ; pinpoint a specific pixel on screen
+    ; for debugging.
+    ; Object space and obeys scrolling values
+    ; ======================================
+    ; d0.w X coord (pixels, object space)
+    ; d1.w Y coord (pixels, object space)
+    ; ======================================
+
+    PUSHALL
+
+    ; Get camera bounds
+    bsr    MAP_GetScreenBounds
+
+    ; Check on screen
+    PUSHM.W d0-d1
+	move.w d0, d3
+    swap   d3
+    move.w d1, d3
+    move.w d4, d1
+    swap   d1
+    move.w d5, d1
+    move.w d6, d2
+    swap   d2
+    move.w d7, d2
+    bsr    GEOM_PointInsideBox
+    move.b d0, d2
+    POPM.W d0-d1
+
+    tst.b  d2
+    beq    @OffScreen
+
+    ; Draw locator sprite
+    sub.w  d4, d0                   ; Camera space to sprite space
+    sub.w  d5, d1
+    addi.w #VDP_SPRITE_BORDER_X, d0
+    addi.w #VDP_SPRITE_BORDER_Y, d1
+    subi.w #DBG_LOCATOR_OFFS_X, d0  ; Offset to centre
+    subi.w #DBG_LOCATOR_OFFS_Y, d1
+    move.l RAM_DBG_TILES_VRAM, d2   ; Tile ID
+    move.w #0x0, d3                 ; Draw flags    
+    move.b #0x0, d4                 ; Layout (1x1)
+    bsr    SPR_Draw
+
+    @OffScreen:
+
+    POPALL
+
+    rts
+
 DBG_DrawStringS:
     ; ======================================
     ; Draws debug text string using sprites.
@@ -29,7 +114,6 @@ DBG_DrawStringS:
 
     ; Get font addr
     move.l RAM_DBG_FONT_VRAM, d5
-    VDP_BYTES_TO_TILES d5
 
     ; Loop until terminator
     @CharLp:

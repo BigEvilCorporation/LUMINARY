@@ -21,10 +21,11 @@ RAM_VDP_PAL_FADE_DST                    rs.l 4                      ; Palette ad
 RAM_VDP_PAL_FADE_SRC                    rs.b (16*3*SIZE_WORD*4)     ; Current palette fade colours (16x RGB 8.8 words per palettes)
 RAM_VDP_PAL_FADE_DELTA                  rs.w (16*3*SIZE_WORD*4)     ; Palette fade deltas per frame (16x RGB 8.8 words per palettes)
 RAM_VDP_PAL_FADE_TEMP                   rs.b (SIZE_PALETTE_B*4)     ; Last calculated fade palettes
-RAM_VDP_PAL_FADE_FRAME                  rs.b 4                      ; Palette fade frames
+RAM_VDP_PAL_FADE_FRAME                  rs.w 4                      ; Palette fade frames
 
     ; Debug
 RAM_DBG_FONT_VRAM                       rs.l 1
+RAM_DBG_TILES_VRAM                      rs.l 1
 
     ; Sprite table
 RAM_SPRITE_BLANK                        rs.b SIZEOF_VDPSprite   ; Blank sprite (speeds up linking -1st in table)

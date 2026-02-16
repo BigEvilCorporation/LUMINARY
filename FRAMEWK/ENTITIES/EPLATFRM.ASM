@@ -32,25 +32,31 @@ ECPlatform_Initialise:
 
     rts
 
-PHYS_EntityFindPlatform:
+PHYS_FindPlatform:
     ; ======================================
     ; Searches for platforms downwards,
     ; returns platform height and velocity.
     ; Fires ECPlatform_OnTouched if
-    ; entity is making contact.
+    ; making contact.
     ; ======================================
     ; In:
-    ;  a0   Entity
+    ;  d0.w Pos X
+    ;  d1.w Pos Y
+    ;  d4.w Extents X
+    ;  d5.w Extents Y
     ; Out:
     ;  a3   Found ECPlatform component
     ;  d0.w Platform height (or -1)
     ; ======================================
 
+    move.w d4, d6
+    move.w d5, d7
+
     ; Probe position
-    move.w Entity_PosX(a0), d3          ; Get entity position
-    move.w Entity_PosY(a0), d4
+    move.w d0, d3                       ; Position
+    move.w d1, d4
     subi.w #PHYS_STEP_HEIGHT, d4        ; - step height
-    add.w  Entity_ExtentsY(a0), d4      ; Centre to Y probe offset
+    add.w  d7, d4                       ; Centre to Y probe offset
 
     ; Search all platforms
     move.w #-1, d0
@@ -94,7 +100,7 @@ PHYS_EntityFindPlatform:
     rts
 
     @Found:
-    sub.w  Entity_ExtentsY(a0), d0      ; Probe offset back to centre
+    sub.w  d7, d0                       ; Probe offset back to centre
 
     movea.w ECPlatform_OnTouched(a3), a1; Fire callback
     cmpa.w #0x0, a1

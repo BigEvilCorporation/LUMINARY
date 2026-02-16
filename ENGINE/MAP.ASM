@@ -406,3 +406,37 @@ MAP_ApplyScroll:
     move.w d0, PORT_VDP_DATA
 
     rts
+
+MAP_GetScreenBounds:
+    ; ======================================
+    ; Gets scrolled screen bounds in plane
+    ; space.
+    ; ======================================
+    ; Out:
+	;  d4.w Camera bounds left   (sprite space)
+    ;  d5.w Camera bounds top    (sprite space)
+    ;  d6.w Camera bounds right  (sprite space)
+    ;  d7.w Camera bounds bottom (sprite space)
+    ; ======================================
+    moveq  #0x0, d4
+    moveq  #0x0, d5
+    moveq  #0x0, d6
+    moveq  #0x0, d7
+
+    lea    RAM_STREAMING_MAP_A, a0
+    move.w StreamingMap_ScrollX(a0), d4
+    move.w StreamingMap_ScrollY(a0), d5
+    neg.w  d4                                               ; Invert X
+    addi.w #VDP_SPRITE_BORDER_X+(VDP_SCREEN_WIDTH_PX/2), d4 ; Scroll space to screen centre to sprite space
+    addi.w #VDP_SPRITE_BORDER_Y+(VDP_SCREEN_HEIGHT_PX/2), d5
+    
+    move.w d4, d6
+    move.w d5, d7
+
+    ; Centre to bounds
+    subi.w #VDP_SCREEN_WIDTH_PX/2, d4     ; Left
+    addi.w #VDP_SCREEN_WIDTH_PX/2, d6     ; Right
+    subi.w #VDP_SCREEN_HEIGHT_PX/2, d5    ; Top
+    addi.w #VDP_SCREEN_HEIGHT_PX/2, d7    ; Bottom
+
+    rts
