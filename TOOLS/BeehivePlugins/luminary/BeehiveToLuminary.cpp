@@ -151,6 +151,13 @@ namespace luminary
 				stream << variable.m_value << "_TypeDesc";
 				param.value = stream.str();
 			}
+			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityId)))
+			{
+				int entityId = std::atoi(variable.m_value.c_str());
+				std::stringstream stream;
+				stream << "0x" << SSTREAM_HEX4(entityId);
+				param.value = stream.str();
+			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityArchetype)))
 			{
 				if (variable.m_value == "0")
@@ -266,15 +273,6 @@ namespace luminary
 			else
 			{
 				param.value = variable.m_value;
-
-				//If game object has overridden the variable, take that value instead
-				if (gameObject)
-				{
-					if (const GameObjectVariable* overriddenVar = gameObject->FindVariable(variable.m_name))
-					{
-						param.value = overriddenVar->m_value;
-					}
-				}
 			}
 
 			switch (variable.m_size)

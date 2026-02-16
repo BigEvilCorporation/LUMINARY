@@ -21,6 +21,7 @@ namespace luminary
 			{ "SPRITE_ACTOR" , TagType::SpriteActor },
 			{ "SPRITE_SHEET" , TagType::SpriteSheet },
 			{ "SPRITE_ANIM", TagType::SpriteAnimation },
+			{ "ENTITY_ID", TagType::EntityId },
 			{ "ENTITY_DESC", TagType::EntityDesc },
 			{ "ENTITY_ARCHETYPE", TagType::EntityArchetype },
 			{ "SCRIPT_DATA", TagType::ScriptData },
