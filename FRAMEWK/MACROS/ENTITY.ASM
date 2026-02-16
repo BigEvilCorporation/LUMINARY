@@ -251,6 +251,24 @@ ENT_GETCOMPONENT: macro entity_name,component_name,entity_addr,addr_reg
     movea.w Entity_\entity_name\_Component_\component_name\(\entity_addr\), \addr_reg
     endm
 
+ENT_LOOKUP: macro id,dst,tmpreg
+    ; ======================================
+    ; Linear search for an instantiated
+    ; entity by its id
+    ; ======================================
+    ; In:
+    ;  id    Id of entity to find
+    ; Out:
+    ;  dst   Entity
+    ; ======================================
+    PUSH.L  a0
+    move.w  \id, d0
+    bsr     ENT_FindById
+    move.w  a0, \tmpreg
+    POP.L   a0
+    move.w  \tmpreg, \dst
+    endm
+
 ENT_GETBOUNDS: macro ent_addr,topleft_reg,bottomright_reg
     ; ======================================
     ; Extracts entity bounding box, in a
@@ -286,6 +304,30 @@ ENT_GETBOUNDS: macro ent_addr,topleft_reg,bottomright_reg
 	add.w  Entity_ExtentsY(\ent_addr), \bottomright_reg ; Bottom bounds
 
 	endm
+
+ENT_MAKEBOUNDS: macro ent_addr,size_x,size_y,topleft_reg,bottomright_reg
+    ; ======================================
+    ; Cretes a bounding box around an entity
+    ; in a format compatible with GEOM_*
+    ; routines.
+    ; Returns pixel coordinates.
+    ; ======================================
+    ; In:
+    ; ent_addr           - Entity address
+    ; size_x             - Box size X (pixels)
+    ; size_y             - Box size Y (pixels)
+    ; ======================================
+    ; Out:
+    ; topleft_reg.ww     - Top left coord
+    ; bottomright_reg.ww - Bottom right coord
+    ; ======================================
+    move.w Entity_PosX(\ent_addr), \topleft_reg
+    swap   \topleft_reg
+    move.w Entity_PosY(\ent_addr), \topleft_reg
+    move.l \topleft_reg, \bottomright_reg
+    subi.l #(\size_x<<16)|\size_y, \topleft_reg
+    addi.l #(\size_x<<16)|\size_y, \bottomright_reg
+    endm
 
 ENT_GETPOS_VEC2: macro vec2reg,ent_addr
     ; ======================================

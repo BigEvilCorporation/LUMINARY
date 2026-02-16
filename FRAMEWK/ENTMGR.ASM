@@ -558,6 +558,37 @@ ENT_FindFirstOfType:
 
     rts
 
+ENT_FindById:
+    ; ======================================
+    ; Linear search for an instantiated
+    ; entity by its id
+    ; ======================================
+    ; In:
+    ;  d0.w Entity id
+    ; Out:
+    ;  a0    Entity
+    ; ======================================
+
+    move.w  #0x0, a0
+
+    lea     EntityBlockList_Entities, a0
+    movea.w EntityBlockList_Head(a0), a0
+    cmp.w  #0x0, a0
+    beq     @NoDynamicEntities
+
+    @DynamicEntLp:
+    move.l Entity_SpawnData(a0), a1
+    cmp.w  EntitySpawnData_Id(a1), d0
+    beq    @Found
+    movea.w EntityBlock_Next(a0), a0
+    cmp.w  #0x0, a0
+    bne    @DynamicEntLp
+
+    @NoDynamicEntities:
+    @Found:
+
+    rts
+
 ENT_DebugDrawMemory:
     ; ======================================
     ; Draw entity allocator debug info to
