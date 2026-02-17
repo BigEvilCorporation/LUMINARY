@@ -70,7 +70,7 @@ GEOM_BoxIntersectBox:
 	move.l d2, d5
 	move.l d3, d6
 	swap d5
-	swap d5
+	swap d6
 	cmp.w d5, d6
 	bgt @NoIntersect
 		
