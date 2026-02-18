@@ -26,7 +26,8 @@ ECAnimation_ActorCount             rs.w 1
 ECAnimation_ActorList              rs.w 1
 ECAnimation_AnimPosX		       rs.w 1
 ECAnimation_AnimPosY		       rs.w 1
-ECAnimation_Time			       rs.w 1
+ECAnimation_Time			       rs.w 1	; 8.8
+ECAnimation_Speed			       rs.w 1	; 8.8
 ECAnimation_NextKeyframeIdx	       rs.w 1
 	ENTITY_COMPONENT_END
 
@@ -44,6 +45,7 @@ ECAnimation_Initialise:
 	move.w #0x0, ECAnimation_AnimPosX(a0)
 	move.w #0x0, ECAnimation_AnimPosY(a0)
 	move.w #0x0, ECAnimation_Time(a0)
+	move.w #0x0100, ECAnimation_Speed(a0)
 	move.w #0x0, ECAnimation_NextKeyframeIdx(a0)
 
 	rts
@@ -86,15 +88,14 @@ ECAnimation_Update:
 	beq    @NoAnim
 	
 	; If this is the last keyframe
-	move.w ECAnimation_NextKeyframeIdx(a0), d0
-	cmp.w  ECAnimData_KeyframeCount(a1), d0
+	move.w ECAnimData_KeyframeCount(a1), d0
+	cmp.w  ECAnimation_NextKeyframeIdx(a0), d0
 	bne    @NotAtEnd
 	
 	; If looping, return to beginning, else stop
 	tst.b  ECAnimData_Looping(a1)
 	beq    @NotLooping
 	move.w #0x0, ECAnimation_NextKeyframeIdx(a0); Reset next keyframe
-	move.w #0x0, ECAnimation_Time(a0)			; Reset animation time
 	jsr    ECAnimation_ResetActors				; Reset actor positions
 	bra    @Looping
 	@NotLooping:
@@ -102,16 +103,21 @@ ECAnimation_Update:
 	@Looping:
 	@NotAtEnd:
 
-	; Check if hit next keyframe
+	; Time to keyframe
 	move.w ECAnimation_Time(a0), d1
+	FIXED8_TO_INT d1							; 8.8 to byte
+	divs   d1, d0								; / anim length
+	swap   d1									; Remainder
+
+	; Check if hit next keyframe
 	move.l ECAnimData_KeyframeTimesList(a1), a2
 	moveq  #0x0, d0
 	move.w ECAnimation_NextKeyframeIdx(a0), d0	; Get next keyframe index
-	move.l d0, d2									; Backup for next keyframe
-	move.l d0, d3									; Backup for keyframe offset
-	lsl.l  #0x1, d0									; To words
-	add.l  d0, a2									; Get keyframe time addr
-	cmp.w  (a2), d1									; Check if hit
+	move.l d0, d2								; Backup for next keyframe
+	move.l d0, d3								; Backup for keyframe offset
+	lsl.l  #0x1, d0								; To words
+	add.l  d0, a2								; Get keyframe time addr
+	cmp.w  (a2), d1								; Check if hit
 	bne    @NotAdvanced
 	
 	; Next keyframe
@@ -126,7 +132,7 @@ ECAnimation_Update:
 
 	; Advance time
 	move.w ECAnimation_Time(a0), d1
-	addi.w #0x1, d1
+	add.w  ECAnimation_Speed(a0), d1
 	move.w d1, ECAnimation_Time(a0)
 
 	@NoAnim:

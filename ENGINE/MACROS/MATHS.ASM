@@ -82,3 +82,25 @@ LERP_INT1024: macro destreg,A,B,T,tempreg
 	lsr.l  #0x2,\B
 	move.l \B,\destreg
 	endm
+
+MATCH_SIGN:	macro reg1,reg2
+    ; ======================================
+    ; Changes sign of reg2 to match reg1
+    ; ======================================
+    ; reg1          - Input sign
+    ; reg2          - Output sign
+    ; ======================================
+	cmp.\0   #0x0, \reg1	; If reg1 >= 0, positive
+	bgt     @POS1\@
+	@NEG1\@:
+	cmp.\0   #0x0, \reg2	; If reg2 < 0, match
+	blt     @MATCH\@
+	neg.\0   \reg2			; Mismatch, invert reg2
+	bra     @END\@
+	@POS1\@:
+	cmp.\0   #0x0, \reg2	; If reg2 >= 0, match
+	bgt     @MATCH\@
+	neg.\0   \reg2			; Mismatch, invert reg2
+	@MATCH\@:
+	@END\@:
+	endm

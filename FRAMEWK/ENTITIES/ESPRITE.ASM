@@ -28,7 +28,7 @@ ECSprite_CurrentFrame                   rs.l 1  ; Current sprite frame
 ECSprite_VRAMHndl                       rs.l 1  ; VRAM allocation
 ECSprite_Animation                      rs.l 1  ; Current animation
 ECSprite_AnimSubFrame                   rs.l 1  ; Current subframe (16.16)
-ECSprite_AnimSpeed                      rs.w 1  ; Animation speed
+ECSprite_AnimSpeed                      rs.w 1  ; Animation speed (8.8)
 ECSprite_PosX                           rs.b 1  ; Relative position X
 ECSprite_PosY                           rs.b 1  ; Relative position Y
 ECSprite_DrawFlags                      rs.b 1  ; Prio/pal/flip flags
@@ -177,7 +177,9 @@ ECSprite_LoadAnimation:
     cmpa.w #0x0, a2
     beq    @NoAnim
 
-    move.w SpriteAnim_DefaultSpeed(a2), ECSprite_AnimSpeed(a0)  ; Set default speed
+    move.w SpriteAnim_DefaultSpeed(a2), d0					    ; Set default speed
+    FIXED8_TO_INT d0
+    move.w d0, ECSprite_AnimSpeed(a0)
     move.b SpriteAnim_DefaultLoop(a2), d0                       ; Set default loop flag
     andi.b #~(1<<ECSPRITE_STATE_FLAG_LOOPING), ECSprite_StateFlags(a0)
     lsl.b  #ECSPRITE_STATE_FLAG_LOOPING, d0
@@ -293,6 +295,7 @@ ECSprite_DrawAll:
     beq    @AnimNotPlaying
 
     ext.l  d4                           ; Sign extend speed
+    asl.l  #0x8, d4						 ; 8.8 to 16.16
     move.l ECSprite_AnimSubFrame(a3), d5; Advance subframe
     move.l d5, d6
     add.l  d4, d5

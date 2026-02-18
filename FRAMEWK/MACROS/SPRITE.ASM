@@ -45,6 +45,20 @@ SPRITE_COMPONENT_SETFLIPY_REG: macro sprite,enabled
     or.b   \enabled, ECSprite_DrawFlags(\sprite)
     endm
 
+SPRITE_COMPONENT_GETFLIPX: macro sprite,enabled
+    ; ======================================
+    ; Get a sprite's flip X flag
+    ; ======================================
+    ; In:
+    ;  sprite   - Address reg of sprite
+    ; Out:
+    ;  enabled  - Reg containing 0 or 1
+    ; ======================================
+    move.b ECSprite_DrawFlags(\sprite), \enabled
+    andi.b #VDP_SPRITE_FLAG_MASK_FLIPX>>8, \enabled
+    rol.b  #VDP_SPRITE_FLAG_ROR_FLIPX, \enabled
+    endm
+
 SPRITE_COMPONENT_SETPRIO_REG: macro sprite,high_prio
     ; ======================================
     ; Set a sprite's high prio flag
