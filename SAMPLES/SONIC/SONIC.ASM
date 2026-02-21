@@ -3,7 +3,7 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 11th July 2019
 ; ============================================================================================
-; HELLO.ASM - "Hello world" using Luminary Engine
+; SONIC.ASM - An appropriate "Hello world" demo for Luminary Engine
 ; ============================================================================================
 
     ; Code includes
