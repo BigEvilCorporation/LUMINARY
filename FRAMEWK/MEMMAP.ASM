@@ -30,6 +30,11 @@ RAM_SCENE_DATA                          rs.l 1
 RAM_CAMERA_CURRENT                  	rs.l 1
     STRUCT_ALLOC Camera,RAM_CAMERA_DEFAULT
 
+; Input
+RAM_GAMEPAD_CURR_1                      rs.w 1  ; Current frame gamepad 1 state
+RAM_GAMEPAD_PREV_1                      rs.w 1  ; Prev frame gamepad 1 state
+RAM_GAMEPAD_DBNC_1                      rs.w 1 ; Current frame gamepad 1 debounced
+
 ; Dialog system
 RAM_DIALOG_DEFAULT_FONT                 rs.l 1  ; Font
 RAM_DIALOG_DEFAULT_CURSOR               rs.l 1  ; Cursor
