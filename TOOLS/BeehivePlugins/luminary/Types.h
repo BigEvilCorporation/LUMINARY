@@ -67,6 +67,7 @@ namespace luminary
 
 	struct Component
 	{
+		std::string typeName;
 		std::string name;
 		SpawnData spawnData;
 		std::vector<Param> params;
@@ -79,7 +80,7 @@ namespace luminary
 		unsigned short id;
 		SpawnData spawnData;
 		std::vector<Param> params;
-		std::vector<Component> components;
+		std::vector<std::pair<Component,std::string>> components;
 		std::vector<ScriptFunc> scriptFuncs;
 		bool isStatic;
 		bool isPrefab;
@@ -97,7 +98,7 @@ namespace luminary
 		std::string name;
 		std::string entityTypeName;
 		std::vector<Param> params;
-		std::vector<Component> components;
+		std::vector<std::pair<Component, std::string>> components;
 	};
 
 	struct Animation

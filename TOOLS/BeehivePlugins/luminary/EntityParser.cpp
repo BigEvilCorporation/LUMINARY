@@ -12,6 +12,7 @@
 #include <ion/core/io/File.h>
 #include <ion/core/io/FileDevice.h>
 #include <ion/core/string/String.h>
+#include <ion/core/utils/STL.h>
 
 #include <cctype>
 
@@ -90,6 +91,16 @@ namespace luminary
 
 	bool EntityParser::ParseDirectories(const std::vector<std::string>& directories, std::vector<Entity>& entities)
 	{
+		m_componentSpawnTextBlocks.clear();
+		m_entitySpawnTextBlocks.clear();
+		m_componentTextBlocks.clear();
+		m_entityTextBlocks.clear();
+		m_staticEntityTextBlocks.clear();
+
+		m_componentSpawnData.clear();
+		m_entitySpawnData.clear();
+		m_components.clear();
+
 		if (ion::io::FileDevice::GetDefault())
 		{
 			for (auto directory : directories)
@@ -103,50 +114,50 @@ namespace luminary
 				{
 					FindTextBlocks(asmFiles[i]);
 				}
+			}
 
-				//Parse component spawn data
-				for (int i = 0; i < m_componentSpawnTextBlocks.size(); i++)
+			//Parse component spawn data
+			for (int i = 0; i < m_componentSpawnTextBlocks.size(); i++)
+			{
+				SpawnData spawnData;
+				ParseSpawnData(m_componentSpawnTextBlocks[i], spawnData);
+				m_componentSpawnData.push_back(spawnData);
+			}
+
+			//Parse entity spawn data
+			for (int i = 0; i < m_entitySpawnTextBlocks.size(); i++)
+			{
+				SpawnData spawnData;
+				ParseSpawnData(m_entitySpawnTextBlocks[i], spawnData);
+				m_entitySpawnData.push_back(spawnData);
+			}
+
+			//Parse components and match with spawn data
+			for (int i = 0; i < m_componentTextBlocks.size(); i++)
+			{
+				Component component;
+				if (ParseComponent(m_componentTextBlocks[i], component))
 				{
-					SpawnData spawnData;
-					ParseSpawnData(m_componentSpawnTextBlocks[i], spawnData);
-					m_componentSpawnData.push_back(spawnData);
+					m_components.push_back(component);
 				}
+			}
 
-				//Parse entity spawn data
-				for (int i = 0; i < m_entitySpawnTextBlocks.size(); i++)
+			//Parse entities and match with spawn data
+			for (int i = 0; i < m_entityTextBlocks.size(); i++)
+			{
+				Entity entity;
+				if (ParseEntity(m_entityTextBlocks[i], entity))
 				{
-					SpawnData spawnData;
-					ParseSpawnData(m_entitySpawnTextBlocks[i], spawnData);
-					m_entitySpawnData.push_back(spawnData);
-				}
-
-				//Parse components and match with spawn data
-				for (int i = 0; i < m_componentTextBlocks.size(); i++)
-				{
-					Component component;
-					if (ParseComponent(m_componentTextBlocks[i], component))
-					{
-						m_components.push_back(component);
-					}
-				}
-
-				//Parse entities and match with spawn data
-				for (int i = 0; i < m_entityTextBlocks.size(); i++)
-				{
-					Entity entity;
-					if (ParseEntity(m_entityTextBlocks[i], entity))
-					{
-						entities.push_back(entity);
-					}
-				}
-
-				//Parse static entities
-				for (int i = 0; i < m_staticEntityTextBlocks.size(); i++)
-				{
-					Entity entity;
-					ParseStaticEntity(m_staticEntityTextBlocks[i], entity);
 					entities.push_back(entity);
 				}
+			}
+
+			//Parse static entities
+			for (int i = 0; i < m_staticEntityTextBlocks.size(); i++)
+			{
+				Entity entity;
+				ParseStaticEntity(m_staticEntityTextBlocks[i], entity);
+				entities.push_back(entity);
 			}
 
 			return true;
@@ -251,7 +262,7 @@ namespace luminary
 									if (ContainsToken(words, s_entitySpawnEnd) >= 0)
 									{
 										inEntitySpawnBlock = false;
-										m_entitySpawnTextBlocks.push_back(currentBlock);
+										ion::utils::stl::PushBackUnique(m_entitySpawnTextBlocks, currentBlock);
 										currentBlock = TextBlock();
 									}
 									else
@@ -265,7 +276,7 @@ namespace luminary
 									if (ContainsToken(words, s_componentSpawnEnd) >= 0)
 									{
 										inComponentSpawnBlock = false;
-										m_componentSpawnTextBlocks.push_back(currentBlock);
+										ion::utils::stl::PushBackUnique(m_componentSpawnTextBlocks, currentBlock);
 										currentBlock = TextBlock();
 									}
 									else
@@ -279,7 +290,7 @@ namespace luminary
 									if (ContainsToken(words, s_entityEnd) >= 0)
 									{
 										inEntityBlock = false;
-										m_entityTextBlocks.push_back(currentBlock);
+										ion::utils::stl::PushBackUnique(m_entityTextBlocks, currentBlock);
 										currentBlock = TextBlock();
 									}
 									else
@@ -293,7 +304,7 @@ namespace luminary
 									if (ContainsToken(words, s_staticEntityEnd) >= 0)
 									{
 										inStaticEntityBlock = false;
-										m_staticEntityTextBlocks.push_back(currentBlock);
+										ion::utils::stl::PushBackUnique(m_staticEntityTextBlocks, currentBlock);
 										currentBlock = TextBlock();
 									}
 									else
@@ -307,7 +318,7 @@ namespace luminary
 									if (ContainsToken(words, s_componentEnd) >= 0)
 									{
 										inComponentBlock = false;
-										m_componentTextBlocks.push_back(currentBlock);
+										ion::utils::stl::PushBackUnique(m_componentTextBlocks, currentBlock);
 										currentBlock = TextBlock();
 									}
 									else
@@ -382,16 +393,18 @@ namespace luminary
 
 			if ((tokenPos = ContainsToken(textBlock.block[i], s_componentNamedDef)) >= 0)
 			{
-				if (Component* component = ParseComponentDef(textBlock.block[i], tokenPos))
+				std::string componentName;
+				if (Component* component = ParseComponentDef(textBlock.block[i], tokenPos, componentName))
 				{
-					entity.components.push_back(*component);
+					entity.components.push_back(std::make_pair(*component, componentName));
 				}
 			}
 			else if ((tokenPos = ContainsToken(textBlock.block[i], s_componentDef)) >= 0)
 			{
-				if (Component* component = ParseComponentDef(textBlock.block[i], tokenPos))
+				std::string componentName;
+				if (Component* component = ParseComponentDef(textBlock.block[i], tokenPos, componentName))
 				{
-					entity.components.push_back(*component);
+					entity.components.push_back(std::make_pair(*component, componentName));
 				}
 			}
 			else if ((tokenPos = ContainsToken(textBlock.block[i], s_scriptFuncDef)) >= 0)
@@ -436,7 +449,7 @@ namespace luminary
 
 	bool EntityParser::ParseComponent(const TextBlock& textBlock, Component& component)
 	{
-		component.name = textBlock.name;
+		component.typeName = textBlock.name;
 
 		//Parse params
 		for (int i = 0; i < textBlock.block.size(); i++)
@@ -446,7 +459,7 @@ namespace luminary
 			if ((tokenPos = ContainsToken(textBlock.block[i], s_scriptFuncDef)) >= 0)
 			{
 				ScriptFunc scriptFunc = ParseScriptFuncDef(textBlock.block[i], tokenPos);
-				scriptFunc.scope = component.name;
+				scriptFunc.scope = component.typeName;
 				component.scriptFuncs.push_back(scriptFunc);
 			}
 			else
@@ -460,12 +473,12 @@ namespace luminary
 		}
 
 		//Match with spawn data
-		if (SpawnData* spawnData = FindComponentSpawnData(component.name))
+		if (SpawnData* spawnData = FindComponentSpawnData(component.typeName))
 		{
 			component.spawnData = *spawnData;
 		}
 
-		return component.name.size() > 0;
+		return component.typeName.size() > 0;
 	}
 
 	bool EntityParser::ParseParam(const std::vector<std::string>& line, Param& param)
@@ -521,7 +534,7 @@ namespace luminary
 		}
 	}
 
-	Component* EntityParser::ParseComponentDef(const std::vector<std::string>& line, int pos)
+	Component* EntityParser::ParseComponentDef(const std::vector<std::string>& line, int pos, std::string& componentName)
 	{
 		Component* component = nullptr;
 
@@ -529,12 +542,13 @@ namespace luminary
 		if (line.size() >= 2)
 		{
 			//Find component
-			std::string componentName = line[1];
+			std::string componentTypeName = line[1];
 
 			for (int i = 0; i < m_components.size() && !component; i++)
 			{
-				if (ion::string::CompareNoCase(m_components[i].name, componentName))
+				if (ion::string::CompareNoCase(m_components[i].typeName, componentTypeName))
 				{
+					componentName = (line.size() > 2) ? line[2] : "";
 					component = &m_components[i];
 				}
 			}

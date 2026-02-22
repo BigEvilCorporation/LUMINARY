@@ -64,16 +64,16 @@ namespace luminary
 
 			for (int i = 0; i < components.size(); i++)
 			{
-				if (exportedComponentHeaders.find(components[i].name) == exportedComponentHeaders.end())
+				if (exportedComponentHeaders.find(components[i].typeName) == exportedComponentHeaders.end())
 				{
-					stream << "struct " << components[i].name << " : ComponentBase" << std::endl;
+					stream << "struct " << components[i].typeName << " : ComponentBase" << std::endl;
 					stream << "{" << std::endl;
 
 					int structSize = 0;
 
 					for (int j = 0; j < components[i].params.size(); j++)
 					{
-						std::string paramName = ion::string::RemoveSubstring(components[i].params[j].name, components[i].name + "_");
+						std::string paramName = ion::string::RemoveSubstring(components[i].params[j].name, components[i].typeName + "_");
 						paramName[0] = ion::string::ToLower(paramName)[0];
 
 						switch (components[i].params[j].size)
@@ -122,7 +122,7 @@ namespace luminary
 
 					stream << "};" << std::endl << std::endl;
 
-					exportedComponentHeaders.insert(components[i].name);
+					exportedComponentHeaders.insert(components[i].typeName);
 				}
 			}
 
@@ -157,7 +157,7 @@ namespace luminary
 
 			for (int i = 0; i < entity.components.size(); i++)
 			{
-				std::string componentName = ion::string::StartsWith(entity.components[i].name, "EC") ? ion::string::RemoveSubstring(entity.components[i].name, "EC") : entity.components[i].name;
+				std::string componentName = ion::string::StartsWith(entity.components[i].first.typeName, "EC") ? ion::string::RemoveSubstring(entity.components[i].first.typeName, "EC") : entity.components[i].first.typeName;
 				componentName[0] = ion::string::ToLower(componentName)[0];
 
 				std::string nameNumbered = componentName;

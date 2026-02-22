@@ -289,6 +289,25 @@ namespace luminary
 			}
 		}
 
+		void ConvertScriptParam(luminary::Param& param, const GameObjectVariable& variable)
+		{
+			param.name = variable.m_name;
+			param.value = variable.m_value;
+
+			switch (variable.m_size)
+			{
+			case eSizeByte:
+				param.size = luminary::ParamSize::Byte;
+				break;
+			case eSizeWord:
+				param.size = luminary::ParamSize::Word;
+				break;
+			case eSizeLong:
+				param.size = luminary::ParamSize::Long;
+				break;
+			}
+		}
+
 		void ConvertArchetype(const Project& project, const GameObjectArchetype& srcArchetype, const luminary::ScriptAddressMap& scriptAddresses, luminary::Archetype& archetype)
 		{
 			if (const GameObjectType* gameObjectType = project.GetGameObjectType(srcArchetype.typeId))
@@ -330,12 +349,12 @@ namespace luminary
 						{
 							componentIdx = variable->m_componentIdx;
 							archetype.components.resize(componentIdx + 1);
-							archetype.components[componentIdx].name = variable->m_componentName;
+							archetype.components[componentIdx].first.typeName = variable->m_componentTypeName;
 							paramIdx = 0;
 						}
 
-						archetype.components[componentIdx].spawnData.params.resize(paramIdx + 1);
-						param = &archetype.components[componentIdx].spawnData.params[paramIdx];
+						archetype.components[componentIdx].first.spawnData.params.resize(paramIdx + 1);
+						param = &archetype.components[componentIdx].first.spawnData.params[paramIdx];
 					}
 
 					ConvertParam(*param, *variable, *gameObjectType, &srcArchetype, nullptr, nullptr, project.GetActors(), scriptAddresses);
@@ -421,12 +440,12 @@ namespace luminary
 					{
 						componentIdx = variable->m_componentIdx;
 						entity.components.resize(componentIdx + 1);
-						entity.components[componentIdx].name = variable->m_componentName;
+						entity.components[componentIdx].first.typeName = variable->m_componentTypeName;
 						paramIdx = 0;
 					}
 
-					entity.components[componentIdx].spawnData.params.resize(paramIdx + 1);
-					param = &entity.components[componentIdx].spawnData.params[paramIdx];
+					entity.components[componentIdx].first.spawnData.params.resize(paramIdx + 1);
+					param = &entity.components[componentIdx].first.spawnData.params[paramIdx];
 				}
 
 				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, &prefabChild, project.GetActors(), scriptAddresses);
@@ -446,10 +465,9 @@ namespace luminary
 			entity.spawnData.width = dimensions.x;
 			entity.spawnData.height = dimensions.y;
 
-			//Create entity and component spawn params
+			// Spawn params
 			int paramIdx = 0;
 			int componentIdx = -1;
-
 			const std::vector<GameObjectVariable>& variables = gameObjectType.GetVariables();
 			luminary::ScriptAddressMap scriptAddresses;
 
@@ -463,7 +481,7 @@ namespace luminary
 				if (variable->m_componentIdx == -1)
 				{
 					//Entity param
-					entity.spawnData.params.resize(paramIdx + 1);
+					ion::utils::stl::EnsureSize(entity.spawnData.params, paramIdx + 1);
 					param = &entity.spawnData.params[paramIdx];
 				}
 				else
@@ -472,16 +490,51 @@ namespace luminary
 					if (componentIdx != variable->m_componentIdx)
 					{
 						componentIdx = variable->m_componentIdx;
-						entity.components.resize(componentIdx + 1);
-						entity.components[componentIdx].name = variable->m_componentName;
+						ion::utils::stl::EnsureSize(entity.components, componentIdx + 1);
+						entity.components[componentIdx].first.typeName = variable->m_componentTypeName;
 						paramIdx = 0;
 					}
 
-					entity.components[componentIdx].spawnData.params.resize(paramIdx + 1);
-					param = &entity.components[componentIdx].spawnData.params[paramIdx];
+					ion::utils::stl::EnsureSize(entity.components[componentIdx].first.spawnData.params, paramIdx + 1);
+					param = &entity.components[componentIdx].first.spawnData.params[paramIdx];
 				}
 
 				ConvertParam(*param, *variable, gameObjectType, nullptr, nullptr, nullptr, project.GetActors(), scriptAddresses);
+			}
+
+			// Scriptable params
+			paramIdx = 0;
+			componentIdx = -1;
+			const std::vector<GameObjectVariable>& scriptVariables = gameObjectType.GetScriptVariables();
+
+			for (int j = 0; j < scriptVariables.size(); j++, paramIdx++)
+			{
+				const GameObjectVariable* variable = &scriptVariables[j];
+
+				luminary::Param* param = nullptr;
+
+				if (variable->m_componentIdx == -1)
+				{
+					//Entity param
+					ion::utils::stl::EnsureSize(entity.params, paramIdx + 1);
+					param = &entity.params[paramIdx];
+				}
+				else
+				{
+					//Component param
+					if (componentIdx != variable->m_componentIdx)
+					{
+						componentIdx = variable->m_componentIdx;
+						ion::utils::stl::EnsureSize(entity.components, componentIdx + 1);
+						entity.components[componentIdx].first.typeName = variable->m_componentTypeName;
+						paramIdx = 0;
+					}
+
+					ion::utils::stl::EnsureSize(entity.components[componentIdx].first.params, paramIdx + 1);
+					param = &entity.components[componentIdx].first.params[paramIdx];
+				}
+
+				ConvertScriptParam(*param, *variable);
 			}
 
 			//Convert entity/component script functions
@@ -502,8 +555,8 @@ namespace luminary
 				}
 				else
 				{
-					scriptFunc.scope = entity.components[scriptFuncs[j].componentIdx].name;
-					entity.components[scriptFuncs[j].componentIdx].scriptFuncs.push_back(scriptFunc);
+					scriptFunc.scope = entity.components[scriptFuncs[j].componentIdx].first.typeName;
+					entity.components[scriptFuncs[j].componentIdx].first.scriptFuncs.push_back(scriptFunc);
 				}
 			}
 		}
@@ -561,12 +614,12 @@ namespace luminary
 					{
 						componentIdx = variable->m_componentIdx;
 						entity.components.resize(componentIdx + 1);
-						entity.components[componentIdx].name = variable->m_componentName;
+						entity.components[componentIdx].first.typeName = variable->m_componentTypeName;
 						paramIdx = 0;
 					}
 
-					entity.components[componentIdx].spawnData.params.resize(paramIdx + 1);
-					param = &entity.components[componentIdx].spawnData.params[paramIdx];
+					entity.components[componentIdx].first.spawnData.params.resize(paramIdx + 1);
+					param = &entity.components[componentIdx].first.spawnData.params[paramIdx];
 				}
 
 				ConvertParam(*param, *variable, gameObjectType, nullptr, &gameObject, nullptr, project.GetActors(), scriptAddresses);
@@ -590,8 +643,8 @@ namespace luminary
 				}
 				else
 				{
-					scriptFunc.scope = entity.components[scriptFuncs[j].componentIdx].name;
-					entity.components[scriptFuncs[j].componentIdx].scriptFuncs.push_back(scriptFunc);
+					scriptFunc.scope = entity.components[scriptFuncs[j].componentIdx].first.typeName;
+					entity.components[scriptFuncs[j].componentIdx].first.scriptFuncs.push_back(scriptFunc);
 				}
 			}
 		}

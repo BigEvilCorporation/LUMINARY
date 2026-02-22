@@ -92,7 +92,7 @@ namespace luminary
 				ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
 
 				// SceneEntity
-				stream << "\tdc.w " << entity.typeName << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
+				stream << "\tdc.l " << entity.typeName << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
 				stream << "\tdc.l " << spawnDataName.str() << "\t; SceneEntity_SpawnData" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionX) << "\t; SceneEntity_PosX" << std::endl;
 				stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.spawnData.positionY) << "\t; SceneEntity_PosY" << std::endl;

@@ -101,7 +101,7 @@ namespace luminary
 					ion::Vector2i extents(child.spawnData.width / 2, child.spawnData.height / 2);
 
 					// SceneEntity
-					stream << "\tdc.w " << child.typeName << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
+					stream << "\tdc.l " << child.typeName << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
 					stream << "\tdc.l " << spawnDataName.str() << "\t; SceneEntity_SpawnData" << std::endl;
 					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionX) << "\t; SceneEntity_PosX" << std::endl;
 					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionY) << "\t; SceneEntity_PosY" << std::endl;
@@ -275,7 +275,7 @@ namespace luminary
 		return false;
 	}
 
-	std::string EntityExporter::ExportSpawnParamsData(const std::string& name, unsigned short id, const std::vector<Param>& entityParams, const std::vector<Component>& components)
+	std::string EntityExporter::ExportSpawnParamsData(const std::string& name, unsigned short id, const std::vector<Param>& entityParams, const std::vector<std::pair<Component,std::string>>& components)
 	{
 		std::stringstream stream;
 
@@ -313,10 +313,10 @@ namespace luminary
 		//Export component params
 		for (int j = 0; j < components.size(); j++)
 		{
-			const Component& component = components[j];
+			const Component& component = components[j].first;
 			if (component.spawnData.params.size() > 0)
 			{
-				stream << "\t; " << component.name << std::endl;
+				stream << "\t; " << component.typeName << std::endl;
 
 				for (int k = 0; k < component.spawnData.params.size(); k++)
 				{
@@ -355,10 +355,12 @@ namespace luminary
 		// IFND FINAL
 		// EntityBlock_DebugName                   rs.b ENT_DEBUG_NAME_LEN (16)
 		// ENDIF
-		// EntityBlock_Flags                       rs.w 1
+		// EntityBlock_Flags                       rs.b 1
+		// EntityBlock_Priority                    rs.b 1
 		// EntityBlock_Next                        rs.w 1
 		// Entity_TypeDesc                         rs.w 1; Entity type
 		// Entity_Id                               rs.w 1; Unique id
+		// Entity_SpawnData                        rs.l 1; Spawn data
 		// Entity_PosX                             rs.l 1; World pos X(16.16)
 		// Entity_PosY                             rs.l 1; World pos Y(16.16)
 		// Entity_ExtentsX                         rs.w 1; Width in pixels
@@ -367,19 +369,25 @@ namespace luminary
 
 		ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
 
+		std::string spawnDataName = entity.spawnData.name + "_" + std::to_string(entity.id) + "_SpawnData";
+
 		stream << "\tIFND FINAL" << std::endl;
 		stream << "\tdc.b " << EntityExporter::ExportDebugNameData(entity.spawnData.name, EntityExporter::s_debugNameLen) << std::endl;
 		stream << "\tENDIF" << std::endl;
-		stream << "\tdc.w 0x0\t; EntityBlock_Flags" << std::endl;
+		stream << "\tdc.b 0x0\t; EntityBlock_Flags" << std::endl;
+		stream << "\tdc.b 0x0\t; EntityBlock_Priority" << std::endl;
 		stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
 		stream << "\tdc.w " << entity.typeName << "_Typedesc\t; Entity_TypeDesc" << std::endl;
 		stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.id) << "\t; Entity_Id" << std::endl;
+		stream << "\tdc.l " << spawnDataName << std::endl;
 		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionX) << 16) << "\t; Entity_PosX" << std::endl;
 		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionY) << 16) << "\t; Entity_PosY" << std::endl;
 		stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; Entity_ExtentsX" << std::endl;
 		stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; Entity_ExtentsY" << std::endl;
 
 		//Export all params
+		stream << spawnDataName + ":" << std::endl;
+
 		for (int j = 0; j < entity.spawnData.params.size(); j++)
 		{
 			const Param& param = entity.spawnData.params[j];
@@ -416,7 +424,7 @@ namespace luminary
 
 		for (int j = 0; j < entity.components.size(); j++)
 		{
-			spawnDataBlock.push_back(&entity.components[j].spawnData);
+			spawnDataBlock.push_back(&entity.components[j].first.spawnData);
 		}
 
 		//If spawn data params matches any previously exported, save some space by sharing it

@@ -26,6 +26,7 @@ namespace luminary
 	private:
 		struct TextBlock
 		{
+			bool operator == (const TextBlock& rhs) { return name == rhs.name; }
 			std::string name;
 			std::vector<std::vector<std::string>> block;
 		};
@@ -49,7 +50,7 @@ namespace luminary
 		void ParseSpawnData(const TextBlock& textBlock, SpawnData& spawnData);
 		bool ParseParam(const std::vector<std::string>& line, Param& param);
 		void ParseTags(const std::string& tagLine, Param& param);
-		Component* ParseComponentDef(const std::vector<std::string>& line, int pos);
+		Component* ParseComponentDef(const std::vector<std::string>& line, int pos, std::string& componentName);
 		ScriptFunc ParseScriptFuncDef(const std::vector<std::string>& line, int pos);
 		SpawnData* FindComponentSpawnData(const std::string& componentName);
 		SpawnData* FindEntitySpawnData(const std::string& entityName);
