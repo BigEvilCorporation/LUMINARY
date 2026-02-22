@@ -7,51 +7,51 @@
 ; ============================================================================================
 
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\bridge.ASM'
+	include 'DATA\PALETTES\\bridge.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\nymn.ASM'
+	include 'DATA\PALETTES\\nymn.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\test3.ASM'
+	include 'DATA\PALETTES\\test3.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\flicky.ASM'
+	include 'DATA\PALETTES\\flicky.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\test2.ASM'
+	include 'DATA\PALETTES\\test2.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\crate.ASM'
+	include 'DATA\PALETTES\\crate.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\test5.ASM'
+	include 'DATA\PALETTES\\test5.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\explosn.ASM'
+	include 'DATA\PALETTES\\explosn.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\ring.ASM'
+	include 'DATA\PALETTES\\ring.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\test6.ASM'
+	include 'DATA\PALETTES\\test6.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\sonic.ASM'
+	include 'DATA\PALETTES\\sonic.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\test4.ASM'
+	include 'DATA\PALETTES\\test4.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\chopper.ASM'
+	include 'DATA\PALETTES\\chopper.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\buzzbomb.ASM'
+	include 'DATA\PALETTES\\buzzbomb.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\motobug.ASM'
+	include 'DATA\PALETTES\\motobug.ASM'
 	even
 
-	include 'SAMPLES\HELLO\DATA\PALETTES\test.ASM'
+	include 'DATA\PALETTES\\test.ASM'
 	even
 

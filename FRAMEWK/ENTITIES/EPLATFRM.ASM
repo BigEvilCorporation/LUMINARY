@@ -40,6 +40,7 @@ PHYS_FindPlatform:
     ; making contact.
     ; ======================================
     ; In:
+    ;  a0   Owning entity (for OnTouched callback)
     ;  d0.w Pos X
     ;  d1.w Pos Y
     ;  d4.w Extents X

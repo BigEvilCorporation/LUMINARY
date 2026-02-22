@@ -174,12 +174,6 @@ ENT_DespawnEntity:
     adda.w ComponentSlotDesc_AddrOffset(a2), a3                 ; Get component addr offset
     movea.w (a3), a3                                            ; Get component address
 
-    ; Free entity block
-    PUSH.L a0
-    move.l a3, a0
-    bsr    ENT_FreeEntityBlock
-    POP.L  a0
-
     ; Unlink from component list
     btst   #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a3)
     beq    @NotInComponentList
@@ -199,6 +193,12 @@ ENT_DespawnEntity:
     jsr    (a3)
     @NoDestructor:
     POPM.L  d0/a0-a4
+    
+    ; Free entity block
+    PUSH.L a0
+    move.l a3, a0
+    bsr    ENT_FreeEntityBlock
+    POP.L  a0
 
     adda.w #SIZEOF_ComponentSlotDesc, a2                        ; Next component
     dbra   d0, @ComponentLp
@@ -267,6 +267,8 @@ ENT_FreeEntityBlock:
     ; Free block
     bclr   #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
     addi.w #0x1, EntityManager_BlocksFree(a4)
+    
+    ; Clear link (block might not have been used as an entity, could be overwritten with garbage)
     move.w #0x0, EntityBlock_Next(a0)
 
     ; Set last free block
@@ -469,6 +471,18 @@ ENT_UpdateAll:
     movea.w EntityBlock_Next(a0), a2    ; Get next entity first, update can call destructor
     movea.w Entity_TypeDesc(a0), a1     ; Get type desc
     movea.w EntityTypeDesc_Update(a1), a1; Get update func
+
+    ; Sanity check for freed entities in update list
+    IFND FINAL
+    btst    #ENT_MGR_BLOCK_FLAG_IN_LIST, EntityBlock_Flags(a0)
+    bne     @Okay
+    DBG_RAISE_ERROR "ENT_UpdateAll: Entity Unlinked"
+    btst    #ENT_MGR_BLOCK_FLAG_ALLOCATED, EntityBlock_Flags(a0)
+    bne     @Okay
+    DBG_RAISE_ERROR "ENT_UpdateAll: Entity Freed"
+    @Okay:
+    ENDIF
+
     PUSHM.L a0-a2
     jsr    (a1)                         ; Update
     POPM.L  a0-a2

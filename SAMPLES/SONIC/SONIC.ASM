@@ -3,23 +3,23 @@
 ; ============================================================================================
 ; Matt Phillips - Big Evil Corporation Ltd - 11th July 2019
 ; ============================================================================================
-; SONIC.ASM - An appropriate "Hello world" demo for Luminary Engine
+; HELLO.ASM - "Hello world" using Luminary Engine
 ; ============================================================================================
 
     ; Code includes
     include 'luminary.asm'
-    include 'samples/hello/system/header.asm'
-    include 'samples/hello/system/memmap.asm'
-    include 'samples/hello/entities/bridge.asm'
-    include 'samples/hello/entities/enemy.asm'
-    include 'samples/hello/entities/chopper.asm'
-    include 'samples/hello/entities/buzzbomb.asm'
-    include 'samples/hello/entities/flicky.asm'
-    include 'samples/hello/entities/lrswitch.asm'
-    include 'samples/hello/entities/motobug.asm'
-    include 'samples/hello/entities/player.asm'
-    include 'samples/hello/entities/ring.asm'
-    include 'samples/hello/effects/vfx.asm'
+    include 'system/header.asm'
+    include 'system/memmap.asm'
+    include 'entities/bridge.asm'
+    include 'entities/enemy.asm'
+    include 'entities/chopper.asm'
+    include 'entities/buzzbomb.asm'
+    include 'entities/flicky.asm'
+    include 'entities/lrswitch.asm'
+    include 'entities/motobug.asm'
+    include 'entities/player.asm'
+    include 'entities/ring.asm'
+    include 'effects/vfx.asm'
 
 DRAW_VRAM: macro
     PUSH.L a0
@@ -54,6 +54,20 @@ Main:
     move.l a1, RAM_PLAYER_1
 
     ; Load palettes
+    lea     SceneData_tst1_tst1, a1
+    move.w  SceneData_PaletteCount(a1), d1
+    move.l  SceneData_Palettes(a1), a0
+    moveq   #0x0, d0
+    subi.w  #0x1, d1
+    @PaletteLp:
+    PUSHM.L d0-d1/a0
+    move.w  #DEFAULT_PAL_FADE_FRAMES, d1
+    bsr     VDP_FadePalette
+    POPM.L  d0-d1/a0
+    addi.w  #0x1, d0
+    adda.w  #SIZE_PALETTE_B, a0
+    dbra.w  d1, @PaletteLp
+    
     lea    palette_sonic, a0
     move.b #0x3, d0
     bsr    VDP_LoadPalette
@@ -83,7 +97,8 @@ Main:
 
     ; DMA and VDP
     bsr    MAP_ApplyScroll
-    bsr    VDPDMA_CommitAndClearQueue
+    bsr    VDP_UpdatePaletteFade
+    bsr    DMA_CommitAndClearQueue
     bsr    SPR_CommitAndClearTable
 
     ; Loop forever
@@ -117,7 +132,7 @@ Game_Render:
     bsr    ECBridgeRenderer_DrawAll
 
     ; Debug draw
-    bsr    ENT_DebugDrawMemory
+    ;bsr    ENT_DebugDrawMemory
 
     rts
 
@@ -125,15 +140,15 @@ Game_Render:
 	include 'engine/assets.asm'
 
     ; Entity archetypes
-    include 'samples/hello/data/entities/archtyps.asm'
+    include 'data/entities/archtyps.asm'
 
     ; Scene data
-    include 'samples/hello/data/scenes/chaptr01/include.asm'
+    include 'data/scenes/tst1/include.asm'
 
     ; Sprite data
-    include 'samples/hello/data/sprites/sprites.asm'
-    include 'samples/hello/data/anims/sprtanms.asm'
-    include 'samples/hello/data/palettes/sprtpals.asm'
+    include 'data/sprites/sprites.asm'
+    include 'data/anims/sprtanms.asm'
+    include 'data/palettes/sprtpals.asm'
 
     ; Script data
-    include 'samples/hello/scripts/scripts.asm'
+    include 'data/scripts/scripts.asm'

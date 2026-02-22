@@ -18,6 +18,7 @@ EBRIDGE_DEPRESSION_PER_SEGMENT          equ 0x0180  ; 8.8
 ; ============================================================================================
 
     COMPONENT_SPAWN_DATA_BEGIN ECBridgeRenderer
+SDBridgeRenderer_Actor                  rs.l 1  ; [TAGS=SPRITE_ACTOR]
 SDBridgeRenderer_Sheet                  rs.l 1  ; [TAGS=SPRITE_SHEET]
     COMPONENT_SPAWN_DATA_END
     
@@ -49,7 +50,7 @@ ECBridgeRenderer_Initialise:
     ; Alloc tiles
     PUSHM.L a0-a3
     move.w SpriteSheet_VRAMSizeTiles(a3), d0    ; Get size of largest frame
-    bsr    VRAMMGR_Alloc
+    bsr    VMR_Alloc
     POPM.L  a0-a3
     move.l d1, ECBridgeRenderer_VRAMHndl(a0)    ; Store VRAM handle
 	
@@ -71,7 +72,7 @@ ECBridgeRenderer_Shutdown:
 
     move.l ECBridgeRenderer_VRAMHndl(a0), d0
     beq    @NotLoaded
-    bsr    VRAMMGR_Free
+    bsr    VMR_Free
     @NotLoaded:
 
     rts
@@ -287,6 +288,7 @@ EBridge_OnTouched:
     sub.w  Entity_ExtentsX(a4), d1
     sub.w  d1, d0
     divu.w #EBRIDGE_SEGMENT_WIDTH, d0   ; To segment index
+    CLAMP.B d0, #0x0, #EBRIDGE_NUM_SEGMENTS-1
     move.b d0, EBridge_LastTouchedSegmentIdx(a4)
 
     POPM.L  d0-d1/a4

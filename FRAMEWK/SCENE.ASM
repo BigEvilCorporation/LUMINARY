@@ -38,7 +38,7 @@ SceneData_DynamicEntityCount            rs.w 1
     STRUCT_END
 
     STRUCT_BEGIN SceneEntity
-SceneEntity_EntityType                  rs.w 1
+SceneEntity_EntityType                  rs.l 1
 SceneEntity_SpawnData                   rs.l 1
 SceneEntity_PosX                        rs.w 1
 SceneEntity_PosY                        rs.w 1
@@ -114,7 +114,7 @@ SCN_LoadScene:
     @EntityLp:
     PUSHM.L d2/a0-a3
 
-    movea.w SceneEntity_EntityType(a2), a0   ; Extract entity spawn data
+    move.l SceneEntity_EntityType(a2), a0   ; Extract entity spawn data
     move.l SceneEntity_SpawnData(a2), a1
     move.w SceneEntity_PosX(a2), d0
     move.w SceneEntity_PosY(a2), d1

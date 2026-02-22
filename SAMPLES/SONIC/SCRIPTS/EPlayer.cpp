@@ -1,18 +1,16 @@
 #include "EPlayer.h"
 
-void EPlayer::OnStart()
+void EPlayer::OnStart(const Engine& engine, const Scene& scene)
 {
 
 }
 
-void EPlayer::OnShutdown()
+void EPlayer::OnShutdown(const Engine& engine, const Scene& scene)
 {
 
 }
 
-void EPlayer::OnUpdate()
+void EPlayer::OnUpdate(const Engine& engine, const Scene& scene)
 {
-	ECPhysBodyChar& physics = GetComponent<ECPhysBodyChar>(components.physBodyChar);
-	physics.groundSpeed = 0x600;
-}
 
+}

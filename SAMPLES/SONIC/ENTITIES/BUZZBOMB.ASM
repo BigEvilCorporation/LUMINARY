@@ -37,7 +37,7 @@ EBUZZPROJECTILE_DESPAWN_DIST_X          equ VDP_SCREEN_WIDTH_PX*2
 EBUZZPROJECTILE_DESPAWN_DIST_Y          equ VDP_SCREEN_HEIGHT_PX*2
 
 ; Buzzbomb spawn data
-    ENTITY_SPAWN_DATA_BEGIN EBuzzbomb
+    ENTITY_SPAWN_DATA_BEGIN SDBuzzbomb
     ENTITY_SPAWN_DATA_END
 
 ; Buzzbomb entity
@@ -53,7 +53,7 @@ EBuzzBomb_State                         rs.b 1
     ENTITY_END
 
 ; Buzzbomb projectile spawn data
-    ENTITY_SPAWN_DATA_BEGIN EBuzzProjectile
+    ENTITY_SPAWN_DATA_BEGIN SDBuzzProjectile
     ENTITY_SPAWN_DATA_END
 
 ; Buzzbomb projectile entity
@@ -63,10 +63,12 @@ EBuzzBomb_State                         rs.b 1
     ENTITY_END
 
 ; Buzzbomb projectile default spawn data
-EBuzzProjectile_Default_SpawnData:
+    ENTITY_SPAWN_DATA EBuzzProjectile_Default_SpawnData,0
 	; ECSprite
-    dc.l   actor_buzzbomb_spritesheet_projectile
-    dc.l   actor_buzzbomb_sheet_projectile_anim_projectile
+    dc.l   0x0                                              ; SDSprite_Actor
+    dc.l   actor_buzzbomb_spritesheet_projectile            ; SDSprite_Sheet
+    dc.l   actor_buzzbomb_sheet_projectile_anim_projectile  ; SDSprite_Animation
+    dc.b   0x0                                              ; SDSprite_DrawPriority
 	even
 
 EBuzzbomb_Initialise:
@@ -200,6 +202,8 @@ EBuzzbomb_Update:
     btst   #ECSPRITE_STATE_FLAG_PLAYING, ECSprite_StateFlags(a1)
     bne    @EndAttacking
     bclr   #ECSPRITE_STATE_FLAG_VISIBLE, ECSprite_StateFlags(a1)    ; Hide fire sprite
+    
+    lea    EntityBlockList_Entities, a5
 
     PUSHM.L a0-a2                       ; Spawn projectile
     move.l a0, a6

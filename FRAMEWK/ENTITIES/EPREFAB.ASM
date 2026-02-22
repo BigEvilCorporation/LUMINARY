@@ -69,7 +69,7 @@ EPrefab_Initialise:
     @EntityLp:
     PUSHM.L d2-d5/a0-a3
 
-    movea.w SceneEntity_EntityType(a2), a0  ; Extract entity spawn data
+    move.l SceneEntity_EntityType(a2), a0  ; Extract entity spawn data
     move.l SceneEntity_SpawnData(a2), a1
     move.w SceneEntity_PosX(a2), d0
     move.w SceneEntity_PosY(a2), d1

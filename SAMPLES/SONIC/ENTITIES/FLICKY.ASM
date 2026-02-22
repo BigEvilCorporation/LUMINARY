@@ -23,10 +23,12 @@ EFLICKY_JUMP_VEL                        equ 0x00040000
     ENTITY_END
 
 ; Flicky default spawn data
-EFlicky_Default_SpawnData:
+    ENTITY_SPAWN_DATA EFlicky_Default_SpawnData,0
 	; ECSprite
+    dc.l 0x0                            ; SDSprite_Actor
 	dc.l actor_flicky_spritesheet_idle	; SDSprite_Sheet
 	dc.l 0x0	                        ; SDSprite_Animation
+    dc.b 0x0                            ; SDSprite_DrawPriority
 	even
 
 EFlicky_Initialise:

@@ -577,7 +577,7 @@ ECPhysBodyChar_TerrainSearch_Down:
     ; Search platforms
     ; TODO: Both floor probes
     PUSHM.L d0-d5/a0-a4
-    move.l a4, a0
+    movea.w Component_Owner(a3), a0
     bsr    PHYS_FindPlatform
     moveq  #0x0, d6						; Pre-clear fraction of result
     move.w d0, d6

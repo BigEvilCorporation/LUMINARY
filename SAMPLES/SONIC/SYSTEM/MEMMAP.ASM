@@ -8,7 +8,6 @@
 
     RSSET RAM_GAME_START
 
-RAM_GAMEPAD_PREV_1                      rs.w 1  ; Prev frame gamepad state
 RAM_PLAYER_1                            rs.l 1
 
     ; Entity component lists

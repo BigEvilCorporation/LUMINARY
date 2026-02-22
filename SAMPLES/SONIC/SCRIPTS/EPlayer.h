@@ -8,54 +8,24 @@
 
 
 #include <Common.h>
-
-struct ECPhysBodyChar : ComponentBase
-{
-	unsigned int velX;
-	unsigned int velY;
-	unsigned int maxVelX;
-	unsigned short groundSpeed;
-	unsigned short accelX;
-	unsigned short accelY;
-	unsigned short decelX;
-	unsigned short slopeFact;
-	unsigned short lastTerrainFlags;
-	unsigned char terrainQuadrant;
-	unsigned char terrainLayer;
-};
-
-struct ECSprite : ComponentBase
-{
-	unsigned int sheet;
-	unsigned int currentFrame;
-	unsigned int vRAMHndl;
-	unsigned int animation;
-	unsigned int animSubFrame;
-	unsigned short animSpeed;
-	unsigned char posX;
-	unsigned char posY;
-	unsigned char drawFlags;
-	unsigned char stateFlags;
-};
-
-struct Components
-{
-	ComponentHndl physBodyChar;
-	ComponentHndl sprite;
-};
+#include <Components.h>
 
 struct EPlayer : Entity
 {
+	struct Components
+	{
+		ComponentHndl physBodyChar;
+		ComponentHndl sprite;
+		ComponentHndl script;
+	};
+
+	short terrainFlagsPrev;
+	char stateFlags;
+	unsigned char padding;
 
 	Components components;
 
-	template <typename T>
-	inline __attribute__((always_inline)) T& GetComponent(ComponentHndl hndl)
-	{
-		return *((T*)((unsigned int)0x00FF0000 | (unsigned int)hndl));
-	}
-
-	void OnStart();
-	void OnShutdown();
-	void OnUpdate();
+	void OnStart(const Engine& engine, const Scene& scene);
+	void OnShutdown(const Engine& engine, const Scene& scene);
+	void OnUpdate(const Engine& engine, const Scene& scene);
 };

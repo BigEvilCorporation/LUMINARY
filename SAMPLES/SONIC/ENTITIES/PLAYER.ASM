@@ -6,6 +6,8 @@
 ; PLAYER.ASM - Player entity component
 ; ============================================================================================
 
+PLAYER_DEBUG_DRAW                       equ 0
+
 PLAYER_HEIGHT                           equ 0x0028
 PLAYER_HEIGHT_SPIN                      equ 0x0020
 
@@ -259,11 +261,13 @@ EPlayer_Update:
     rts
 
     ; Debug draw
+    IF PLAYER_DEBUG_DRAW
     ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a0,a1
     move.w ECPhysBodyChar_LastTerrainFlags(a1), d7
     DBG_DRAW_WORD_A #100,#8,d7
     move.b ECPhysBodyChar_TerrainQuadrant(a1), d7
     DBG_DRAW_BYTE_A #100,#9,d7
+    ENDIF
 
     rts
 
