@@ -72,17 +72,36 @@ ANG_TO_QUAD: macro angle,tmpreg
     move.b (\tmpreg), \angle
     endm
 
-    ; Quadrants to search routines
-    ; Repeated because we search through 4, but we could start from any from 0-3
+    ; Quadrant search routines
 QuadrantSearchTable:
     dc.l ECPhysBodyChar_TerrainSearch_Down      ; PHYS_TERRAIN_SEARCH_QUADRANT_DOWN
     dc.l ECPhysBodyChar_TerrainSearch_Left      ; PHYS_TERRAIN_SEARCH_QUADRANT_LEFT
     dc.l ECPhysBodyChar_TerrainSearch_Up        ; PHYS_TERRAIN_SEARCH_QUADRANT_UP
     dc.l ECPhysBodyChar_TerrainSearch_Right     ; PHYS_TERRAIN_SEARCH_QUADRANT_RIGHT
-    dc.l ECPhysBodyChar_TerrainSearch_Down      ; PHYS_TERRAIN_SEARCH_QUADRANT_DOWN
-    dc.l ECPhysBodyChar_TerrainSearch_Left      ; PHYS_TERRAIN_SEARCH_QUADRANT_LEFT
-    dc.l ECPhysBodyChar_TerrainSearch_Up        ; PHYS_TERRAIN_SEARCH_QUADRANT_UP
-    dc.l ECPhysBodyChar_TerrainSearch_Right     ; PHYS_TERRAIN_SEARCH_QUADRANT_RIGHT
+    
+    ; Quadrants to search if moving down
+QuadrantSearchTableDown:
+    dc.l ECPhysBodyChar_TerrainSearch_Down
+    dc.l ECPhysBodyChar_TerrainSearch_Left
+    dc.l ECPhysBodyChar_TerrainSearch_Right
+
+	; Quadrants to search if moving up
+QuadrantSearchTableUp:
+    dc.l ECPhysBodyChar_TerrainSearch_Up
+    dc.l ECPhysBodyChar_TerrainSearch_Left
+    dc.l ECPhysBodyChar_TerrainSearch_Right
+
+	; Quadrants to search if moving left
+QuadrantSearchTableLeft:
+    dc.l ECPhysBodyChar_TerrainSearch_Left
+    dc.l ECPhysBodyChar_TerrainSearch_Down
+    dc.l ECPhysBodyChar_TerrainSearch_Up
+
+	; Quadrants to search if moving right
+QuadrantSearchTableRight:
+    dc.l ECPhysBodyChar_TerrainSearch_Right
+    dc.l ECPhysBodyChar_TerrainSearch_Down
+    dc.l ECPhysBodyChar_TerrainSearch_Up
 
 ECPhysBodyChar_Initialise:
     ; ======================================
@@ -275,34 +294,82 @@ ECPhysBodyChar_StepAll:
     move.w #0x0, ECPhysBodyChar_LastTerrainFlags(a3)
     PUSHM.W d5/d6
 
-    ; Get extents for terrain search
+    btst   #COLLISION_FLAG_BIT_TERRAIN_W, d6		; Check on terrain
+    beq    @CheckTerrainInAir
+    
+    ; On ground - check the last found quadrant again
     move.w Entity_ExtentsX(a4), d4
     move.w Entity_ExtentsY(a4), d5
-
-    ; Search through all four quadrants, starting from the last detected quadrant
-    ; to prevent snapping to terrain in another quadrant
+    
     lea    QuadrantSearchTable, a4
     moveq  #0x0, d6
     move.b ECPhysBodyChar_TerrainQuadrant(a3), d6
     lsl.w  #0x2, d6
     adda.w d6, a4
-
-    moveq  #4-1, d6
-    @QuadrantLp:
-    PUSH.L a4
     move.l (a4), a4
     jsr    (a4)
-    POP.L  a4
+    bra    @EndTerrain
+    
+    @CheckTerrainInAir:
+    
+    ; In air - check up to three quadrants depending on current direction
+    PUSH.L  a5
+    move.l  a4, a5
+    
+    PUSHM.L d6-d7
+    
+    ; Determine dominant axis
+    move.l d4, d6
+    move.l d5, d7
+    ABS.L  d6
+    ABS.L  d7
+    cmp.l  d6, d7
+    bgt    @AxisY
+    
+    ; Determine dominant direction on X axis
+    tst.l  d4
+    bge    @Right
+    lea    QuadrantSearchTableLeft, a4
+    bra    @EndQuadrant
+    @Right:
+    lea    QuadrantSearchTableRight, a4
+    bra    @EndQuadrant
+
+	; Determine dominant direction on Y axis    
+    @AxisY:
+    tst.l  d5
+    bge    @Down
+    lea    QuadrantSearchTableUp, a4
+    bra    @EndQuadrant
+    @Down:
+    lea    QuadrantSearchTableDown, a4
+
+    @EndQuadrant:
+    
+    POPM.L d6-d7
+    
+    ; Get extents for terrain search
+    move.w Entity_ExtentsX(a5), d4
+    move.w Entity_ExtentsY(a5), d5
+    
+    POP.L  a5
+
+	; Search up to three directions until terrain found
+    moveq  #3-1, d6
+    @QuadrantLp:
+    PUSHM.L a4/d6
+    move.l (a4), a4
+    jsr    (a4)
+    POPM.L  a4/d6
     btst   #COLLISION_FLAG_BIT_TERRAIN_B, ECPhysBodyChar_LastTerrainFlags(a3)
     bne    @EndTerrain
     adda.w #SIZE_LONG, a4
     dbra.w d6, @QuadrantLp
 
-    ; Terrain not found, now search horizontally for walls
-    @SearchWalls:
+	@EndTerrain:
+	
+    ; Now search horizontally for walls
     jsr    ECPhysBodyChar_WallSearch
-
-    @EndTerrain:
 
     POPM.W  d5/d6
 
