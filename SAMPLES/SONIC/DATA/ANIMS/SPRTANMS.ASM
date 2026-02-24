@@ -46,6 +46,9 @@
 	include 'DATA\ANIMS\\chopper.ASM'
 	even
 
+	include 'DATA\ANIMS\\monitor.ASM'
+	even
+
 	include 'DATA\ANIMS\\buzzbomb.ASM'
 	even
 

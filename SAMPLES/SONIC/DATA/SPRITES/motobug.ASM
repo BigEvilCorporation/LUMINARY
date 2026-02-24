@@ -185,25 +185,25 @@ actor_motobug_sheet_move_frame_0:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x00000EE0
-	dc.l	0x000001EE
+	dc.l	0x00000000
+	dc.l	0x00000100
 
-	dc.l	0x0EEE001E
-	dc.l	0x01115771
+	dc.l	0x00000010
+	dc.l	0x01115441
 	dc.l	0x00001581
-	dc.l	0x000471BB
-	dc.l	0x000C78BB
-	dc.l	0x00ACF78F
-	dc.l	0x00ACF77F
-	dc.l	0x00A1C47F
+	dc.l	0x00044188
+	dc.l	0x000A4888
+	dc.l	0x00AAE48E
+	dc.l	0x00AAE44E
+	dc.l	0x00A1A44E
 
-	dc.l	0x00A1C47F
-	dc.l	0x004C4444
+	dc.l	0x00A1A44E
+	dc.l	0x004A4444
 	dc.l	0x00444444
-	dc.l	0x0016F1FC
-	dc.l	0x001CF2FF
-	dc.l	0x00A1C2FC
-	dc.l	0x0AA1A1C1
+	dc.l	0x0016E1EA
+	dc.l	0x001AE2EE
+	dc.l	0x00A1A2EA
+	dc.l	0x0AA1A1A1
 	dc.l	0x0AA1101A
 
 	dc.l	0x0A100000
@@ -218,32 +218,32 @@ actor_motobug_sheet_move_frame_0:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x000000D5
-	dc.l	0x000D5533
-	dc.l	0x0DD533DD
-	dc.l	0xD5535DFF
-	dc.l	0x55355DFF
+	dc.l	0x000000C5
+	dc.l	0x000C5533
+	dc.l	0x0CC533CC
+	dc.l	0xC5535CEE
+	dc.l	0x55355CEE
 
-	dc.l	0x111555DD
-	dc.l	0x94411555
-	dc.l	0x97444155
-	dc.l	0x87744415
-	dc.l	0xFFF44415
-	dc.l	0xFFFC4441
-	dc.l	0xFFCC4441
-	dc.l	0x11CA4441
+	dc.l	0x111555CC
+	dc.l	0x74411555
+	dc.l	0x74444155
+	dc.l	0x84444415
+	dc.l	0xEEE44415
+	dc.l	0xEEEA4441
+	dc.l	0xEEAA4441
+	dc.l	0x11AA4441
 
-	dc.l	0x11CA4444
-	dc.l	0xCCC44444
-	dc.l	0x444449EE
-	dc.l	0xC1649EEF
-	dc.l	0xCC643396
-	dc.l	0x6111AF39
-	dc.l	0x1661CFC3
-	dc.l	0x6611FC61
+	dc.l	0x11AA4444
+	dc.l	0xAAA44444
+	dc.l	0x444447DD
+	dc.l	0xA1647DDE
+	dc.l	0xAA643376
+	dc.l	0x6111AE37
+	dc.l	0x1661AEA3
+	dc.l	0x6611EA61
 
-	dc.l	0xAA11F116
-	dc.l	0x0011F111
+	dc.l	0xAA11E116
+	dc.l	0x0011E111
 	dc.l	0x00611111
 	dc.l	0x00611111
 	dc.l	0x00061111
@@ -256,11 +256,11 @@ actor_motobug_sheet_move_frame_0:
 	dc.l	0x00000000
 	dc.l	0x33333333
 	dc.l	0x55555533
-	dc.l	0xD5555555
-	dc.l	0xDD51DDDD
-	dc.l	0xDD111555
+	dc.l	0xC5555555
+	dc.l	0xCC51CCCC
+	dc.l	0xCC111555
 
-	dc.l	0xD5511155
+	dc.l	0xC5511155
 	dc.l	0x55551155
 	dc.l	0x55551115
 	dc.l	0x55555115
@@ -270,15 +270,15 @@ actor_motobug_sheet_move_frame_0:
 	dc.l	0x5553316A
 
 	dc.l	0x15333166
-	dc.l	0x133B7156
-	dc.l	0xE1BF6719
-	dc.l	0x6E161711
-	dc.l	0x1EE17222
-	dc.l	0xEEEE3111
-	dc.l	0x39EE9166
-	dc.l	0x113911AA
+	dc.l	0x13384156
+	dc.l	0xD18E6417
+	dc.l	0x6D161411
+	dc.l	0x1DD14222
+	dc.l	0xDDDD3111
+	dc.l	0x37DD7166
+	dc.l	0x113711AA
 
-	dc.l	0x9111ACCC
+	dc.l	0x7111AAAA
 	dc.l	0x11111111
 	dc.l	0x66111111
 	dc.l	0x6661111A
@@ -293,8 +293,8 @@ actor_motobug_sheet_move_frame_0:
 	dc.l	0x00000000
 	dc.l	0x33500000
 	dc.l	0x53335000
-	dc.l	0xD5533500
-	dc.l	0x55D53350
+	dc.l	0xC5533500
+	dc.l	0x55C53350
 
 	dc.l	0x55555335
 	dc.l	0x55555535
@@ -302,21 +302,21 @@ actor_motobug_sheet_move_frame_0:
 	dc.l	0x33335532
 	dc.l	0x33333332
 	dc.l	0x55553322
-	dc.l	0xFFCCCCCC
-	dc.l	0xAFFAAAAA
+	dc.l	0xEEAAAAAA
+	dc.l	0xAEEAAAAA
 
-	dc.l	0xAFFAAAAA
+	dc.l	0xAEEAAAAA
 	dc.l	0x6A666666
-	dc.l	0xA5E55555
+	dc.l	0xA5D55555
 	dc.l	0x11111111
 	dc.l	0x1111116A
-	dc.l	0x666666C1
-	dc.l	0x66AACC10
-	dc.l	0xACCC1100
+	dc.l	0x666666A1
+	dc.l	0x66AAAA10
+	dc.l	0xAAAA1100
 
-	dc.l	0xC1111000
+	dc.l	0xA1111000
 	dc.l	0x1A610000
-	dc.l	0xCA610000
+	dc.l	0xAA610000
 	dc.l	0xA6610000
 	dc.l	0x66100000
 	dc.l	0x61100000
@@ -338,8 +338,8 @@ actor_motobug_sheet_move_frame_0:
 	dc.l	0x50000000
 	dc.l	0x50000000
 	dc.l	0x25000000
-	dc.l	0xC6000CC0
-	dc.l	0xAA61CFFA
+	dc.l	0xA6000AA0
+	dc.l	0xAA61AEEA
 
 	dc.l	0xAAA1AA66
 	dc.l	0x66616666
@@ -368,25 +368,25 @@ actor_motobug_sheet_move_frame_1:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x00000EE0
+	dc.l	0x00000000
 
-	dc.l	0x000001EE
-	dc.l	0x0EEE001E
-	dc.l	0x01115771
+	dc.l	0x00000100
+	dc.l	0x00000010
+	dc.l	0x01115441
 	dc.l	0x00001581
-	dc.l	0x000471BB
-	dc.l	0x000C78BB
-	dc.l	0x00ACF78F
-	dc.l	0x00ACF77F
+	dc.l	0x00044188
+	dc.l	0x000A4888
+	dc.l	0x00AAE48E
+	dc.l	0x00AAE44E
 
-	dc.l	0x00A1C47F
-	dc.l	0x00A1C47F
-	dc.l	0x004C4444
+	dc.l	0x00A1A44E
+	dc.l	0x00A1A44E
+	dc.l	0x004A4444
 	dc.l	0x00444444
-	dc.l	0x0016F1FC
-	dc.l	0x001CF2FF
-	dc.l	0x00A1C2FC
-	dc.l	0x0AA1A1C1
+	dc.l	0x0016E1EA
+	dc.l	0x001AE2EE
+	dc.l	0x00A1A2EA
+	dc.l	0x0AA1A1A1
 
 	dc.l	0x0AA1101A
 	dc.l	0x0A100000
@@ -401,32 +401,32 @@ actor_motobug_sheet_move_frame_1:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x000000D5
-	dc.l	0x000D5533
-	dc.l	0x0DD533DD
-	dc.l	0xD5535DFF
+	dc.l	0x000000C5
+	dc.l	0x000C5533
+	dc.l	0x0CC533CC
+	dc.l	0xC5535CEE
 
-	dc.l	0x55355DFF
-	dc.l	0x111555DD
-	dc.l	0x94411555
-	dc.l	0x97444155
-	dc.l	0x87744415
-	dc.l	0xFFF44415
-	dc.l	0xFFFC4441
-	dc.l	0xFFCC4441
+	dc.l	0x55355CEE
+	dc.l	0x111555CC
+	dc.l	0x74411555
+	dc.l	0x74444155
+	dc.l	0x84444415
+	dc.l	0xEEE44415
+	dc.l	0xEEEA4441
+	dc.l	0xEEAA4441
 
-	dc.l	0x11CA4441
-	dc.l	0x11CA4444
-	dc.l	0xCCC44444
-	dc.l	0x444449EE
-	dc.l	0xC1649EEF
-	dc.l	0xCC643396
-	dc.l	0x6111AF39
-	dc.l	0x1661CFC3
+	dc.l	0x11AA4441
+	dc.l	0x11AA4444
+	dc.l	0xAAA44444
+	dc.l	0x444447DD
+	dc.l	0xA1647DDE
+	dc.l	0xAA643376
+	dc.l	0x6111AE37
+	dc.l	0x1661AEA3
 
-	dc.l	0x6611FC61
-	dc.l	0xAA11F116
-	dc.l	0x0011F111
+	dc.l	0x6611EA61
+	dc.l	0xAA11E116
+	dc.l	0x0011E111
 	dc.l	0x00611111
 	dc.l	0x00061111
 	dc.l	0x00066111
@@ -439,11 +439,11 @@ actor_motobug_sheet_move_frame_1:
 	dc.l	0x00000000
 	dc.l	0x33333333
 	dc.l	0x55555533
-	dc.l	0xD5555555
-	dc.l	0xDD51DDDD
+	dc.l	0xC5555555
+	dc.l	0xCC51CCCC
 
-	dc.l	0xDD111555
-	dc.l	0xD5511155
+	dc.l	0xCC111555
+	dc.l	0xC5511155
 	dc.l	0x55551155
 	dc.l	0x55551115
 	dc.l	0x55555115
@@ -453,18 +453,18 @@ actor_motobug_sheet_move_frame_1:
 
 	dc.l	0x5553316A
 	dc.l	0x15333166
-	dc.l	0x133B7156
-	dc.l	0xE1BF6719
-	dc.l	0x6E161711
-	dc.l	0x1EE17222
-	dc.l	0xEEEE3111
-	dc.l	0x39EE9166
+	dc.l	0x13384156
+	dc.l	0xD18E6417
+	dc.l	0x6D161411
+	dc.l	0x1DD14222
+	dc.l	0xDDDD3111
+	dc.l	0x37DD7166
 
-	dc.l	0x113911AA
-	dc.l	0x9111ACCC
+	dc.l	0x113711AA
+	dc.l	0x7111AAAA
 	dc.l	0x11111111
-	dc.l	0x66A1111C
-	dc.l	0x166AACCA
+	dc.l	0x66A1111A
+	dc.l	0x166AAAAA
 	dc.l	0x11666AA6
 	dc.l	0x11116661
 	dc.l	0x61111110
@@ -476,28 +476,28 @@ actor_motobug_sheet_move_frame_1:
 	dc.l	0x00000000
 	dc.l	0x33500000
 	dc.l	0x53335000
-	dc.l	0xD5533500
+	dc.l	0xC5533500
 
-	dc.l	0x55D53350
+	dc.l	0x55C53350
 	dc.l	0x55555335
 	dc.l	0x55555535
 	dc.l	0x55555533
 	dc.l	0x33335532
 	dc.l	0x33333332
 	dc.l	0x55553322
-	dc.l	0xFFCCCCCC
+	dc.l	0xEEAAAAAA
 
-	dc.l	0xAFFAAAAA
-	dc.l	0xAFFAAAAA
+	dc.l	0xAEEAAAAA
+	dc.l	0xAEEAAAAA
 	dc.l	0x6A666666
-	dc.l	0xA5E55555
+	dc.l	0xA5D55555
 	dc.l	0x11111111
 	dc.l	0x1111116A
-	dc.l	0x666666C1
-	dc.l	0x66AACC10
+	dc.l	0x666666A1
+	dc.l	0x66AAAA10
 
-	dc.l	0xACCC1100
-	dc.l	0xC1111000
+	dc.l	0xAAAA1100
+	dc.l	0xA1111000
 	dc.l	0x1A610000
 	dc.l	0xA6610000
 	dc.l	0x66100000
@@ -521,9 +521,9 @@ actor_motobug_sheet_move_frame_1:
 	dc.l	0x50000000
 	dc.l	0x50000000
 	dc.l	0x25000000
-	dc.l	0xC6000CC0
+	dc.l	0xA6000AA0
 
-	dc.l	0xAA61CFFA
+	dc.l	0xAA61AEEA
 	dc.l	0xAAA1AA66
 	dc.l	0x66616666
 	dc.l	0x66101551
@@ -549,29 +549,29 @@ actor_motobug_sheet_move_frame_2:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x00000EE0
-	dc.l	0x000001EE
+	dc.l	0x00000000
+	dc.l	0x00000100
 
-	dc.l	0x0EEE001E
-	dc.l	0x01115771
+	dc.l	0x00000010
+	dc.l	0x01115441
 	dc.l	0x00001581
-	dc.l	0x000471BB
-	dc.l	0x000C78BB
-	dc.l	0x00ACF78F
-	dc.l	0x00ACF77F
-	dc.l	0x00A1C47F
+	dc.l	0x00044188
+	dc.l	0x000A4888
+	dc.l	0x00AAE48E
+	dc.l	0x00AAE44E
+	dc.l	0x00A1A44E
 
-	dc.l	0x00A1C47F
-	dc.l	0x004C4444
+	dc.l	0x00A1A44E
+	dc.l	0x004A4444
 	dc.l	0x00444444
-	dc.l	0x0016F1FC
-	dc.l	0x001CF2FF
-	dc.l	0x0001C2FC
-	dc.l	0x00E1A1C1
-	dc.l	0x0E9A191A
+	dc.l	0x0016E1EA
+	dc.l	0x001AE2EE
+	dc.l	0x0001A2EA
+	dc.l	0x0001A1A1
+	dc.l	0x007A171A
 
-	dc.l	0x09911910
-	dc.l	0x0A191100
+	dc.l	0x07711710
+	dc.l	0x0A171100
 	dc.l	0xAAA10000
 	dc.l	0xAA100000
 	dc.l	0xA1000000
@@ -582,37 +582,37 @@ actor_motobug_sheet_move_frame_2:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x000000D5
-	dc.l	0x000D5533
-	dc.l	0x0DD533DD
-	dc.l	0xD5535DFF
-	dc.l	0x55355DFF
+	dc.l	0x000000C5
+	dc.l	0x000C5533
+	dc.l	0x0CC533CC
+	dc.l	0xC5535CEE
+	dc.l	0x55355CEE
 
-	dc.l	0x111555DD
-	dc.l	0x94411555
-	dc.l	0x97444155
-	dc.l	0x87744415
-	dc.l	0xFFF44415
-	dc.l	0xFFFC4441
-	dc.l	0xFFCC4441
-	dc.l	0x11CA4441
+	dc.l	0x111555CC
+	dc.l	0x74411555
+	dc.l	0x74444155
+	dc.l	0x84444415
+	dc.l	0xEEE44415
+	dc.l	0xEEEA4441
+	dc.l	0xEEAA4441
+	dc.l	0x11AA4441
 
-	dc.l	0x11CA4444
-	dc.l	0xCCC44444
+	dc.l	0x11AA4444
+	dc.l	0xAAA44444
 	dc.l	0x44444444
-	dc.l	0xC1644444
-	dc.l	0xCC644441
-	dc.l	0x61199EE9
-	dc.l	0x1EEEEEEE
-	dc.l	0xEEEF6EE9
+	dc.l	0xA1644444
+	dc.l	0xAA644441
+	dc.l	0x61177007
+	dc.l	0x10000000
+	dc.l	0x000E6007
 
-	dc.l	0xEE961999
-	dc.l	0xEE999331
+	dc.l	0x00761777
+	dc.l	0x00777331
 	dc.l	0x0AAA1111
-	dc.l	0x0CF11111
-	dc.l	0x0FC16111
-	dc.l	0x0F100661
-	dc.l	0x0F100006
+	dc.l	0x0AE11111
+	dc.l	0x0EA16111
+	dc.l	0x0E100661
+	dc.l	0x0E100006
 	dc.l	0x00000000
 
 	dc.l	0x00000000
@@ -620,11 +620,11 @@ actor_motobug_sheet_move_frame_2:
 	dc.l	0x00000000
 	dc.l	0x33333333
 	dc.l	0x55555533
-	dc.l	0xD5555555
-	dc.l	0xDD51DDDD
-	dc.l	0xDD111555
+	dc.l	0xC5555555
+	dc.l	0xCC51CCCC
+	dc.l	0xCC111555
 
-	dc.l	0xD5511155
+	dc.l	0xC5511155
 	dc.l	0x55551155
 	dc.l	0x55551115
 	dc.l	0x55555115
@@ -634,15 +634,15 @@ actor_motobug_sheet_move_frame_2:
 	dc.l	0x5553316A
 
 	dc.l	0x15333166
-	dc.l	0x133B7156
-	dc.l	0x11BF6719
-	dc.l	0x11B61711
-	dc.l	0x1B777222
-	dc.l	0xB7711111
-	dc.l	0xE7116666
-	dc.l	0x9116AAAA
+	dc.l	0x13384156
+	dc.l	0x118E6417
+	dc.l	0x11861411
+	dc.l	0x18444222
+	dc.l	0x84411111
+	dc.l	0x04116666
+	dc.l	0x7116AAAA
 
-	dc.l	0x316AACCC
+	dc.l	0x316AAAAA
 	dc.l	0x11111111
 	dc.l	0x66111111
 	dc.l	0x6661111A
@@ -657,8 +657,8 @@ actor_motobug_sheet_move_frame_2:
 	dc.l	0x00000000
 	dc.l	0x33500000
 	dc.l	0x53335000
-	dc.l	0xD5533500
-	dc.l	0x55D53350
+	dc.l	0xC5533500
+	dc.l	0x55C53350
 
 	dc.l	0x55555335
 	dc.l	0x55555535
@@ -666,21 +666,21 @@ actor_motobug_sheet_move_frame_2:
 	dc.l	0x33335532
 	dc.l	0x33333332
 	dc.l	0x55553322
-	dc.l	0xFFCCCCCC
-	dc.l	0xAFFAAAAA
+	dc.l	0xEEAAAAAA
+	dc.l	0xAEEAAAAA
 
-	dc.l	0xAFFAAAAA
+	dc.l	0xAEEAAAAA
 	dc.l	0x6A666666
-	dc.l	0xA5E55555
+	dc.l	0xA5D55555
 	dc.l	0x11111111
 	dc.l	0x1111116A
-	dc.l	0x666666C1
-	dc.l	0x66AACC10
-	dc.l	0xACCC1100
+	dc.l	0x666666A1
+	dc.l	0x66AAAA10
+	dc.l	0xAAAA1100
 
-	dc.l	0xC1111000
+	dc.l	0xA1111000
 	dc.l	0x1A610000
-	dc.l	0xCA610000
+	dc.l	0xAA610000
 	dc.l	0xA6610000
 	dc.l	0x66100000
 	dc.l	0x61100000
@@ -702,8 +702,8 @@ actor_motobug_sheet_move_frame_2:
 	dc.l	0x50000000
 	dc.l	0x50000000
 	dc.l	0x25000000
-	dc.l	0xC6000CC0
-	dc.l	0xAA61CFFA
+	dc.l	0xA6000AA0
+	dc.l	0xAA61AEEA
 
 	dc.l	0xAAA1AA66
 	dc.l	0x66616666
@@ -732,29 +732,29 @@ actor_motobug_sheet_move_frame_3:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x00000EE0
+	dc.l	0x00000000
 
-	dc.l	0x000001EE
-	dc.l	0x0EEE001E
-	dc.l	0x01115771
+	dc.l	0x00000100
+	dc.l	0x00000010
+	dc.l	0x01115441
 	dc.l	0x00001581
-	dc.l	0x000471BB
-	dc.l	0x000C78BB
-	dc.l	0x00ACF78F
-	dc.l	0x00ACF77F
+	dc.l	0x00044188
+	dc.l	0x000A4888
+	dc.l	0x00AAE48E
+	dc.l	0x00AAE44E
 
-	dc.l	0x00A1C47F
-	dc.l	0x00A1C47F
-	dc.l	0x004C4444
+	dc.l	0x00A1A44E
+	dc.l	0x00A1A44E
+	dc.l	0x004A4444
 	dc.l	0x00444444
-	dc.l	0x0016F1FC
-	dc.l	0x001CF2FF
-	dc.l	0x0001C2FC
-	dc.l	0x00E1A1C1
+	dc.l	0x0016E1EA
+	dc.l	0x001AE2EE
+	dc.l	0x0001A2EA
+	dc.l	0x0001A1A1
 
-	dc.l	0x0E9A191A
-	dc.l	0x09911910
-	dc.l	0x0A191100
+	dc.l	0x007A171A
+	dc.l	0x07711710
+	dc.l	0x0A171100
 	dc.l	0xAAA10000
 	dc.l	0xAA100000
 	dc.l	0xA1000000
@@ -765,37 +765,37 @@ actor_motobug_sheet_move_frame_3:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x000000D5
-	dc.l	0x000D5533
-	dc.l	0x0DD533DD
-	dc.l	0xD5535DFF
+	dc.l	0x000000C5
+	dc.l	0x000C5533
+	dc.l	0x0CC533CC
+	dc.l	0xC5535CEE
 
-	dc.l	0x55355DFF
-	dc.l	0x111555DD
-	dc.l	0x94411555
-	dc.l	0x97444155
-	dc.l	0x87744415
-	dc.l	0xFFF44415
-	dc.l	0xFFFC4441
-	dc.l	0xFFCC4441
+	dc.l	0x55355CEE
+	dc.l	0x111555CC
+	dc.l	0x74411555
+	dc.l	0x74444155
+	dc.l	0x84444415
+	dc.l	0xEEE44415
+	dc.l	0xEEEA4441
+	dc.l	0xEEAA4441
 
-	dc.l	0x11CA4441
-	dc.l	0x11CA4444
-	dc.l	0xCCC44444
+	dc.l	0x11AA4441
+	dc.l	0x11AA4444
+	dc.l	0xAAA44444
 	dc.l	0x44444444
-	dc.l	0xC1644444
-	dc.l	0xCC644441
-	dc.l	0x61199EE9
-	dc.l	0x1EEEEEEE
+	dc.l	0xA1644444
+	dc.l	0xAA644441
+	dc.l	0x61177007
+	dc.l	0x10000000
 
-	dc.l	0xEEEF6EE9
-	dc.l	0xEE961999
-	dc.l	0xEE999331
+	dc.l	0x000E6007
+	dc.l	0x00761777
+	dc.l	0x00777331
 	dc.l	0x0AAA1111
-	dc.l	0x0CF11111
-	dc.l	0x0FC16111
-	dc.l	0x0F100661
-	dc.l	0x0F100006
+	dc.l	0x0AE11111
+	dc.l	0x0EA16111
+	dc.l	0x0E100661
+	dc.l	0x0E100006
 
 	dc.l	0x00000000
 	dc.l	0x00000000
@@ -803,11 +803,11 @@ actor_motobug_sheet_move_frame_3:
 	dc.l	0x00000000
 	dc.l	0x33333333
 	dc.l	0x55555533
-	dc.l	0xD5555555
-	dc.l	0xDD51DDDD
+	dc.l	0xC5555555
+	dc.l	0xCC51CCCC
 
-	dc.l	0xDD111555
-	dc.l	0xD5511155
+	dc.l	0xCC111555
+	dc.l	0xC5511155
 	dc.l	0x55551155
 	dc.l	0x55551115
 	dc.l	0x55555115
@@ -817,18 +817,18 @@ actor_motobug_sheet_move_frame_3:
 
 	dc.l	0x5553316A
 	dc.l	0x15333166
-	dc.l	0x133B7156
-	dc.l	0x11BF6719
-	dc.l	0x11B61711
-	dc.l	0x1B777222
-	dc.l	0xB7711111
-	dc.l	0xE7116666
+	dc.l	0x13384156
+	dc.l	0x118E6417
+	dc.l	0x11861411
+	dc.l	0x18444222
+	dc.l	0x84411111
+	dc.l	0x04116666
 
-	dc.l	0x9116AAAA
-	dc.l	0x316AACCC
+	dc.l	0x7116AAAA
+	dc.l	0x316AAAAA
 	dc.l	0x11111111
-	dc.l	0x66A1111C
-	dc.l	0x166AACCA
+	dc.l	0x66A1111A
+	dc.l	0x166AAAAA
 	dc.l	0x11666AA6
 	dc.l	0x11116661
 	dc.l	0x61111110
@@ -840,28 +840,28 @@ actor_motobug_sheet_move_frame_3:
 	dc.l	0x00000000
 	dc.l	0x33500000
 	dc.l	0x53335000
-	dc.l	0xD5533500
+	dc.l	0xC5533500
 
-	dc.l	0x55D53350
+	dc.l	0x55C53350
 	dc.l	0x55555335
 	dc.l	0x55555535
 	dc.l	0x55555533
 	dc.l	0x33335532
 	dc.l	0x33333332
 	dc.l	0x55553322
-	dc.l	0xFFCCCCCC
+	dc.l	0xEEAAAAAA
 
-	dc.l	0xAFFAAAAA
-	dc.l	0xAFFAAAAA
+	dc.l	0xAEEAAAAA
+	dc.l	0xAEEAAAAA
 	dc.l	0x6A666666
-	dc.l	0xA5E55555
+	dc.l	0xA5D55555
 	dc.l	0x11111111
 	dc.l	0x1111116A
-	dc.l	0x666666C1
-	dc.l	0x66AACC10
+	dc.l	0x666666A1
+	dc.l	0x66AAAA10
 
-	dc.l	0xACCC1100
-	dc.l	0xC1111000
+	dc.l	0xAAAA1100
+	dc.l	0xA1111000
 	dc.l	0x1A610000
 	dc.l	0xA6610000
 	dc.l	0x66100000
@@ -885,9 +885,9 @@ actor_motobug_sheet_move_frame_3:
 	dc.l	0x50000000
 	dc.l	0x50000000
 	dc.l	0x25000000
-	dc.l	0xC6000CC0
+	dc.l	0xA6000AA0
 
-	dc.l	0xAA61CFFA
+	dc.l	0xAA61AEEA
 	dc.l	0xAAA1AA66
 	dc.l	0x66616666
 	dc.l	0x66101551
@@ -917,8 +917,8 @@ actor_motobug_sheet_exhaust_frame_0:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x0000000C
-	dc.l	0x000000CA
+	dc.l	0x0000000E
+	dc.l	0x000000EA
 
 	dc.l	0x000000A6
 	dc.l	0x00000006
@@ -953,12 +953,12 @@ actor_motobug_sheet_exhaust_frame_1:
 	dc.l	0x00000000
 	dc.l	0x00000000
 	dc.l	0x00000000
-	dc.l	0x0000000C
-	dc.l	0x00000CC6
-	dc.l	0x00000CCC
-	dc.l	0x0000CCAC
+	dc.l	0x0000000E
+	dc.l	0x00000EE6
+	dc.l	0x00000EEE
+	dc.l	0x0000EEAE
 
-	dc.l	0x0000CAAA
+	dc.l	0x0000EAAA
 	dc.l	0x00006AA6
 	dc.l	0x00000AA6
 	dc.l	0x0000006A

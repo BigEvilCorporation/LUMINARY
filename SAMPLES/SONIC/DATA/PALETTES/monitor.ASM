@@ -7,7 +7,7 @@
 ; ============================================================================================
 
 
-palette_motobug:
+palette_monitor:
 	dc.w	0x0040
 	dc.w	0x0000
 	dc.w	0x0004
@@ -22,6 +22,6 @@ palette_motobug:
 	dc.w	0x0AAA
 	dc.w	0x08AE
 	dc.w	0x00EE
+	dc.w	0x08A8
 	dc.w	0x0EEE
-	dc.w	0x0000
 

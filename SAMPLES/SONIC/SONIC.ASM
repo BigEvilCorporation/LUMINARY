@@ -16,6 +16,7 @@
     include 'entities/buzzbomb.asm'
     include 'entities/flicky.asm'
     include 'entities/lrswitch.asm'
+    include 'entities/monitor.asm'
     include 'entities/motobug.asm'
     include 'entities/player.asm'
     include 'entities/ring.asm'
