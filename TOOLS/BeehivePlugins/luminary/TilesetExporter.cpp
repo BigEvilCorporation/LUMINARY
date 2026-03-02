@@ -42,7 +42,7 @@ namespace luminary
 		return false;
 	}
 
-	bool TilesetExporter::ExportStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, const Tileset& tileset, u32 backgroundTileId)
+	bool TilesetExporter::ExportStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, int paletteSlot)
 	{
 		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
@@ -73,17 +73,14 @@ namespace luminary
 
 						if (tileId == InvalidTileId)
 						{
-							tileId = backgroundTileId;
+							tileId = 0;
 						}
-
-						const Tile* tile = tileset.GetTile(tileId);
-						ion::debug::Assert(tile, "TilesetExporter::ExportStamps() - Invalid tile");
 
 						//Generate components
 						u16 tileIndex = tileId & 0x7FF;								//Bottom 11 bits = tile ID (index from 0)
 						u16 flipH = (tileFlags & Map::eFlipX) ? 1 << 11 : 0;		//12th bit = Flip X flag
 						u16 flipV = (tileFlags & Map::eFlipY) ? 1 << 12 : 0;		//13th bit = Flip Y flag
-						u16 palette = (tile->GetPaletteId() & 0x3) << 13;			//14th+15th bits = Palette ID
+						u16 palette = (paletteSlot & 0x3) << 13;					//14th+15th bits = Palette ID
 						u16 plane = (tileFlags & Map::eHighPlane) ? 1 << 15 : 0;	//16th bit = High plane flag
 
 						//Generate word

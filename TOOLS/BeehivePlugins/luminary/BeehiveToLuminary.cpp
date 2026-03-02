@@ -158,6 +158,13 @@ namespace luminary
 				stream << "0x" << SSTREAM_HEX4(entityId);
 				param.value = stream.str();
 			}
+			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::PaletteSlot)))
+			{
+				int slotIdx = std::atoi(variable.m_value.c_str());
+				std::stringstream stream;
+				stream << "0x" << SSTREAM_HEX2(slotIdx);
+				param.value = stream.str();
+			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::EntityArchetype)))
 			{
 				if (variable.m_value == "0")

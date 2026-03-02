@@ -21,6 +21,7 @@ namespace luminary
 			SpriteActor,
 			SpriteSheet,
 			SpriteAnimation,
+			PaletteSlot,
 			EntityId,
 			EntityDesc,
 			EntityArchetype,

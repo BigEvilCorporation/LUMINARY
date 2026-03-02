@@ -21,6 +21,6 @@ namespace luminary
 	{
 	public:
 		bool ExportTileset(const std::string& binFilename, const Tileset& tileset);
-		bool ExportStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, const Tileset& tileset, u32 backgroundTileId);
+		bool ExportStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, int paletteSlot);
 	};
 }
