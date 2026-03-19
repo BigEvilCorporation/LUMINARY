@@ -150,11 +150,11 @@ namespace luminary
 			std::vector<u32> stampMap;
 			stampMap.resize(widthStamps * heightStamps);
 
-			for (TStampPosMap::const_iterator it = map.StampsBegin(), end = map.StampsEnd(); it != end; ++it)
+			for (const auto& it : map.GetStamps())
 			{
-				int x = it->m_position.x / stampWidth;
-				int y = it->m_position.y / stampHeight;
-				u16 tileId = m_remap[it->m_id];
+				int x = it.m_position.x / stampWidth;
+				int y = it.m_position.y / stampHeight;
+				u16 tileId = m_remap[it.m_id];
 				u32 addr = (tileId * stampSizeBytes);
 				ion::memory::EndianSwap(addr);
 				stampMap[(y * widthStamps) + x] = addr;

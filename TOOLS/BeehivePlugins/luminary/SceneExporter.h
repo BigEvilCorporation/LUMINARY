@@ -22,29 +22,32 @@ namespace luminary
 
 		struct SceneData
 		{
-			std::string tilesetLabel;
-			std::string stampsetLabel;
+			std::string tilesetFgLabel;
+			std::string tilesetBgLabel;
+			std::string stampsetFgLabel;
+			std::string stampsetBgLabel;
 			std::string mapFgLabel;
 			std::string mapBgLabel;
 			std::string collisionTilesetLabel;
 			std::string collisionStampsetLabel;
 			std::string collisionMapLabel;
-			std::string palettesLabel;
+			std::vector<std::string> palettes;
 			std::vector<Entity> staticEntities;
 			std::vector<Entity> dynamicEntities;
 
-			int numTiles;
-			int numStamps;
-			int mapFgWidthStamps;
-			int mapFgHeightStamps;
-			int mapBgWidthStamps;
-			int mapBgHeightStamps;
-			int numCollisionTiles;
-			int numCollisionStamps;
-			int collisionMapWidthStamps;
-			int collisionMapHeightStamps;
-
-			int numPalettes;
+			u16 numTilesFg;
+			u16 numTilesBg;
+			u16 numStampsFg;
+			u16 numStampsBg;
+			u16 mapFgWidthStamps;
+			u16 mapFgHeightStamps;
+			u16 mapBgWidthStamps;
+			u16 mapBgHeightStamps;
+			u16 numCollisionTiles;
+			u16 numCollisionStamps;
+			u16 collisionMapWidthStamps;
+			u16 collisionMapHeightStamps;
+			u16 numPalettes;
 		};
 
 		SceneExporter();

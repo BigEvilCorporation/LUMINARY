@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Types.h"
+#include "Serialiser.h"
 
 namespace luminary
 {
@@ -32,9 +33,9 @@ namespace luminary
 		bool ExportPrefabs(const std::string& filename, const std::vector<Prefab>& prefabs);
 		bool ExportAnimations(const std::string& filename, const std::vector<Animation>& animations);
 
-		static std::string ExportSpawnParamsData(const std::string& name, unsigned short id, const std::vector<Param>& entityParams, const std::vector<std::pair<Component, std::string>>& components);
-		static std::string ExportStaticEntityData(const Entity& entity);
-		static std::string ExportEntitySpawnTableData(const std::string& spawnDataName, const Entity& entity, std::map<std::string, ExportedSpawnData>& exportedSpawnDatas);
-		static std::string ExportDebugNameData(const std::string& name, int maxLength);
+		static void ExportSpawnParamsData(SerialiserAsm& serialiser, const std::string& name, unsigned short id, const std::vector<Param>& entityParams, const std::vector<std::pair<Component, std::string>>& components);
+		static void ExportStaticEntityData(SerialiserAsm& serialiser, const Entity& entity);
+		static void ExportEntitySpawnTableData(SerialiserAsm& serialiser, const std::string& spawnDataName, const Entity& entity, std::map<std::string, ExportedSpawnData>& exportedSpawnDatas);
+		static void ExportDebugNameData(SerialiserAsm& serialiser, const std::string& name, int maxLength);
 	};
 }

@@ -7,33 +7,29 @@
 // ============================================================================================
 
 #include "PaletteExporter.h"
+#include "Serialiser.h"
 
 namespace luminary
 {
 	bool PaletteExporter::ExportPalettes(const std::string& filename, const std::vector<Palette>& palettes)
 	{
-		ion::io::File file(filename, ion::io::File::OpenMode::Write);
-		if (file.IsOpen())
+		SerialiserAsm serialiser(filename);
+		if (!serialiser.IsOpen())
+			return false;
+
+		for (int i = 0; i < palettes.size(); i++)
 		{
-			std::stringstream stream;
-			stream << std::hex << std::setfill('0') << std::uppercase;
+			serialiser.Label("palette_", palettes[i].GetName());
 
-			for (int i = 0; i < palettes.size(); i++)
+			for (int j = 0; j < Palette::coloursPerPalette; j++)
 			{
-				for (int j = 0; j < Palette::coloursPerPalette; j++)
-				{
-					u32 value = palettes[i].IsColourUsed(j) ? palettes[i].GetColour(j).ToVDPFormat() : 0;
-					stream << "\tdc.w\t0x" << std::setw(4) << value << std::endl;
-				}
-
-				stream << std::endl;
+				u16 value = palettes[i].IsColourUsed(j) ? palettes[i].GetColour(j).ToVDPFormat() : 0;
+				serialiser.Value(value);
 			}
 
-			file.Write(stream.str().c_str(), stream.str().size());
-			file.Close();
-			return true;
+			serialiser.Break();
 		}
 
-		return false;
+		return true;
 	}
 }

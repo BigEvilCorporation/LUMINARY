@@ -17,20 +17,18 @@ namespace luminary
 		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
-			for (int i = 0; i < tileset.GetCount(); i++)
+			for (const auto& it : tileset.GetTiles())
 			{
-				if (const Tile* tile = tileset.GetTile(i))
+				const Tile& tile = it.second;
+				for (int y = 0; y < tile.GetHeight(); y++)
 				{
-					for (int y = 0; y < tile->GetHeight(); y++)
+					for (int x = 0; x < tile.GetWidth(); x += 2)
 					{
-						for (int x = 0; x < tile->GetWidth(); x += 2)
-						{
-							u8 nybble1 = (u8)tile->GetPixelColour(x, y) << 4;
-							u8 nybble2 = ((x + 1) < tile->GetWidth()) ? (u8)tile->GetPixelColour(x + 1, y) : 0;
+						u8 nybble1 = (u8)tile.GetPixelColour(x, y) << 4;
+						u8 nybble2 = ((x + 1) < tile.GetWidth()) ? (u8)tile.GetPixelColour(x + 1, y) : 0;
 
-							u8 byte = nybble1 | nybble2;
-							file.Write(&byte, sizeof(u8));
-						}
+						u8 byte = nybble1 | nybble2;
+						file.Write(&byte, sizeof(u8));
 					}
 				}
 			}

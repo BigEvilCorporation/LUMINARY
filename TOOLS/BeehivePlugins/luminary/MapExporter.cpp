@@ -26,12 +26,12 @@ namespace luminary
 			u32 backgroundWord = backgroundStamp * stampSizeBytes;
 			std::fill(stampMap.begin(), stampMap.end(), backgroundWord);
 
-			for (TStampPosMap::const_iterator it = map.StampsBegin(), end = map.StampsEnd(); it != end; ++it)
+			for (const auto& it : map.GetStamps())
 			{
-				int x = it->m_position.x / stampWidth;
-				int y = it->m_position.y / stampHeight;
-				u32 addr = (it->m_id * stampSizeBytes);
-				u32 word = addr | (it->m_flags << 13);	// High Prio, Flip X, Flip Y
+				int x = it.m_position.x / stampWidth;
+				int y = it.m_position.y / stampHeight;
+				u32 addr = (it.m_id * stampSizeBytes);
+				u32 word = addr | (it.m_flags << 13);	// High Prio, Flip X, Flip Y
 				ion::memory::EndianSwap(word);
 				stampMap[(y * widthStamps) + x] = word;
 			}

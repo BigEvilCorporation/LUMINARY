@@ -382,8 +382,7 @@ namespace luminary
 					luminary::Entity entity;
 					luminary::beehive::ConvertPrefabChild(project, *childType, child, entity);
 					entity.id = child.instanceId;
-					entity.spawnData.positionX = child.relativePos.x;
-					entity.spawnData.positionY = child.relativePos.y;
+					entity.spawnData.position = child.relativePos;
 					prefab.children.push_back(entity);
 				}
 			}
@@ -469,8 +468,7 @@ namespace luminary
 			//Size
 			GameObjectDimensionsSource dimensionsSource;
 			ion::Vector2i dimensions = FindGameObjectDimensions(project, &gameObjectType, dimensionsSource);
-			entity.spawnData.width = dimensions.x;
-			entity.spawnData.height = dimensions.y;
+			entity.spawnData.extents = dimensions / 2;
 
 			// Spawn params
 			int paramIdx = 0;
@@ -581,14 +579,12 @@ namespace luminary
 				entity.spawnData.name = gameObjectType.GetName() + std::to_string(gameObject.GetId());
 
 			//Spawn position
-			entity.spawnData.positionX = gameObject.GetPosition().x + GameObject::spriteSheetBorderX;
-			entity.spawnData.positionY = gameObject.GetPosition().y + GameObject::spriteSheetBorderY;
+			entity.spawnData.position = gameObject.GetPosition() + ion::Vector2i(GameObject::spriteSheetBorderX, GameObject::spriteSheetBorderY);
 
 			//Size
 			GameObjectDimensionsSource dimensionsSource;
 			ion::Vector2i dimensions = FindGameObjectDimensions(project, &gameObject, dimensionsSource);
-			entity.spawnData.width = dimensions.x;
-			entity.spawnData.height = dimensions.y;
+			entity.spawnData.extents = dimensions / 2;
 
 			//Create entity and component spawn params
 			int paramIdx = 0;

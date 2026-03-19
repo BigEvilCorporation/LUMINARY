@@ -57,10 +57,8 @@ namespace luminary
 
 	struct SpawnData
 	{
-		u32 positionX;
-		u32 positionY;
-		u32 width;
-		u32 height;
+		ion::Vector2i position;
+		ion::Vector2i extents;
 		std::string name;
 		std::vector<Param> params;
 	};

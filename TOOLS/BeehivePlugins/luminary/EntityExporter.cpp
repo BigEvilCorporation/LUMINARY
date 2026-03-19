@@ -24,269 +24,238 @@ namespace luminary
 
 	bool EntityExporter::ExportArchetypes(const std::string& filename, const std::vector<Archetype>& archetypes)
 	{
-		ion::io::File file(filename, ion::io::File::OpenMode::Write);
-		if (file.IsOpen())
+		SerialiserAsm serialiser(filename);
+		if (!serialiser.IsOpen())
+			return false;
+
+		for (int i = 0; i < archetypes.size(); i++)
 		{
-			std::stringstream stream;
+			const Archetype& archetype = archetypes[i];
 
-			for (int i = 0; i < archetypes.size(); i++)
-			{
-				const Archetype& archetype = archetypes[i];
-
-				//Export to file
-				stream << "Archetype_" << archetype.entityTypeName << "_" << archetype.name << ":" << std::endl;
-				stream << ExportSpawnParamsData(archetype.name, 0, archetype.params, archetype.components);
-			}
-
-			file.Write(stream.str().c_str(), stream.str().size());
-			file.Close();
-
-			return true;
+			//Export to file
+			serialiser.Label("Archetype_", archetype.entityTypeName, "_", archetype.name);
+			ExportSpawnParamsData(serialiser, archetype.name, 0, archetype.params, archetype.components);
 		}
 
-		return false;
+		return true;
 	}
 
 	bool EntityExporter::ExportPrefabs(const std::string& filename, const std::vector<Prefab>& prefabs)
 	{
-		ion::io::File file(filename, ion::io::File::OpenMode::Write);
-		if (file.IsOpen())
+		SerialiserAsm serialiser(filename);
+		if (!serialiser.IsOpen())
+			return false;
+
+		//Export root datas
+		for (auto prefab : prefabs)
 		{
-			std::stringstream stream;
-
-			//Export root datas
-			for (auto prefab : prefabs)
-			{
-				stream << "prefabdata_" << prefab.name << ":" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(prefab.id) << "\t; Prefab_TypeId" << std::endl;
-				stream << "\tdc.w 0x" << SSTREAM_HEX4(prefab.children.size()) << "\t; Prefab_ChildCount" << std::endl;
-				stream << "\tdc.l prefabspawntable_" << prefab.name << "\t; Prefab_SpawnTable" << std::endl;
-				stream << std::endl;
-			}
-
-			stream << std::endl;
-
-			//Export entity/component param tables
-			std::map<std::string, EntityExporter::ExportedSpawnData> exportedSpawnDatas;
-
-			for (auto prefab : prefabs)
-			{
-				for (auto child : prefab.children)
-				{
-					std::stringstream spawnDataName;
-					spawnDataName << "prefabchildspawndata_" << prefab.name << "_" << child.spawnData.name;
-					stream << EntityExporter::ExportEntitySpawnTableData(spawnDataName.str(), child, exportedSpawnDatas);
-					stream << std::endl;
-				}
-			}
-
-			stream << std::endl;
-
-			//Export spawn table
-			for (auto prefab : prefabs)
-			{
-				stream << "prefabspawntable_" << prefab.name << ":" << std::endl;
-
-				for (auto child : prefab.children)
-				{
-					std::stringstream spawnDataName;
-					spawnDataName << "prefabchildspawndata_" << prefab.name << "_" << child.spawnData.name;
-
-					std::map<std::string, EntityExporter::ExportedSpawnData>::const_iterator it = exportedSpawnDatas.find(child.spawnData.name);
-					if (it != exportedSpawnDatas.end())
-					{
-						spawnDataName.str(it->second.labelName);
-					}
-
-					ion::Vector2i extents(child.spawnData.width / 2, child.spawnData.height / 2);
-
-					// SceneEntity
-					stream << "\tdc.l " << child.typeName << "_Typedesc\t; SceneEntity_EntityType" << std::endl;
-					stream << "\tdc.l " << spawnDataName.str() << "\t; SceneEntity_SpawnData" << std::endl;
-					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionX) << "\t; SceneEntity_PosX" << std::endl;
-					stream << "\tdc.w 0x" << SSTREAM_HEX4(child.spawnData.positionY) << "\t; SceneEntity_PosY" << std::endl;
-					stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; SceneEntity_ExtentsX" << std::endl;
-					stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; SceneEntity_ExtentsY" << std::endl;
-					stream << std::endl;
-				}
-
-				stream << std::endl;
-			}
-
-			file.Write(stream.str().c_str(), stream.str().size());
-			file.Close();
-
-			return true;
+			serialiser.Label("prefabdata_", prefab.name);
+			serialiser.Value(prefab.id,						"Prefab_TypeId");
+			serialiser.Value((u16)prefab.children.size(),	"Prefab_ChildCount");
+			serialiser.Value("prefabspawntable_", prefab.name);
+			serialiser.Break();
 		}
 
-		return false;
+		serialiser.Break();
+
+		//Export entity/component param tables
+		std::map<std::string, EntityExporter::ExportedSpawnData> exportedSpawnDatas;
+
+		for (auto prefab : prefabs)
+		{
+			for (auto child : prefab.children)
+			{
+				std::string spawnDataName = "prefabchildspawndata_" + prefab.name + "_" + child.spawnData.name;
+				EntityExporter::ExportEntitySpawnTableData(serialiser, spawnDataName, child, exportedSpawnDatas);
+				serialiser.Break();
+			}
+		}
+
+		serialiser.Break();
+
+		//Export spawn table
+		for (auto prefab : prefabs)
+		{
+			serialiser.Label("prefabspawntable_", prefab.name);
+
+			for (auto child : prefab.children)
+			{
+				std::string spawnDataName = "prefabchildspawndata_" + prefab.name + "_" + child.spawnData.name;
+
+				std::map<std::string, EntityExporter::ExportedSpawnData>::const_iterator it = exportedSpawnDatas.find(child.spawnData.name);
+				if (it != exportedSpawnDatas.end())
+				{
+					spawnDataName = it->second.labelName;
+				}
+
+				// SceneEntity
+				serialiser.Value(child.typeName, "_Typedesc");
+				serialiser.Value(spawnDataName);
+				serialiser.Value(child.spawnData.position,	"SceneEntity_Pos");
+				serialiser.Value(child.spawnData.extents,	"SceneEntity_Extents");
+				serialiser.Break();
+			}
+
+			serialiser.Break();
+		}
+
+		return true;
 	}
 
 	bool EntityExporter::ExportAnimations(const std::string& filename, const std::vector<Animation>& animations)
 	{
-		ion::io::File file(filename, ion::io::File::OpenMode::Write);
-		if (file.IsOpen())
+		SerialiserAsm serialiser(filename);
+		if (!serialiser.IsOpen())
+			return false;
+
+		for (const auto& animation : animations)
 		{
-			std::stringstream stream;
+			const int megaDriveFramesPerSecond = 60;
+			const int keyframesPerSecond = 15;
+			const int numKeyframes = animation.length * keyframesPerSecond;
+			float keyframeStep = animation.length / numKeyframes;
+			float megaDriveFramesPerKeyframe = (keyframeStep * megaDriveFramesPerSecond);
 
-			for (const auto& animation : animations)
+			// STRUCT_BEGIN ECAnimData
+			// ECAnimData_InitialPosList          rs.l 1
+			// ECAnimData_KeyframeTimesList       rs.l 1
+			// ECAnimData_KeyframeTrackListPos    rs.l 1
+			// ECAnimData_ActorCount              rs.w 1
+			// ECAnimData_KeyframeCount           rs.w 1
+			// ECAnimData_Looping                 rs.b 1
+			// STRUCT_END
+
+			serialiser.Define(animation.name + "_ActorCount", (u32)animation.actorNames.size());
+			serialiser.Define(animation.name + "_KeyframeCount", numKeyframes);
+			serialiser.Define(animation.name + "_Looping", animation.looping ? 1 : 0);
+
+			serialiser.Break();
+
+			serialiser.Label(animation.name);
+			serialiser.Long(animation.name + "_InitialPositions");
+			serialiser.Long(animation.name + "_KeyframeTimes");
+			serialiser.Long(animation.name + "_KeyframeTrackList_Pos");
+			serialiser.Word(animation.name + "_ActorCount");
+			serialiser.Word(animation.name + "_KeyframeCount");
+			serialiser.Byte(animation.name + "_Looping");
+			serialiser.Align();
+
+			serialiser.Break();
+
+			// =========================================================================================================================
+
+			//; Initial object positions
+			//SceneAnim_l1a1_BossTest11_InitialPositions:
+			//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Core_3
+			//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_4
+			//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_5
+			//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_6
+			//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_7
+
+			serialiser.Comment("Initial object positions");
+			serialiser.Label(animation.name, "_InitialPositions");
+
+			for (const auto& positionTrack : animation.positionTracks)
 			{
-				const int megaDriveFramesPerSecond = 60;
-				const int keyframesPerSecond = 15;
-				const int numKeyframes = animation.length * keyframesPerSecond;
-				float keyframeStep = animation.length / numKeyframes;
-				float megaDriveFramesPerKeyframe = (keyframeStep * megaDriveFramesPerSecond);
+				//	dc.w 0x0001, 0x0000
 
-				// STRUCT_BEGIN ECAnimData
-				// ECAnimData_InitialPosList          rs.l 1
-				// ECAnimData_KeyframeTimesList       rs.l 1
-				// ECAnimData_KeyframeTrackListPos    rs.l 1
-				// ECAnimData_ActorCount              rs.w 1
-				// ECAnimData_KeyframeCount           rs.w 1
-				// ECAnimData_Looping                 rs.b 1
-				// STRUCT_END
-
-				stream << animation.name << "_ActorCount\t\tequ " << animation.actorNames.size() << std::endl;
-				stream << animation.name << "_KeyframeCount\t\tequ " << numKeyframes << std::endl;
-				stream << animation.name << "_Looping\t\tequ " << (animation.looping ? "1" : "0") << std::endl;
-
-				stream << std::endl;
-
-				stream << animation.name << ":" << std::endl;
-				stream << "\tdc.l " << animation.name << "_InitialPositions" << std::endl;
-				stream << "\tdc.l " << animation.name << "_KeyframeTimes" << std::endl;
-				stream << "\tdc.l " << animation.name << "_KeyframeTrackList_Pos" << std::endl;
-				stream << "\tdc.w " << animation.name << "_ActorCount" << std::endl;
-				stream << "\tdc.w " << animation.name << "_KeyframeCount" << std::endl;
-				stream << "\tdc.b " << animation.name << "_Looping" << std::endl;
-				stream << "\teven" << std::endl;
-
-				stream << std::endl;
-
-				// =========================================================================================================================
-
-				//; Initial object positions
-				//SceneAnim_l1a1_BossTest11_InitialPositions:
-				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Core_3
-				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_4
-				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_5
-				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_6
-				//	dc.l SceneAnim_l1a1_BossTest1_InitialPosition_l1a1_Joint_7
-
-				stream << "; Initial object positions" << std::endl;
-				stream << animation.name << "_InitialPositions:" << std::endl;
-
-				for (const auto& positionTrack : animation.positionTracks)
-				{
-					//	dc.w 0x0001, 0x0000
-
-					ion::Vector2i position = positionTrack.GetValue(0.0f);
-
-					stream << "\tdc.w 0x" << SSTREAM_HEX4(position.x) << ", 0x" << SSTREAM_HEX4(position.y) << std::endl;
-				}
-
-				stream << std::endl;
-
-				// =========================================================================================================================
-
-				//; Keyframe times
-				//SceneAnim_l1a1_BossTest11_KeyframeTimes :
-				//	dc.w 0x0000
-				//	dc.w 0x0004
-				//	dc.w 0x0008
-				//	dc.w 0x000C
-				//	dc.w 0x0010
-				//	dc.w 0x0014
-				//	dc.w 0x0018
-				//	dc.w 0x001C
-
-				stream << "; Keyframe times" << std::endl;
-				stream << animation.name << "_KeyframeTimes:" << std::endl;
-
-				for (int i = 0; i < numKeyframes; i++)
-				{
-					stream << "\tdc.w 0x" << SSTREAM_HEX4((int)(megaDriveFramesPerKeyframe * i)) << std::endl;
-				}
-
-				stream << std::endl;
-
-				// =========================================================================================================================
-
-				//; Keyframe tracks (position)
-				//SceneAnim_l1a1_BossTest11_KeyframeTrackList_Pos:
-				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Core_3
-				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_4
-				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_5
-				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_6
-				//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_7
-
-				stream << "; Keyframe tracks (position)" << std::endl;
-				stream << animation.name << "_KeyframeTrackList_Pos:" << std::endl;
-
-				for (const auto& name : animation.actorNames)
-				{
-					stream << "\tdc.l " << animation.name << "_KeyframeTrack_Pos_" << name << std::endl;
-				}
-
-				stream << std::endl;
-
-				for(int i = 0; i < animation.actorNames.size(); i++)
-				{
-					//; Keyframe track(position, actor Core_3)
-					//SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Core_3:
-					//	dc.w 0x0001, 0x0000
-					//	dc.w 0x0000, 0x0001
-					//	dc.w 0x0002, 0x0000
-					//	dc.w 0x0000, 0x0002
-					//	dc.w 0x0003, 0x0000
-					//	dc.w 0x0000, 0x0003
-					//	dc.w 0x0004, 0x0000
-					//	dc.w 0x0000, 0x0004
-
-					const auto& name = animation.actorNames[i];
-					const auto& positionTrack = animation.positionTracks[i];
-
-					stream << "; Keyframe track (position, actor " << name << ")" << std::endl;
-					stream << animation.name << "_KeyframeTrack_Pos_" << name << ":" << std::endl;
-
-					ion::Vector2i lastPosition = positionTrack.GetValue(0.0f);
-
-					for (int i = 1; i < numKeyframes + 1; i++)
-					{
-						ion::Vector2i position = positionTrack.GetValue(keyframeStep * i);
-
-						ion::Vector2i delta = position - lastPosition;
-						ion::Vector2 velocity((float)delta.x / megaDriveFramesPerKeyframe, (float)delta.y / megaDriveFramesPerKeyframe);
-						lastPosition = position;
-						stream << "\tdc.l 0x" << SSTREAM_HEX8(ion::maths::FloatToFixed1616(velocity.x)) << ", 0x" << SSTREAM_HEX8(ion::maths::FloatToFixed1616(velocity.y)) << std::endl;
-					}
-
-					stream << std::endl;
-				}
+				ion::Vector2i position = positionTrack.GetValue(0.0f);
+				serialiser.Value(position);
 			}
 
-			stream << std::endl;
-			file.Write(stream.str().c_str(), stream.str().size());
-			file.Close();
+			serialiser.Break();
 
-			return true;
+			// =========================================================================================================================
+
+			//; Keyframe times
+			//SceneAnim_l1a1_BossTest11_KeyframeTimes :
+			//	dc.w 0x0000
+			//	dc.w 0x0004
+			//	dc.w 0x0008
+			//	dc.w 0x000C
+			//	dc.w 0x0010
+			//	dc.w 0x0014
+			//	dc.w 0x0018
+			//	dc.w 0x001C
+
+			serialiser.Comment("Keyframe times");
+			serialiser.Label(animation.name, "_KeyframeTimes");
+
+			for (int i = 0; i < numKeyframes; i++)
+			{
+				serialiser.Value((u16)(megaDriveFramesPerKeyframe * i));
+			}
+
+			serialiser.Break();
+
+			// =========================================================================================================================
+
+			//; Keyframe tracks (position)
+			//SceneAnim_l1a1_BossTest11_KeyframeTrackList_Pos:
+			//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Core_3
+			//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_4
+			//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_5
+			//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_6
+			//	dc.l SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Joint_7
+
+			serialiser.Comment("Keyframe tracks (position)");
+			serialiser.Label(animation.name, "_KeyframeTrackList_Pos");
+
+			for (const auto& name : animation.actorNames)
+			{
+				serialiser.Value(animation.name, "_KeyframeTrack_Pos_", name);
+			}
+
+			serialiser.Break();
+
+			for(int i = 0; i < animation.actorNames.size(); i++)
+			{
+				//; Keyframe track(position, actor Core_3)
+				//SceneAnim_l1a1_BossTest1_KeyframeTrack_Pos_l1a1_Core_3:
+				//	dc.w 0x0001, 0x0000
+				//	dc.w 0x0000, 0x0001
+				//	dc.w 0x0002, 0x0000
+				//	dc.w 0x0000, 0x0002
+				//	dc.w 0x0003, 0x0000
+				//	dc.w 0x0000, 0x0003
+				//	dc.w 0x0004, 0x0000
+				//	dc.w 0x0000, 0x0004
+
+				const auto& name = animation.actorNames[i];
+				const auto& positionTrack = animation.positionTracks[i];
+
+				serialiser.Comment("Keyframe track(position, actor " + name + ")");
+				serialiser.Label(animation.name, "_KeyframeTrack_Pos_", name);
+
+				ion::Vector2i lastPosition = positionTrack.GetValue(0.0f);
+
+				for (int j = 1; j < numKeyframes + 1; j++)
+				{
+					ion::Vector2i position = positionTrack.GetValue(keyframeStep * j);
+
+					ion::Vector2i delta = position - lastPosition;
+					ion::Vector2 velocity((float)delta.x / megaDriveFramesPerKeyframe, (float)delta.y / megaDriveFramesPerKeyframe);
+					lastPosition = position;
+					serialiser.Value(ion::maths::FloatToFixed1616(velocity.x), ion::maths::FloatToFixed1616(velocity.y));
+				}
+
+				serialiser.Break();
+			}
 		}
 
-		return false;
+		return true;
 	}
 
-	std::string EntityExporter::ExportSpawnParamsData(const std::string& name, unsigned short id, const std::vector<Param>& entityParams, const std::vector<std::pair<Component,std::string>>& components)
+	void EntityExporter::ExportSpawnParamsData(SerialiserAsm& serialiser, const std::string& name, unsigned short id, const std::vector<Param>& entityParams, const std::vector<std::pair<Component,std::string>>& components)
 	{
-		std::stringstream stream;
-
 		// IFND FINAL
 		// EntitySpawnData_DebugName                     rs.b ENT_DEBUG_NAME_LEN
 		// ENDIF
-		stream << "\tIFND FINAL" << std::endl;
-		stream << "\tdc.b " << EntityExporter::ExportDebugNameData(name, s_debugNameLen) << "\t; EntitySpawnData_DebugName" << std::endl;
-		stream << "\tENDIF" << std::endl;
+		serialiser.IfNDef("FINAL");
+		EntityExporter::ExportDebugNameData(serialiser, name, s_debugNameLen);
+		serialiser.EndIf();
 
-		stream << "\tdc.w 0x" << SSTREAM_HEX4(id) << "\t; EntitySpawnData_Id" << std::endl;
+		serialiser.Value(id, "EntitySpawnData_Id");
 
 		//Export entity params
 		for (int j = 0; j < entityParams.size(); j++)
@@ -299,13 +268,13 @@ namespace luminary
 			switch (param.size)
 			{
 				case ParamSize::Byte:
-					stream << "\tdc.b " << value << "\t; " << param.name << std::endl;
+					serialiser.Byte(value, param.name);
 					break;
 				case ParamSize::Word:
-					stream << "\tdc.w " << value << "\t; " << param.name << std::endl;
+					serialiser.Word(value, param.name);
 					break;
 				case ParamSize::Long:
-					stream << "\tdc.l " << value << "\t; " << param.name << std::endl;
+					serialiser.Long(value, param.name);
 					break;
 			}
 		}
@@ -316,7 +285,7 @@ namespace luminary
 			const Component& component = components[j].first;
 			if (component.spawnData.params.size() > 0)
 			{
-				stream << "\t; " << component.typeName << std::endl;
+				serialiser.Comment(component.typeName);
 
 				for (int k = 0; k < component.spawnData.params.size(); k++)
 				{
@@ -328,30 +297,26 @@ namespace luminary
 					switch (param.size)
 					{
 						case ParamSize::Byte:
-							stream << "\tdc.b " << value << "\t; " << param.name << std::endl;
+							serialiser.Byte(value, param.name);
 							break;
 						case ParamSize::Word:
-							stream << "\tdc.w " << value << "\t; " << param.name << std::endl;
+							serialiser.Word(value, param.name);
 							break;
 						case ParamSize::Long:
-							stream << "\tdc.l " << value << "\t; " << param.name << std::endl;
+							serialiser.Long(value, param.name);
 							break;
 					}
 				}
 
-				stream << "\teven" << std::endl;
+				serialiser.Align();
 			}
 		}
 
-		stream << std::endl;
-
-		return stream.str();
+		serialiser.Break();
 	}
 
-	std::string EntityExporter::ExportStaticEntityData(const Entity& entity)
+	void EntityExporter::ExportStaticEntityData(SerialiserAsm& serialiser, const Entity& entity)
 	{
-		std::stringstream stream;
-
 		// IFND FINAL
 		// EntityBlock_DebugName                   rs.b ENT_DEBUG_NAME_LEN (16)
 		// ENDIF
@@ -367,26 +332,28 @@ namespace luminary
 		// Entity_ExtentsY                         rs.w 1; Height in pixels
 		// ...all params
 
-		ion::Vector2i extents(entity.spawnData.width / 2, entity.spawnData.height / 2);
+		u8 zero8 = 0;
+		u16 zero16 = 0;
 
 		std::string spawnDataName = entity.spawnData.name + "_" + std::to_string(entity.id) + "_SpawnData";
 
-		stream << "\tIFND FINAL" << std::endl;
-		stream << "\tdc.b " << EntityExporter::ExportDebugNameData(entity.spawnData.name, EntityExporter::s_debugNameLen) << std::endl;
-		stream << "\tENDIF" << std::endl;
-		stream << "\tdc.b 0x0\t; EntityBlock_Flags" << std::endl;
-		stream << "\tdc.b 0x0\t; EntityBlock_Priority" << std::endl;
-		stream << "\tdc.w 0x0\t; EntityBlock_Next" << std::endl;
-		stream << "\tdc.w " << entity.typeName << "_Typedesc\t; Entity_TypeDesc" << std::endl;
-		stream << "\tdc.w 0x" << SSTREAM_HEX4(entity.id) << "\t; Entity_Id" << std::endl;
-		stream << "\tdc.l " << spawnDataName << std::endl;
-		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionX) << 16) << "\t; Entity_PosX" << std::endl;
-		stream << "\tdc.l 0x" << SSTREAM_HEX8((entity.spawnData.positionY) << 16) << "\t; Entity_PosY" << std::endl;
-		stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.x) << "\t; Entity_ExtentsX" << std::endl;
-		stream << "\tdc.w 0x" << SSTREAM_HEX4(extents.y) << "\t; Entity_ExtentsY" << std::endl;
+		serialiser.IfNDef("FINAL");
+		EntityExporter::ExportDebugNameData(serialiser, entity.spawnData.name, EntityExporter::s_debugNameLen);
+		serialiser.EndIf();
+		serialiser.Value(zero8,								"EntityBlock_Flags");
+		serialiser.Value(zero8,								"EntityBlock_Priority");
+		serialiser.Value(zero16,							"EntityBlock_Next");
+		serialiser.Word(entity.typeName + "_Typedesc",		"Entity_TypeDesc");
+		serialiser.Value(entity.id,							"Entity_Id");
+		serialiser.Value(spawnDataName);
+		serialiser.Value(entity.spawnData.position.x << 16,	"Entity_PosX");
+		serialiser.Value(entity.spawnData.position.y << 16,	"Entity_PosY");
+		serialiser.Value(entity.spawnData.extents,			"Entity_Extents");
+
+		serialiser.Break();
 
 		//Export all params
-		stream << spawnDataName + ":" << std::endl;
+		serialiser.Label(spawnDataName);
 
 		for (int j = 0; j < entity.spawnData.params.size(); j++)
 		{
@@ -398,23 +365,21 @@ namespace luminary
 			switch (param.size)
 			{
 				case ParamSize::Byte:
-					stream << "\tdc.b " << value << "\t; " << param.name << std::endl;
+					serialiser.Byte(value, param.name);
 					break;
 				case ParamSize::Word:
-					stream << "\tdc.w " << value << "\t; " << param.name << std::endl;
+					serialiser.Word(value, param.name);
 					break;
 				case ParamSize::Long:
-					stream << "\tdc.l " << value << "\t; " << param.name << std::endl;
+					serialiser.Long(value, param.name);
 					break;
 			}
 		}
 
-		stream << "\teven" << std::endl;
-
-		return stream.str();
+		serialiser.Align();
 	}
 
-	std::string EntityExporter::ExportEntitySpawnTableData(const std::string& spawnDataName, const Entity& entity, std::map<std::string, ExportedSpawnData>& exportedSpawnDatas)
+	void EntityExporter::ExportEntitySpawnTableData(SerialiserAsm& serialiser, const std::string& spawnDataName, const Entity& entity, std::map<std::string, ExportedSpawnData>& exportedSpawnDatas)
 	{
 		std::stringstream stream;
 
@@ -457,34 +422,18 @@ namespace luminary
 		else
 		{
 			//Export to file
-			stream << spawnDataName << ":" << std::endl;
-			stream << EntityExporter::ExportSpawnParamsData(entity.spawnData.name, entity.id, entity.spawnData.params, entity.components);
+			serialiser.Label(spawnDataName);
+			EntityExporter::ExportSpawnParamsData(serialiser, entity.spawnData.name, entity.id, entity.spawnData.params, entity.components);
 
 			ExportedSpawnData exportedData;
 			exportedData.labelName = spawnDataName;
 			exportedData.data = spawnDataBlock;
 			exportedSpawnDatas.insert(std::make_pair(entity.spawnData.name, exportedData));
 		}
-
-		return stream.str();
 	}
 
-	std::string EntityExporter::ExportDebugNameData(const std::string& name, int maxLength)
+	void EntityExporter::ExportDebugNameData(SerialiserAsm& serialiser, const std::string& name, int maxLength)
 	{
-		if (name.size() > maxLength - 1)
-		{
-			return "\"" + name.substr(0, maxLength - 1) + "\",0";
-		}
-		else
-		{
-			std::string out = "\"" + name.substr(0, maxLength - 1) + "\"";
-
-			for (int i = 0; i < maxLength - name.size(); i++)
-			{
-				out += ",0";
-			}
-
-			return out;
-		}
+		serialiser.FixedString(name, maxLength);
 	}
 }
