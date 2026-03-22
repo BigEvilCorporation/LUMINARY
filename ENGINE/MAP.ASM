@@ -9,8 +9,8 @@
     STRUCT_BEGIN StreamingMap
 StreamingMap_PlaneAddr                  rs.l 1
 StreamingMap_VRAMhndl                   rs.l 1
-StreamingMap_StampSet                   rs.l 1
 StreamingMap_TileSet                    rs.l 1
+StreamingMap_StampSet                   rs.l 1
 StreamingMap_StampMap                   rs.l 1
 StreamingMap_NumTiles                   rs.w 1
 StreamingMap_NumStamps                  rs.w 1
@@ -29,56 +29,29 @@ MAP_PreLoad:
     ; streaming system.
     ; Assumes autoincrement is 2.
     ; ======================================
-	; a0   Map data plane A
-    ; a1   Map data plane B
-    ; a2   Stampset
-    ; a3   Tileset
-    ; d0.w Num tiles
-    ; d1.w Num stamps
-    ; d2.w FG map width (stamps)
-    ; d3.w FG map height (stamps)
-    ; d4.w BG map width (stamps)
-    ; d5.w BG map height (stamps)
+	; a0   StreamingMap plane A
+    ; a1   StreamingMap plane B
     ; ======================================
 
     ; Init streaming map plane A
+    cmpa.w #0x0, a0
+    beq    @NoPlaneA
+    PUSH.L a1
     lea    RAM_STREAMING_MAP_A, a4
-    move.l #VRAM_ADDR_PLANE_A, StreamingMap_PlaneAddr(a4)
-    move.l a0, StreamingMap_StampMap(a4)
-    move.l a2, StreamingMap_StampSet(a4)
-    move.l a3, StreamingMap_TileSet(a4)
-    move.w d0, StreamingMap_NumTiles(a4)
-    move.w d1, StreamingMap_NumStamps(a4)
-    move.w d2, StreamingMap_WidthStamps(a4)
-    move.w d3, StreamingMap_HeightStamps(a4)
-    move.w #-VDP_PLANE_WIDTH, StreamingMap_StreamPosX(a4)   ; TODO: Initial stream/scroll from camera
-    move.w #0x0, StreamingMap_StreamPosY(a4)
-    move.w #0x0, StreamingMap_ScrollX(a4)
-    move.w #0x0, StreamingMap_ScrollY(a4)
+    move.w #SIZEOF_StreamingMap/SIZE_WORD, d0
+    MEMCPY.W a4,a0,d0
 
-    ; Init streaming map plane B
-    lea    RAM_STREAMING_MAP_B, a4
-    move.l #VRAM_ADDR_PLANE_B, StreamingMap_PlaneAddr(a4)
-    move.l a1, StreamingMap_StampMap(a4)
-    move.l a2, StreamingMap_StampSet(a4)
-    move.l a3, StreamingMap_TileSet(a4)
-    move.w d0, StreamingMap_NumTiles(a4)
-    move.w d1, StreamingMap_NumStamps(a4)
-    move.w d4, StreamingMap_WidthStamps(a4)
-    move.w d5, StreamingMap_HeightStamps(a4)
-    move.w #-VDP_PLANE_WIDTH, StreamingMap_StreamPosX(a4)   ; TODO: Initial stream/scroll from camera
-    move.w #0x0, StreamingMap_StreamPosY(a4)
-    move.w #0x0, StreamingMap_ScrollX(a4)
-    move.w #0x0, StreamingMap_ScrollY(a4)
-
-    ; Alloc VRAM
+    ; Alloc map A VRAM
+    lea    RAM_STREAMING_MAP_A, a4
+    move.w StreamingMap_NumTiles(a4), d0
     bsr    VMR_Alloc
+    
     lea    RAM_STREAMING_MAP_A, a4
     move.l d1, StreamingMap_VRAMhndl(a4)
-    lea    RAM_STREAMING_MAP_B, a4
-    move.l d1, StreamingMap_VRAMhndl(a4)
+    move.l #VRAM_ADDR_PLANE_A, StreamingMap_PlaneAddr(a4)
+    move.w #-VDP_PLANE_WIDTH, StreamingMap_StreamPosX(a4)   ; TODO: Initial stream/scroll from camera
 
-    ; Load tiles
+    ; Load map A tiles
     move.l d1, d0
     move.l StreamingMap_Tileset(a4), a0
     move.w StreamingMap_NumTiles(a4), d1
@@ -87,8 +60,41 @@ MAP_PreLoad:
     ; Update to fill initial screen
     lea    RAM_STREAMING_MAP_A, a3
     bsr    MAP_UpdateStreamingPlane
+
+    POP.L a1
+
+    @NoPlaneA:
+
+    ; ======================================
+
+    ; Init streaming map plane B
+    cmpa.w #0x0, a1
+    beq    @NoPlaneB
+    lea    RAM_STREAMING_MAP_B, a4
+    move.w #SIZEOF_StreamingMap/SIZE_WORD, d0
+    MEMCPY.W a4,a1,d0
+
+    ; Alloc map B VRAM
+    lea    RAM_STREAMING_MAP_B, a4
+    move.w StreamingMap_NumTiles(a4), d0
+    bsr    VMR_Alloc
+
+    lea    RAM_STREAMING_MAP_B, a4
+    move.l d1, StreamingMap_VRAMhndl(a4)
+    move.l #VRAM_ADDR_PLANE_B, StreamingMap_PlaneAddr(a4)
+    move.w #-VDP_PLANE_WIDTH, StreamingMap_StreamPosX(a4)   ; TODO: Initial stream/scroll from camera
+
+    ; Load map B tiles
+    move.l d1, d0
+    move.l StreamingMap_Tileset(a4), a0
+    move.w StreamingMap_NumTiles(a4), d1
+    bsr    VDP_LoadTiles
+
+    ; Update to fill initial screen
     lea    RAM_STREAMING_MAP_B, a3
     bsr    MAP_UpdateStreamingPlane
+
+    @NoPlaneB:
 
     rts
 

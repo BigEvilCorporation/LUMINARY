@@ -12,27 +12,18 @@ Scene_SpawnedEntities                   rs.w SCN_MAX_ENTITIES
     STRUCT_END
 
     STRUCT_BEGIN SceneData
-SceneData_GfxTileset                    rs.l 1
-SceneData_GfxStampset                   rs.l 1
-SceneData_GfxMapFg                      rs.l 1
-SceneData_GfxMapBg                      rs.l 1
+SceneData_StreamingMapFg                rs.l 1 ; StreamingMap
+SceneData_StreamingMapBg                rs.l 1 ; StreamingMap
 SceneData_ColTileset                    rs.l 1
 SceneData_ColStampset                   rs.l 1
 SceneData_ColMap                        rs.l 1
-SceneData_Palettes                      rs.l 1
+SceneData_Palettes                      rs.l 4
 SceneData_StaticEntities                rs.l 1
 SceneData_DynamicEntities               rs.l 1
-SceneData_GfxTileCount                  rs.w 1
-SceneData_GfxStampCount                 rs.w 1
-SceneData_GfxMapFgWidthStamps           rs.w 1
-SceneData_GfxMapFgHeightStamps          rs.w 1
-SceneData_GfxMapBgWidthStamps           rs.w 1
-SceneData_GfxMapBgHeightStamps          rs.w 1
 SceneData_ColTileCount                  rs.w 1
 SceneData_ColStampCount                 rs.w 1
 SceneData_ColMapWidthStamps             rs.w 1
 SceneData_ColMapHeightStamps            rs.w 1
-SceneData_PaletteCount                  rs.w 1
 SceneData_StaticEntityCount             rs.w 1
 SceneData_DynamicEntityCount            rs.w 1
     STRUCT_END
@@ -59,27 +50,30 @@ SCN_LoadScene:
     move.l a0, RAM_SCENE_CURRENT
     move.l a1, RAM_SCENE_DATA
 
-    ; Pre-stream FG map
+    ; Pre-stream map
     PUSHM.L a0-a1
-    move.w SceneData_GfxTileCount(a1), d0
-    move.w SceneData_GfxStampCount(a1), d1
-    move.w SceneData_GfxMapFgWidthStamps(a1), d2
-    move.w SceneData_GfxMapFgHeightStamps(a1), d3
-    move.w SceneData_GfxMapBgWidthStamps(a1), d4
-    move.w SceneData_GfxMapBgHeightStamps(a1), d5
-    move.l SceneData_GfxStampset(a1), a2
-    move.l SceneData_GfxTileset(a1), a3
-    move.l SceneData_GfxMapFg(a1), a0
-    move.l SceneData_GfxMapBg(a1), a1
+    move.l SceneData_StreamingMapFg(a1), a0
+    move.l SceneData_StreamingMapBg(a1), a1
     bsr    MAP_PreLoad
     POPM.L a0-a1
 
     ; Fade in palettes
     PUSHM.L a0-a1
-    move.w SceneData_PaletteCount(a1), d0
-    move.l SceneData_Palettes(a1), a0
+    moveq  #0x0, d0
     move.w #DEFAULT_PAL_FADE_FRAMES, d1
-    bsr    VDP_FadePalettes
+    move.w #4-1, d2
+    lea    SceneData_Palettes(a1), a0
+    @PaletteLp:
+    PUSHM.L d0-d2,a0
+    move.l (a0), a0
+    cmpa.w #0x0, a0
+    beq    @NullPalette
+    bsr    VDP_FadePalette
+    @NullPalette:
+    POPM.L d0-d2,a0
+    addi.w #0x1, d0
+    adda.w #size_long, a0
+    dbra.w d2, @PaletteLp
     POPM.L a0-a1
 
     ; Initialise all static entities
