@@ -24,6 +24,9 @@ namespace luminary
 
 	bool EntityExporter::ExportArchetypes(const std::string& filename, const std::vector<Archetype>& archetypes)
 	{
+		if (archetypes.size() == 0)
+			return false;
+
 		SerialiserAsm serialiser(filename);
 		if (!serialiser.IsOpen())
 			return false;
@@ -42,6 +45,9 @@ namespace luminary
 
 	bool EntityExporter::ExportPrefabs(const std::string& filename, const std::vector<Prefab>& prefabs)
 	{
+		if (prefabs.size() == 0)
+			return false;
+
 		SerialiserAsm serialiser(filename);
 		if (!serialiser.IsOpen())
 			return false;
@@ -104,6 +110,9 @@ namespace luminary
 
 	bool EntityExporter::ExportAnimations(const std::string& filename, const std::vector<Animation>& animations)
 	{
+		if (animations.size() == 0)
+			return false;
+
 		SerialiserAsm serialiser(filename);
 		if (!serialiser.IsOpen())
 			return false;

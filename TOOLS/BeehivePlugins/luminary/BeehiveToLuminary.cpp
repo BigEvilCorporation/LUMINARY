@@ -137,7 +137,7 @@ namespace luminary
 			variable.m_tags.push_back(luminary::tags::GetTagName(luminary::tags::TagType::PrefabData));
 		}
 
-		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const TActorMap& actors, const luminary::ScriptAddressMap& scriptAddresses)
+		void ConvertParam(luminary::Param& param, const GameObjectVariable& variable, const GameObjectType& gameObjectType, const GameObjectArchetype* archetype, const GameObject* gameObject, const GameObjectType::PrefabChild* prefabChild, const TActorMap& actors, const luminary::ScriptAddressMap& scriptAddresses, const Map* map)
 		{
 			param.name = variable.m_name;
 			param.value = "0";
@@ -160,7 +160,24 @@ namespace luminary
 			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::PaletteSlot)))
 			{
-				int slotIdx = std::atoi(variable.m_value.c_str());
+				int slotIdx = 0;
+
+				if (map)
+				{
+					if (const Actor* actor = FindActorInComponent(actors, gameObjectType, gameObject, prefabChild, archetype, variable.m_componentIdx))
+					{
+						PaletteId paletteId = actor->GetPaletteId();
+						for (int i = 0; i < map->GetNumPaletteSlots(); i++)
+						{
+							if (map->GetPaletteFromSlot(i) == paletteId)
+							{
+								slotIdx = i;
+								break;
+							}
+						}
+					}
+				}
+
 				std::stringstream stream;
 				stream << "0x" << SSTREAM_HEX2(slotIdx);
 				param.value = stream.str();
@@ -237,7 +254,7 @@ namespace luminary
 			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::ScriptData)))
 			{
-				param.value = std::string("scriptdata_") + gameObjectType.GetName();
+				param.value = std::string("data_script_") + gameObjectType.GetName();
 			}
 			else if (variable.HasTag(luminary::tags::GetTagName(luminary::tags::TagType::PrefabData)))
 			{
@@ -566,7 +583,7 @@ namespace luminary
 			}
 		}
 
-		void ConvertEntityInstance(const Project& project, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity)
+		void ConvertEntityInstance(const Project& project, const Map& map, const GameObjectType& gameObjectType, const GameObject& gameObject, const luminary::ScriptAddressMap& scriptAddresses, luminary::Entity& entity)
 		{
 			//Entity name and id
 			entity.typeName = gameObjectType.GetName();
@@ -625,7 +642,7 @@ namespace luminary
 					param = &entity.components[componentIdx].first.spawnData.params[paramIdx];
 				}
 
-				ConvertParam(*param, *variable, gameObjectType, nullptr, &gameObject, nullptr, project.GetActors(), scriptAddresses);
+				ConvertParam(*param, *variable, gameObjectType, nullptr, &gameObject, nullptr, project.GetActors(), scriptAddresses, &map);
 			}
 
 			//Create entity/component script functions

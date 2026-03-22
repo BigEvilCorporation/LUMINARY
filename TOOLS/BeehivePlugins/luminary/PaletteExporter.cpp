@@ -13,6 +13,9 @@ namespace luminary
 {
 	bool PaletteExporter::ExportPalettes(const std::string& filename, const std::vector<Palette>& palettes)
 	{
+		if (palettes.size() == 0)
+			return false;
+
 		SerialiserAsm serialiser(filename);
 		if (!serialiser.IsOpen())
 			return false;

@@ -114,32 +114,41 @@ namespace luminary
 		// StreamingMap_ScrollX                    rs.w 1
 		// StreamingMap_ScrollY                    rs.w 1
 
-		u32 zero = 0;
+		u16 zeroW = 0;
+		u32 zeroL = 0;
 
 		// FG map
 		serialiser.Label("StreamingMap_", sceneName, "_PlaneA");
-		serialiser.Value(zero,							"StreamingMap_PlaneAddr");
-		serialiser.Value(zero,							"StreamingMap_VRAMhndl");
-		serialiser.Value(sceneData.tilesetFgLabel,		"StreamingMap_TileSet");
-		serialiser.Value(sceneData.stampsetFgLabel,		"StreamingMap_StampSet");
-		serialiser.Value(sceneData.mapFgLabel,			"StreamingMap_StampMap");
+		serialiser.Value(zeroL,							"StreamingMap_PlaneAddr");
+		serialiser.Value(zeroL,							"StreamingMap_VRAMhndl");
+		serialiser.Value(sceneData.tilesetFgLabel);
+		serialiser.Value(sceneData.stampsetFgLabel);
+		serialiser.Value(sceneData.mapFgLabel);
 		serialiser.Value(sceneData.numTilesFg,			"StreamingMap_NumTiles");
 		serialiser.Value(sceneData.numStampsFg,			"StreamingMap_NumStamps");
 		serialiser.Value(sceneData.mapFgWidthStamps,	"StreamingMap_WidthStamps");
 		serialiser.Value(sceneData.mapFgHeightStamps,	"StreamingMap_HeightStamps");
+		serialiser.Value(zeroW,							"StreamingMap_StreamPosX");
+		serialiser.Value(zeroW,							"StreamingMap_StreamPosY");
+		serialiser.Value(zeroW,							"StreamingMap_ScrollX");
+		serialiser.Value(zeroW,							"StreamingMap_ScrollY");
 		serialiser.Break();
 
 		// BG map
 		serialiser.Label("StreamingMap_", sceneName, "_PlaneB");
-		serialiser.Value(zero,							"StreamingMap_PlaneAddr");
-		serialiser.Value(zero,							"StreamingMap_VRAMhndl");
-		serialiser.Value(sceneData.tilesetBgLabel,		"StreamingMap_TileSet");
-		serialiser.Value(sceneData.stampsetBgLabel,		"StreamingMap_StampSet");
-		serialiser.Value(sceneData.mapBgLabel,			"StreamingMap_StampMap");
+		serialiser.Value(zeroL,							"StreamingMap_PlaneAddr");
+		serialiser.Value(zeroL,							"StreamingMap_VRAMhndl");
+		serialiser.Value(sceneData.tilesetBgLabel);
+		serialiser.Value(sceneData.stampsetBgLabel);
+		serialiser.Value(sceneData.mapBgLabel);
 		serialiser.Value(sceneData.numTilesBg,			"StreamingMap_NumTiles");
 		serialiser.Value(sceneData.numStampsBg,			"StreamingMap_NumStamps");
 		serialiser.Value(sceneData.mapBgWidthStamps,	"StreamingMap_WidthStamps");
 		serialiser.Value(sceneData.mapBgHeightStamps,	"StreamingMap_HeightStamps");
+		serialiser.Value(zeroW,							"StreamingMap_StreamPosX");
+		serialiser.Value(zeroW,							"StreamingMap_StreamPosY");
+		serialiser.Value(zeroW,							"StreamingMap_ScrollX");
+		serialiser.Value(zeroW,							"StreamingMap_ScrollY");
 		serialiser.Break();
 
 		// SceneData_StreamingMapFg                rs.l 1
@@ -161,9 +170,9 @@ namespace luminary
 		serialiser.Label("SceneData_", sceneName);
 		serialiser.Value("StreamingMap_", sceneName, "_PlaneA");
 		serialiser.Value("StreamingMap_", sceneName, "_PlaneB");
-		serialiser.Value(sceneData.collisionTilesetLabel,		"SceneData_ColTileset");
-		serialiser.Value(sceneData.collisionStampsetLabel,		"SceneData_ColStampset");
-		serialiser.Value(sceneData.collisionMapLabel,			"SceneData_ColMap");
+		serialiser.Value(sceneData.collisionTilesetLabel);
+		serialiser.Value(sceneData.collisionStampsetLabel);
+		serialiser.Value(sceneData.collisionMapLabel);
 
 		for(int i = 0; i < sceneData.palettes.size(); i++)
 			serialiser.Value(sceneData.palettes[i]);
