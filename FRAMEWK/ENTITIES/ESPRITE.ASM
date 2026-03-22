@@ -19,6 +19,7 @@ ECSPRITE_STATE_FLAG_DIRTY               equ 0x4 ; Anim changed, forcefully load 
 SDSprite_Actor                          rs.l 1  ; [TAGS=SPRITE_ACTOR]
 SDSprite_Sheet                          rs.l 1  ; [TAGS=SPRITE_SHEET]
 SDSprite_Animation                      rs.l 1  ; [TAGS=SPRITE_ANIM]
+SDSprite_PaletteSlotIdx                 rs.b 1  ; [TAGS=PALETTE_SLOT]
 SDSprite_DrawPriority                   rs.b 1
     COMPONENT_SPAWN_DATA_END
 
@@ -62,6 +63,10 @@ ECSprite_Initialise:
     move.b #0x0, ECSprite_DrawFlags(a0)
     move.b SDSprite_DrawPriority(a1), EntityBlock_Priority(a0)
     move.b #(1<<ECSPRITE_STATE_FLAG_VISIBLE)|(1<<ECSPRITE_STATE_FLAG_ONSCREEN), ECSprite_StateFlags(a0)
+
+    ; Set palette
+    move.b SDSprite_PaletteSlotIdx(a1), d0
+    SPRITE_COMPONENT_SETPALETTE_REG a0,d0
 
     ; Load animation
     move.l SDSprite_Animation(a1), a2

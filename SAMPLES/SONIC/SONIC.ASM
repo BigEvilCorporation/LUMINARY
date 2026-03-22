@@ -46,7 +46,7 @@ Main:
 
     ; Load scene
     lea    RAM_TESTSCENE1, a0
-    lea    SceneData_tst1_tst1, a1
+    lea    SceneData_ghz1, a1
     bsr    SCN_LoadScene
 
     ; Set player
@@ -55,27 +55,19 @@ Main:
     move.l a1, RAM_PLAYER_1
 
     ; Load palettes
-    lea     SceneData_tst1_tst1, a1
-    move.w  SceneData_PaletteCount(a1), d1
-    move.l  SceneData_Palettes(a1), a0
+    lea     SceneData_ghz1, a1
+    lea     SceneData_Palettes(a1), a0
     moveq   #0x0, d0
-    subi.w  #0x1, d1
+    moveq   #4-1, d1
     @PaletteLp:
     PUSHM.L d0-d1/a0
+    move.l  (a0), a0
     move.w  #DEFAULT_PAL_FADE_FRAMES, d1
     bsr     VDP_FadePalette
     POPM.L  d0-d1/a0
     addi.w  #0x1, d0
-    adda.w  #SIZE_PALETTE_B, a0
+    adda.w  #SIZE_LONG, a0
     dbra.w  d1, @PaletteLp
-    
-    lea    palette_sonic, a0
-    move.b #0x3, d0
-    bsr    VDP_LoadPalette
-
-    lea    palette_motobug, a0
-    move.b #0x2, d0
-    bsr    VDP_LoadPalette
     
     @Lp:
 
@@ -137,19 +129,8 @@ Game_Render:
 
     rts
 
-    ; Asset includes
+    ; Engine asset includes
 	include 'engine/assets.asm'
 
-    ; Entity archetypes
-    include 'data/entities/archtyps.asm'
-
-    ; Scene data
-    include 'data/scenes/tst1/include.asm'
-
-    ; Sprite data
-    include 'data/sprites/sprites.asm'
-    include 'data/anims/sprtanms.asm'
-    include 'data/palettes/sprtpals.asm'
-
-    ; Script data
-    include 'data/scripts/scripts.asm'
+    ; Game asset includes
+    include 'data/data.asm'
