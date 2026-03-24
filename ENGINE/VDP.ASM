@@ -30,10 +30,8 @@ VDP_Initialise:
 
     ; Initialise palettes
     lea    RAM_VDP_PALETTES, a0
-    move.l #palette_black, (a0)+
-    move.l #palette_black, (a0)+
-    move.l #palette_black, (a0)+
-    move.l #palette_black, (a0)+
+    move.w #SIZE_PALETTE_L*4, d0
+    MEMSET.L a0, #0x0, d0
 
     ; Initialise fader
     lea    RAM_VDP_PAL_FADE_FRAME, a0

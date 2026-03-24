@@ -19,10 +19,9 @@ VDP_LoadPalette:
     move.w d0, d1
 
     ; To RAM
-    lsl.w  #0x2, d1
+    mulu   #SIZE_PALETTE_B, d1
     lea    RAM_VDP_PALETTES, a1
     adda.w d1, a1
-    move.l a0, (a1)
 
     ; To CRAM
     lsl.w  #SIZE_PALETTE_SHIFT, d0
@@ -30,7 +29,8 @@ VDP_LoadPalette:
 
     ; 32 bytes
     REPT 8
-    move.l (a0)+, PORT_VDP_DATA
+    move.l (a0), PORT_VDP_DATA  ; To CRAM
+    move.l (a0)+, (a1)+         ; To RAM
     ENDR
 
     rts
@@ -53,11 +53,54 @@ VDP_LoadPalettes:
     ; 32 bytes per palette
     subi.w #0x1, d0
     @PalLp:
-    move.l a0, (a1)+
     REPT 8
-    move.l (a0)+, PORT_VDP_DATA
+    move.l (a0), PORT_VDP_DATA  ; To CRAM
+    move.l (a0)+, (a1)+         ; To RAM
     ENDR
     dbra   d0, @PalLp
+
+    rts
+
+VDP_CyclePalette:
+    ; ======================================
+    ; Cycles a range of colours in a palette
+    ; and re-uploads to CRAM
+    ; ======================================
+    ; d0.b Palette index
+    ; d1.b Start colour idx
+    ; d2.b End colour idx
+    ; ======================================
+
+    andi.w #0x0F, d0
+    andi.w #0x0F, d1
+    andi.w #0x0F, d2
+    move.w d0, d4
+
+    ; Get current palette
+    mulu   #SIZE_PALETTE_B, d4
+    lea    RAM_VDP_PALETTES, a0
+    adda.w d4, a0
+
+    ; Skip to end colour
+    move.l a0, a6
+    move.w d2, d4
+    subi.w #0x1, d4
+    lsl.w  #0x1, d4
+    adda.w d4, a6
+    move.l a6, a1
+
+	; Swap every two colours from end to start
+    sub.w  d1, d2
+    subi.w #0x1, d2
+    @ColourLp:
+    move.l (a6), d4    		; Get two colours
+    swap   d4          		; Swap em
+    move.l d4, (a6)    		; Back to RAM
+    suba.w #SIZE_WORD, a6	; Prev colour
+    dbra.w d2, @ColourLp
+
+    ; Upload to CRAM
+    bsr    VDP_LoadPalette
 
     rts
 
@@ -120,9 +163,8 @@ VDP_FadePalette:
     PUSHM.l a0-a2/d0-d3
     lea     RAM_VDP_PALETTES, a0        ; Get address of current palette
     move.w  d0, d2
-    lsl.w   #0x2, d2
+    mulu    #SIZE_PALETTE_B, d2
     adda.w  d2, a0
-    move.l  (a0), a0
     lea     RAM_VDP_PAL_FADE_SRC, a1    ; Get address of palette fade data
     adda.w  d3, a1
     bsr     VDP_ExtractPalette

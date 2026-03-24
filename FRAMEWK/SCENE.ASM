@@ -59,21 +59,18 @@ SCN_LoadScene:
 
     ; Fade in palettes
     PUSHM.L a0-a1
-    moveq  #0x0, d0
-    move.w #DEFAULT_PAL_FADE_FRAMES, d1
-    move.w #4-1, d2
-    lea    SceneData_Palettes(a1), a0
+    lea     SceneData_Palettes(a1), a0
+    moveq   #0x0, d0
+    moveq   #4-1, d1
     @PaletteLp:
-    PUSHM.L d0-d2,a0
-    move.l (a0), a0
-    cmpa.w #0x0, a0
-    beq    @NullPalette
-    bsr    VDP_FadePalette
-    @NullPalette:
-    POPM.L d0-d2,a0
-    addi.w #0x1, d0
-    adda.w #size_long, a0
-    dbra.w d2, @PaletteLp
+    PUSHM.L d0-d1/a0
+    move.l  (a0), a0
+    move.w  #DEFAULT_PAL_FADE_FRAMES, d1
+    bsr     VDP_FadePalette
+    POPM.L  d0-d1/a0
+    addi.w  #0x1, d0
+    adda.w  #SIZE_LONG, a0
+    dbra.w  d1, @PaletteLp
     POPM.L a0-a1
 
     ; Initialise all static entities

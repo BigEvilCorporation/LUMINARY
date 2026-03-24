@@ -19,6 +19,8 @@ SIZE_TILE_SHIFT_W                       equ 0x04
 
 ; VDP palettes
 SIZE_PALETTE_B                          equ 0x20
+SIZE_PALETTE_W                          equ 0x10
+SIZE_PALETTE_L                          equ 0x08
 SIZE_PALETTE_SHIFT                      equ 0x05
 
 ; Strings
