@@ -84,22 +84,6 @@ EBuzzbomb_Initialise:
     move.w #-EBUZZBOMB_VEL_X, EBuzzBomb_VelX(a0)
     move.b #EBUZZBOMB_STATE_SEARCHING, EBuzzBomb_State(a0)
 
-    ; Set palettes
-    ; TODO: Better palette management
-    ENT_GETCOMPONENT EBuzzbomb,SpriteBody,a0,a1
-    move.w #0x2, d0
-    SPRITE_COMPONENT_SETPALETTE_REG a1,d0
-    ENT_GETCOMPONENT EBuzzbomb,SpriteWings,a0,a1
-    move.w #0x2, d0
-    SPRITE_COMPONENT_SETPALETTE_REG a1,d0
-    ENT_GETCOMPONENT EBuzzbomb,SpriteThrust,a0,a1
-    move.w #0x2, d0
-    SPRITE_COMPONENT_SETPALETTE_REG a1,d0
-
-    ; Init enemy component
-    ENT_GETCOMPONENT EBuzzbomb,ECEnemy,a0,a1
-    move.w #EBuzzbomb_OnHit, ECEnemy_CallbackOnHit(a1)
-
     ; Offset wings
     ENT_GETCOMPONENT EBuzzbomb,SpriteWings,a0,a1
     move.b #EBUZZBOMB_WINGS_OFFS_X, ECSprite_PosX(a1)
@@ -276,66 +260,6 @@ EBuzzbomb_Update:
 
     rts
 
-EBuzzbomb_OnHit:
-    ; ======================================
-    ; EBuzzbomb on player hit callback from
-    ; ECEnemy_CheckHit
-    ; ======================================
-    ; In:
-	;   a0    Entity
-    ;   a1    ECEnemy component
-    ;   a2    Player
-    ;   d1.ww Player top left bounds
-    ;   d2.ww Player bottom right bounds
-    ;   d3.ww Player top left bounds
-    ;   d4.ww Player bottom right bounds
-    ; Out:
-    ;   d5.b  Damage taken from player
-    ;   d6.b  Damage dealt to player
-    ; ======================================
-
-    PUSH.L a1
-
-    ; If player spinning, take damage
-    btst   #PLAYER_FLAG_SPINNING, EPlayer_StateFlags(a2)
-    bne    @Spinning
-
-    ; If player jumping, take damage and rebound player
-    btst   #PLAYER_FLAG_JUMPING, EPlayer_StateFlags(a2)
-    beq    @NotJumping
-    ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a2,a1
-    move.l ECPhysBodyChar_VelY(a1), d0
-    neg.l  d0
-    move.l d0, ECPhysBodyChar_VelY(a1)
-
-    @Spinning:
-
-    ; Despawn
-    bsr    ENT_DespawnEntity
-
-    ; Spawn explosion
-    VFX_SPAWN VFXExplosion2,Entity_PosX(a0),Entity_PosY(a0)
-
-    ; Spawn critter
-    PUSHM.L a0-a2
-    move.w Entity_PosX(a0), d0
-    move.w Entity_PosY(a0), d1
-    subi.w #EFLICKY_HEIGHT, d1
-    move.w #EFLICKY_WIDTH, d2
-    move.w #EFLICKY_HEIGHT, d3
-    lea    EFlicky_TypeDesc, a0
-    lea    EFlicky_Default_SpawnData, a1
-    bsr    ENT_SpawnEntity
-    POPM.L a0-a2
-    
-    @NotJumping:
-
-    ; If player not spinning, deal damage to player
-
-    POP.L  a1
-
-    rts
-
 EBuzzProjectile_Initialise:
     ; ======================================
     ; EBuzzProjectile constructor
@@ -343,10 +267,6 @@ EBuzzProjectile_Initialise:
 	; a0   Entity
     ; a1   Entity spawn data
     ; ======================================
-
-    ; Init enemy component
-    ENT_GETCOMPONENT EBuzzProjectile,ECEnemy,a0,a1
-    move.w #EBuzzProjectile_OnHit, ECEnemy_CallbackOnHit(a1)
 
     rts
 
@@ -392,26 +312,4 @@ EBuzzProjectile_Update:
 
     bsr    ENT_DespawnEntity
     
-    rts
-
-EBuzzProjectile_OnHit:
-    ; ======================================
-    ; EBuzzbomb on player hit callback from
-    ; ECEnemy_CheckHit
-    ; ======================================
-    ; In:
-	;   a0    Entity
-    ;   a1    ECEnemy component
-    ;   a2    Player
-    ;   d1.ww Player top left bounds
-    ;   d2.ww Player bottom right bounds
-    ;   d3.ww Player top left bounds
-    ;   d4.ww Player bottom right bounds
-    ; Out:
-    ;   d5.b  Damage taken from player
-    ;   d6.b  Damage dealt to player
-    ; ======================================
-
-    ; Kill player always
-
     rts

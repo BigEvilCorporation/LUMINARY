@@ -54,20 +54,7 @@ Main:
     bsr    ENT_FindFirstOfType
     move.l a1, RAM_PLAYER_1
 
-    ; Load palettes
-    lea     SceneData_ghz1, a1
-    lea     SceneData_Palettes(a1), a0
-    moveq   #0x0, d0
-    moveq   #4-1, d1
-    @PaletteLp:
-    PUSHM.L d0-d1/a0
-    move.l  (a0), a0
-    move.w  #DEFAULT_PAL_FADE_FRAMES, d1
-    bsr     VDP_FadePalette
-    POPM.L  d0-d1/a0
-    addi.w  #0x1, d0
-    adda.w  #SIZE_LONG, a0
-    dbra.w  d1, @PaletteLp
+    move.w #10, RAM_PAL_CYCLE_TIMER
     
     @Lp:
 
@@ -126,6 +113,17 @@ Game_Render:
 
     ; Debug draw
     ;bsr    ENT_DebugDrawMemory
+
+    move.w  RAM_PAL_CYCLE_TIMER, d0
+    subi.w  #0x1, d0
+    move.w  d0, RAM_PAL_CYCLE_TIMER
+    bne     @NoCycle
+    move.w  #6, RAM_PAL_CYCLE_TIMER
+    moveq   #0, d0
+    moveq   #8, d1
+    moveq   #11, d2
+    bsr     VDP_CyclePalette
+    @NoCycle:
 
     rts
 

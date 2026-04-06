@@ -26,8 +26,8 @@ EFLICKY_JUMP_VEL                        equ 0x00040000
     ENTITY_SPAWN_DATA EFlicky_Default_SpawnData,0
 	; ECSprite
     dc.l 0x0                            ; SDSprite_Actor
-	dc.l actor_flicky_spritesheet_idle	; SDSprite_Sheet
-	dc.l 0x0	                        ; SDSprite_Animation
+	dc.l actor_flicky_spritesheet_fly	; SDSprite_Sheet
+	dc.l actor_flicky_sheet_fly_anim_fly; SDSprite_Animation
     dc.b 0x0                            ; SDSprite_DrawPriority
 	even
 
@@ -39,16 +39,14 @@ EFlicky_Initialise:
     ; a1   Entity spawn data
     ; ======================================
 
-    ; Set palette
-    ; TODO: Better palette management
-    ENT_GETCOMPONENT EFlicky,ECSprite,a0,a1
-    move.w #0x3, d0
-    SPRITE_COMPONENT_SETPALETTE_REG a1,d0
-
-    ; Start in jump state
+    ; Disable deceleration
     ENT_GETCOMPONENT EFlicky,ECPhysBodyBasic,a0,a1
-    move.l #EFLICKY_JUMP_VEL, ECPhysBodyBasic_VelY(a1)
     move.w #0x0, ECPhysBodyBasic_DecelX(a1)
+
+    ; Aim left
+    move.b #0x1, d0
+    ENT_GETCOMPONENT EFlicky,ECSprite,a0,a0
+    SPRITE_COMPONENT_SETFLIPX_REG a0,d0
 
     rts
 
@@ -81,19 +79,9 @@ EFlicky_Update:
     ; Jump
     move.l #-EFLICKY_JUMP_VEL, ECPhysBodyBasic_VelY(a1)
 
+    @InAir:
+
     ; Move
     move.l #-EFLICKY_VEL_X, ECPhysBodyBasic_VelX(a1)
-
-    ; Set flying anim
-    PUSH.L a0
-    move.b #0x1, d0
-    ENT_GETCOMPONENT EFlicky,ECSprite,a0,a0
-    SPRITE_COMPONENT_SETFLIPX_REG a0,d0
-    move.l #actor_flicky_spritesheet_fly, a1
-    move.l #actor_flicky_sheet_fly_anim_fly, a2
-    bsr    ECSprite_LoadAnimation
-    POP.L  a0
-
-    @InAir:
 
     rts

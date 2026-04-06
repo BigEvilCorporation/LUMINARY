@@ -42,16 +42,16 @@ PLAYER_WALK_TO_RUN_VEL                  equ 0x00030000
 PLAYER_SPIN_MIN_SPEED                   equ 0x00008000
 
 PlayerSpriteAnimTable:
-    dc.l   actor_sonic_spritesheet_idle, 0x0
-    dc.l   actor_sonic_spritesheet_walk, actor_sonic_sheet_walk_anim_walk
-    dc.l   actor_sonic_spritesheet_walk_45, actor_sonic_sheet_walk_45_anim_walk_45
-    dc.l   actor_sonic_spritesheet_walk_90, actor_sonic_sheet_walk_90_anim_walk_90
-    dc.l   actor_sonic_spritesheet_walk_135, actor_sonic_sheet_walk_135_anim_walk_135
-    dc.l   actor_sonic_spritesheet_run,  actor_sonic_sheet_run_anim_run
-    dc.l   actor_sonic_spritesheet_run_45,  actor_sonic_sheet_run_45_anim_run_45
-    dc.l   actor_sonic_spritesheet_run_90,  actor_sonic_sheet_run_90_anim_run_90
-    dc.l   actor_sonic_spritesheet_run_135,  actor_sonic_sheet_run_135_anim_run_135
-    dc.l   actor_sonic_spritesheet_jump, actor_sonic_sheet_jump_anim_jump
+    dc.l   actor_sonic_spritesheet_idle,        0x0
+    dc.l   actor_sonic_spritesheet_walk,        actor_sonic_sheet_walk_anim_walk
+    dc.l   actor_sonic_spritesheet_walk_45,     actor_sonic_sheet_walk_45_anim_walk_45
+    dc.l   actor_sonic_spritesheet_walk_90,     actor_sonic_sheet_walk_90_anim_walk_90
+    dc.l   actor_sonic_spritesheet_walk_135,    actor_sonic_sheet_walk_135_anim_walk_135
+    dc.l   actor_sonic_spritesheet_run,         actor_sonic_sheet_run_anim_run
+    dc.l   actor_sonic_spritesheet_run_45,      actor_sonic_sheet_run_45_anim_run_45
+    dc.l   actor_sonic_spritesheet_run_90,      actor_sonic_sheet_run_90_anim_run_90
+    dc.l   actor_sonic_spritesheet_run_135,     actor_sonic_sheet_run_135_anim_run_135
+    dc.l   actor_sonic_spritesheet_jump,        actor_sonic_sheet_jump_anim_jump
 
 PlayerSpriteAnimWalkAngleTable_CW:
     dc.b   PLAYER_ANIM_WALK,        0x1, 0x0   ; 00
@@ -198,12 +198,6 @@ EPlayer_Initialise:
     beq    @NoCam
     move.l a0, Camera_TargetEntity(a2)
     @NoCam:
-
-    ; Set palette
-    ; TODO: Better palette management
-    ENT_GETCOMPONENT EPlayer,ECSprite,a0,a1
-    move.w #0x3, d0
-    SPRITE_COMPONENT_SETPALETTE_REG a1,d0
 
     ; Init player's physics component
     ENT_GETCOMPONENT EPlayer,ECPhysBodyChar,a0,a1

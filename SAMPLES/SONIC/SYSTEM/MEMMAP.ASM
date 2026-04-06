@@ -9,6 +9,7 @@
     RSSET RAM_GAME_START
 
 RAM_PLAYER_1                            rs.l 1
+RAM_PAL_CYCLE_TIMER                     rs.w 1
 
     ; Entity component lists
     ENT_COMPONENT_LIST ECEnemy

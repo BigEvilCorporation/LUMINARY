@@ -27,12 +27,6 @@ ERing_Initialise:
     ; a1   Entity spawn data
     ; ======================================
 
-    ; Set palette
-    ; TODO: Better palette management
-    ENT_GETCOMPONENT ERing,ECSprite,a0,a1
-    move.w #0x2, d0
-    SPRITE_COMPONENT_SETPALETTE_REG a1,d0
-
     rts
 
 ERing_Shutdown:
