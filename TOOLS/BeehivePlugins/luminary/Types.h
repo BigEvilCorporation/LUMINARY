@@ -10,6 +10,7 @@
 
 #include <ion/core/Types.h>
 #include <ion/beehive/Animation.h>
+#include <ion/beehive/Tile.h>
 
 #include <string>
 #include <vector>
@@ -22,6 +23,20 @@ namespace luminary
 		Byte = 1,
 		Word = 2,
 		Long = 4
+	};
+
+	struct TileEntry
+	{
+		TileId index;
+		u32 flags;
+		u8 paletteSlot;
+	};
+
+	struct GfxStamp
+	{
+		u32 width;
+		u32 height;
+		std::vector<TileEntry> tiles;
 	};
 
 	struct Param

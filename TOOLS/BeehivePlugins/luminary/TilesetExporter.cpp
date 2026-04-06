@@ -40,18 +40,18 @@ namespace luminary
 		return false;
 	}
 
-	bool TilesetExporter::ExportStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, int paletteSlot)
+	bool TilesetExporter::ExportStamps(const std::string& binFilename, const std::vector<luminary::GfxStamp>& stamps)
 	{
 		ion::io::File file(binFilename, ion::io::File::OpenMode::Write);
 		if (file.IsOpen())
 		{
 			for (int i = 0; i < stamps.size(); i++)
 			{
-				const Stamp& stamp = stamps[i];
+				const GfxStamp& stamp = stamps[i];
 
-				for (int y = 0; y < stamp.GetWidth(); y++)
+				for (int y = 0; y < stamp.height; y++)
 				{
-					for (int x = 0; x < stamp.GetHeight(); x++)
+					for (int x = 0; x < stamp.width; x++)
 					{
 						//16 bit word:
 						//-------------------
@@ -63,23 +63,14 @@ namespace luminary
 						//D = Vertical flip
 						//E = Tile ID
 
-						u8 paletteId = 0;
-
-						//If blank tile, use background tile
-						u32 tileId = stamp.GetTile(x, y);
-						u16 tileFlags = stamp.GetTileFlags(x, y);
-
-						if (tileId == InvalidTileId)
-						{
-							tileId = 0;
-						}
+						const TileEntry& tile = stamp.tiles[(y * stamp.width) + x];
 
 						//Generate components
-						u16 tileIndex = tileId & 0x7FF;								//Bottom 11 bits = tile ID (index from 0)
-						u16 flipH = (tileFlags & Map::eFlipX) ? 1 << 11 : 0;		//12th bit = Flip X flag
-						u16 flipV = (tileFlags & Map::eFlipY) ? 1 << 12 : 0;		//13th bit = Flip Y flag
-						u16 palette = (paletteSlot & 0x3) << 13;					//14th+15th bits = Palette ID
-						u16 plane = (tileFlags & Map::eHighPlane) ? 1 << 15 : 0;	//16th bit = High plane flag
+						u16 tileIndex = tile.index & 0x7FF;							//Bottom 11 bits = tile ID (index from 0)
+						u16 flipH = (tile.flags & Map::eFlipX) ? 1 << 11 : 0;		//12th bit = Flip X flag
+						u16 flipV = (tile.flags & Map::eFlipY) ? 1 << 12 : 0;		//13th bit = Flip Y flag
+						u16 palette = (tile.paletteSlot & 0x3) << 13;				//14th+15th bits = Palette ID
+						u16 plane = (tile.flags & Map::eHighPlane) ? 1 << 15 : 0;	//16th bit = High plane flag
 
 						//Generate word
 						u16 word = tileIndex | flipV | flipH | palette | plane;

@@ -15,12 +15,14 @@
 #include <ion/beehive/Stamp.h>
 #include <ion/beehive/Map.h>
 
+#include "Types.h"
+
 namespace luminary
 {
 	class TilesetExporter
 	{
 	public:
 		bool ExportTileset(const std::string& binFilename, const Tileset& tileset);
-		bool ExportStamps(const std::string& binFilename, const std::vector<Stamp>& stamps, int paletteSlot);
+		bool ExportStamps(const std::string& binFilename, const std::vector<luminary::GfxStamp>& stamps);
 	};
 }
