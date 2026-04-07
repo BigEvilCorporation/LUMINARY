@@ -104,6 +104,7 @@ namespace luminary
 		for (int i = 0; i < sceneData.stampAnimations.size(); i++)
 		{
 			const StampAnim& stampAnim = sceneData.stampAnimations[i];
+			serialiser.FixedString(stampAnim.actorName, EntityExporter::s_debugNameLen);
 			serialiser.Value("actor_", stampAnim.actorName, "_spritesheet_", stampAnim.tileSheetName);
 			serialiser.Value("actor_", stampAnim.actorName, "_sheet_", stampAnim.tileSheetName, "_anim_", stampAnim.animationName);
 			serialiser.Value(stampAnim.tileIndex, "StampAnim_TileIndex");

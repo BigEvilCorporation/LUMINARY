@@ -28,7 +28,9 @@ EFLICKY_JUMP_VEL                        equ 0x00040000
     dc.l 0x0                            ; SDSprite_Actor
 	dc.l actor_flicky_spritesheet_fly	; SDSprite_Sheet
 	dc.l actor_flicky_sheet_fly_anim_fly; SDSprite_Animation
+    dc.b 0x0                            ; SDSprite_PaletteSlotIdx
     dc.b 0x0                            ; SDSprite_DrawPriority
+    dc.b 0x0                            ; SDSprite_StateFlags
 	even
 
 EFlicky_Initialise:

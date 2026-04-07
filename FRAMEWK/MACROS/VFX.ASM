@@ -20,13 +20,13 @@ __VFX_ENT_ID = VFX_ENT_ID_START
     ; ======================================
 VFX_DEFINE: macro name,sprite_sheet,sprite_anim,palette_idx
     ENTITY_SPAWN_DATA VFX_\name\_SpawnData,__VFX_ENT_ID
-    dc.b   \palette_idx                 ; Palette idx
-    even
     ; SDSprite
     dc.l   0                            ; SDSprite_Actor
     dc.l   \sprite_sheet                ; SDSprite_Sheet
     dc.l   \sprite_anim                 ; SDSprite_Animation
+    dc.b   \palette_idx                 ; SDSprite_PaletteSlotIdx
     dc.b   0                            ; SDSprite_DrawPriority
+    dc.b   0                            ; SDSprite_StateFlags
     even
 __VFX_ENT_ID = __VFX_ENT_ID+1           ; Next id
     endm

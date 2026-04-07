@@ -68,7 +68,9 @@ EBuzzBomb_State                         rs.b 1
     dc.l   0x0                                              ; SDSprite_Actor
     dc.l   actor_buzzbomb_spritesheet_projectile            ; SDSprite_Sheet
     dc.l   actor_buzzbomb_sheet_projectile_anim_projectile  ; SDSprite_Animation
+    dc.b   0x0                                              ; SDSprite_PaletteSlotIdx
     dc.b   0x0                                              ; SDSprite_DrawPriority
+    dc.b   0x0                                              ; SDSprite_StateFlags
 	even
 
 EBuzzbomb_Initialise:

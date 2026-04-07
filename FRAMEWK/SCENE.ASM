@@ -12,6 +12,7 @@ Scene_SpawnedEntities                   rs.w SCN_MAX_ENTITIES
     STRUCT_END
 
     STRUCT_BEGIN StampAnim
+StampAnim_Name                          rs.b ENT_DEBUG_NAME_LEN
 StampAnim_TileSheet                     rs.l 1
 StampAnim_Animation                     rs.l 1
 StampAnim_TileIndex                     rs.w 1
@@ -147,20 +148,20 @@ SCN_LoadScene:
     STACK_ALLOC #ENTITY_EStampAnim_SPAWNDATA_SIZE, a1
     move.l a1, a4
 
-    ; ----------------------------------------------------
-    ; EntitySpawnDataBase
-    ; ----------------------------------------------------
+    ; -------- EntitySpawnDataBase
     IFND FINAL
-    addi.w #ENT_DEBUG_NAME_LEN, a4                          ; EntitySpawnData_DebugName
+    PUSHM.L a0-a1/d0
+    move.l a4, a0
+    lea    StampAnim_Name(a2), a1
+    move.w #ENT_DEBUG_NAME_LEN, d0
+    bsr    STR_CopyA_s                                      ; EntitySpawnData_DebugName
+    POPM.L a0-a1/d0
+    adda.w #ENT_DEBUG_NAME_LEN, a4
     ENDIF
     move.w #0x0, (a4)+                                      ; EntitySpawnData_Id
-    ; ----------------------------------------------------
-    ; EStampAnim
-    ; ----------------------------------------------------
+    ; -------- EStampAnim
     move.l d5, (a4)+                                        ; SDStampAnim_VRAMHndl
-    ; ----------------------------------------------------
-    ; ECSprite
-    ; ----------------------------------------------------
+    ; -------- ECSprite
     move.l #0x0, (a4)+                                      ; SDSprite_Actor
     move.l StampAnim_TileSheet(a2), (a4)+                   ; SDSprite_Sheet
     move.l StampAnim_Animation(a2), (a4)+                   ; SDSprite_Animation
@@ -168,7 +169,7 @@ SCN_LoadScene:
     move.b #0x0, (a4)+                                      ; SDSprite_DrawPriority
     move.b #(1<<ECSPRITE_STATE_FLAG_VRAM_UNMANAGED), (a4)+  ; SDSprite_StateFlags
     move.b #0x0, (a4)                                       ; TODO: ALIGN_REG macro?
-    ; ----------------------------------------------------
+    ; ------------------
 
     ; Spawn entity
     moveq  #0x0, d0
@@ -177,15 +178,6 @@ SCN_LoadScene:
     moveq  #0x0, d3
     lea    EStampAnim_TypeDesc, a0
     bsr    ENT_SpawnEntity
-
-;SDStampAnim_VRAMHndl                    rs.l 1
-;SDSprite_Actor                          rs.l 1  ; [TAGS=SPRITE_ACTOR]
-;SDSprite_Sheet                          rs.l 1  ; [TAGS=SPRITE_SHEET]
-;SDSprite_Animation                      rs.l 1  ; [TAGS=SPRITE_ANIM]
-;SDSprite_PaletteSlotIdx                 rs.b 1  ; [TAGS=PALETTE_SLOT]
-;SDSprite_DrawPriority                   rs.b 1
-;SDSprite_StateFlags                     rs.b 1  ; Initial state flags
-;    SIZEOF_\__COMPONENT_NAME\__SPAWNDATA 
 
     STACK_FREE #ENTITY_EStampAnim_SPAWNDATA_SIZE
 

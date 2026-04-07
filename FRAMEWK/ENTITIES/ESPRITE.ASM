@@ -231,6 +231,8 @@ ECSprite_DrawAll:
 
     @SpriteLp:
     PUSHM.W d4-d7
+    
+    movea.w Component_Owner(a3), a4     ; Get owning entity
 
     ; If unmanaged, we only update the animation
     btst   #ECSPRITE_STATE_FLAG_VRAM_UNMANAGED, ECSprite_StateFlags(a3)
@@ -243,7 +245,6 @@ ECSprite_DrawAll:
     btst   #ECSPRITE_STATE_FLAG_VISIBLE, ECSprite_StateFlags(a3)
     beq    @NextSprite
 
-    movea.w Component_Owner(a3), a4     ; Get owning entity
     move.b ECSprite_DrawFlags(a3), d3   ; Get draw flags
     lsl.w  #0x8, d3                     ; To hardware format
 
@@ -348,7 +349,6 @@ ECSprite_DrawAll:
     move.l a0, ECSprite_CurrentFrame(a3); Store new frame
 
     @ForceLoadFrame:
-    @NoAnim:
 
     move.l a0, a1                       ; Set frame for loading
 	
@@ -365,6 +365,7 @@ ECSprite_DrawAll:
     bsr    DMA_AddJob
     POPM.L d0-d3/a0-a3
 
+	@NoAnim:
     @AnimNotPlaying:
     @AnimNoFrameChange:
 
