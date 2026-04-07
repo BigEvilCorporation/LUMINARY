@@ -7,25 +7,13 @@
 ; ============================================================================================
 
 
-	include 'DATA\ANIMS\\bridge.ASM'
-	even
-
-	include 'DATA\ANIMS\\nymn.ASM'
-	even
-
-	include 'DATA\ANIMS\\test3.ASM'
+	include 'DATA\ANIMS\\ghz_moonflower.ASM'
 	even
 
 	include 'DATA\ANIMS\\flicky.ASM'
 	even
 
-	include 'DATA\ANIMS\\test2.ASM'
-	even
-
-	include 'DATA\ANIMS\\crate.ASM'
-	even
-
-	include 'DATA\ANIMS\\test5.ASM'
+	include 'DATA\ANIMS\\ghz_sunflower.ASM'
 	even
 
 	include 'DATA\ANIMS\\explosn.ASM'
@@ -34,13 +22,7 @@
 	include 'DATA\ANIMS\\ring.ASM'
 	even
 
-	include 'DATA\ANIMS\\test6.ASM'
-	even
-
 	include 'DATA\ANIMS\\sonic.ASM'
-	even
-
-	include 'DATA\ANIMS\\test4.ASM'
 	even
 
 	include 'DATA\ANIMS\\chopper.ASM'
@@ -53,8 +35,5 @@
 	even
 
 	include 'DATA\ANIMS\\motobug.ASM'
-	even
-
-	include 'DATA\ANIMS\\test.ASM'
 	even
 

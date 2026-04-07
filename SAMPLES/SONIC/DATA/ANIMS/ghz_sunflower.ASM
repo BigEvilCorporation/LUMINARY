@@ -7,21 +7,18 @@
 ; ============================================================================================
 
 
-palette_test3:
-	dc.w	0x0EEE
-	dc.w	0x0020
-	dc.w	0x0EEE
-	dc.w	0x00AC
-	dc.w	0x02EA
-	dc.w	0x00EE
-	dc.w	0x0008
-	dc.w	0x000C
-	dc.w	0x000A
-	dc.w	0x0400
-	dc.w	0x0844
-	dc.w	0x0820
-	dc.w	0x0080
-	dc.w	0x00A2
-	dc.w	0x00E4
-	dc.w	0x0EEE
+spriteanims_ghz_sunflower:
+
+actor_ghz_sunflower_sheet_ghz_sunflower_anim_rotate:
+	dc.l actor_ghz_sunflower_sheet_ghz_sunflower_anim_rotate_track_frames	; Frame ID keyframe track
+	dc.w 0x0002	; Num keyframes
+	dc.w 0x0A00	; Default speed
+	dc.b 0x1	; Default loop flag
+	even
+
+actor_ghz_sunflower_sheet_ghz_sunflower_anim_rotate_track_frames:
+	dc.l actor_ghz_sunflower_sheet_ghz_sunflower_frame_0_header
+	dc.l actor_ghz_sunflower_sheet_ghz_sunflower_frame_1_header
+
+	even
 

@@ -10,22 +10,13 @@
 	include 'DATA\SPRITES\\bridge.ASM'
 	even
 
-	include 'DATA\SPRITES\\nymn.ASM'
-	even
-
-	include 'DATA\SPRITES\\test3.ASM'
+	include 'DATA\SPRITES\\ghz_moonflower.ASM'
 	even
 
 	include 'DATA\SPRITES\\flicky.ASM'
 	even
 
-	include 'DATA\SPRITES\\test2.ASM'
-	even
-
-	include 'DATA\SPRITES\\crate.ASM'
-	even
-
-	include 'DATA\SPRITES\\test5.ASM'
+	include 'DATA\SPRITES\\ghz_sunflower.ASM'
 	even
 
 	include 'DATA\SPRITES\\explosn.ASM'
@@ -34,13 +25,7 @@
 	include 'DATA\SPRITES\\ring.ASM'
 	even
 
-	include 'DATA\SPRITES\\test6.ASM'
-	even
-
 	include 'DATA\SPRITES\\sonic.ASM'
-	even
-
-	include 'DATA\SPRITES\\test4.ASM'
 	even
 
 	include 'DATA\SPRITES\\chopper.ASM'
@@ -53,8 +38,5 @@
 	even
 
 	include 'DATA\SPRITES\\motobug.ASM'
-	even
-
-	include 'DATA\SPRITES\\test.ASM'
 	even
 

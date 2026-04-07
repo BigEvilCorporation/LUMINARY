@@ -39,41 +39,41 @@ spritesheets_bridge_tiledata:
 actor_bridge_sheet_segment_tiledata:
 
 actor_bridge_sheet_segment_frame_0:
-	dc.l	0x00000222
-	dc.l	0x00022ACC
-	dc.l	0x002AEC66
-	dc.l	0x02AE6421
-	dc.l	0x02E64166
-	dc.l	0x2AC416EC
-	dc.l	0x2C626EC4
-	dc.l	0x2C616C4E
+	dc.l	0x00000333
+	dc.l	0x00033677
+	dc.l	0x00362755
+	dc.l	0x03625431
+	dc.l	0x03254155
+	dc.l	0x36741527
+	dc.l	0x37535274
+	dc.l	0x37515742
 
-	dc.l	0x2A626C4A
-	dc.l	0x2AA26AA4
-	dc.l	0x26A626AA
-	dc.l	0x04AA4266
-	dc.l	0x024AA622
-	dc.l	0x0024AAA6
-	dc.l	0x00022466
-	dc.l	0x00000222
+	dc.l	0x36535746
+	dc.l	0x36635664
+	dc.l	0x35653566
+	dc.l	0x04664355
+	dc.l	0x03466533
+	dc.l	0x00346665
+	dc.l	0x00033455
+	dc.l	0x00000333
 
-	dc.l	0x22200000
-	dc.l	0xAA422000
-	dc.l	0x66A64200
-	dc.l	0x22666420
-	dc.l	0x6626A620
-	dc.l	0xCA624A42
-	dc.l	0x4AA42A62
-	dc.l	0xA4A62662
+	dc.l	0x33300000
+	dc.l	0x66433000
+	dc.l	0x55654300
+	dc.l	0x33555430
+	dc.l	0x55356530
+	dc.l	0x76534643
+	dc.l	0x46643653
+	dc.l	0x64653553
 
-	dc.l	0x64A62C62
-	dc.l	0x4AA42C42
-	dc.l	0xAA626C42
-	dc.l	0x6426E620
-	dc.l	0x226E6420
-	dc.l	0xCCC64200
-	dc.l	0x64422000
-	dc.l	0x22200000
+	dc.l	0x54653753
+	dc.l	0x46643743
+	dc.l	0x66535743
+	dc.l	0x54352530
+	dc.l	0x33525430
+	dc.l	0x77754300
+	dc.l	0x54433000
+	dc.l	0x33300000
 
 
 
