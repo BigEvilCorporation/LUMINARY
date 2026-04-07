@@ -11,6 +11,7 @@ ECSPRITE_STATE_FLAG_LOOPING             equ 0x1 ; Loop animation
 ECSPRITE_STATE_FLAG_VISIBLE             equ 0x2 ; Sprite visible
 ECSPRITE_STATE_FLAG_ONSCREEN            equ 0x3 ; On screen last frame
 ECSPRITE_STATE_FLAG_DIRTY               equ 0x4 ; Anim changed, forcefully load frame
+ECSPRITE_STATE_FLAG_VRAM_UNMANAGED      equ 0x5 ; ECsprite does not allocate/free VRAM, does not draw VDP sprite
 
     ; ======================================
     ; Sprite component
@@ -21,6 +22,7 @@ SDSprite_Sheet                          rs.l 1  ; [TAGS=SPRITE_SHEET]
 SDSprite_Animation                      rs.l 1  ; [TAGS=SPRITE_ANIM]
 SDSprite_PaletteSlotIdx                 rs.b 1  ; [TAGS=PALETTE_SLOT]
 SDSprite_DrawPriority                   rs.b 1
+SDSprite_StateFlags                     rs.b 1  ; Initial state flags
     COMPONENT_SPAWN_DATA_END
 
     ENTITY_COMPONENT_BEGIN ECSprite
@@ -62,7 +64,10 @@ ECSprite_Initialise:
     move.b #0x0, ECSprite_PosY(a0)
     move.b #0x0, ECSprite_DrawFlags(a0)
     move.b SDSprite_DrawPriority(a1), EntityBlock_Priority(a0)
-    move.b #(1<<ECSPRITE_STATE_FLAG_VISIBLE)|(1<<ECSPRITE_STATE_FLAG_ONSCREEN), ECSprite_StateFlags(a0)
+
+    move.b SDSprite_StateFlags(a1), d0
+    or.b   #(1<<ECSPRITE_STATE_FLAG_VISIBLE)|(1<<ECSPRITE_STATE_FLAG_ONSCREEN), d0
+    move.b d0, ECSprite_StateFlags(a0)
 
     ; Set palette
     move.b SDSprite_PaletteSlotIdx(a1), d0
@@ -76,9 +81,12 @@ ECSprite_Initialise:
     bsr    ECSprite_LoadAnimation
 
     ; Alloc VRAM and load tile data
+    btst   #ECSPRITE_STATE_FLAG_VRAM_UNMANAGED, ECSprite_StateFlags(a0)
+    bne    @Unmanaged
     PUSHM.L a0-a1
     bsr    ECSprite_LoadTiles
     POPM.L  a0-a1
+    @Unmanaged:
 
     rts
 
@@ -94,6 +102,8 @@ ECSprite_Shutdown:
 	; a0   ECSprite component
     ; ======================================
 
+    btst   #ECSPRITE_STATE_FLAG_VRAM_UNMANAGED, ECSprite_StateFlags(a0)
+    bne    @NotLoaded
     move.l ECSprite_VRAMHndl(a0), d0
     beq    @NotLoaded
     bsr    VMR_Free
@@ -222,6 +232,10 @@ ECSprite_DrawAll:
     @SpriteLp:
     PUSHM.W d4-d7
 
+    ; If unmanaged, we only update the animation
+    btst   #ECSPRITE_STATE_FLAG_VRAM_UNMANAGED, ECSprite_StateFlags(a3)
+    bne    @AnimationOnly
+
     ; Clear on screen flag
     bclr   #ECSPRITE_STATE_FLAG_ONSCREEN, ECSprite_StateFlags(a3)
 
@@ -274,6 +288,8 @@ ECSprite_DrawAll:
 
     ; On screen
     bset   #ECSPRITE_STATE_FLAG_ONSCREEN, ECSprite_StateFlags(a3)
+
+    @AnimationOnly:
 
     move.l ECSprite_CurrentFrame(a3), a0; Get sprite frame
     move.l ECSprite_VRAMHndl(a3), d2    ; Get VRAM handle
@@ -353,7 +369,10 @@ ECSprite_DrawAll:
     @AnimNoFrameChange:
 
     ; Draw frame
+    btst   #ECSPRITE_STATE_FLAG_VRAM_UNMANAGED, ECSprite_StateFlags(a3)
+    bne    @NoDraw
     bsr    SPR_DrawFrame
+    @NoDraw:
 
     @NextSprite:
     movea.w EntityBlock_Next(a3), a3    ; Next component

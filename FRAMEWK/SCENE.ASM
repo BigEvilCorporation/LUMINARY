@@ -11,6 +11,12 @@ Scene_EntityCount                       rs.w 1
 Scene_SpawnedEntities                   rs.w SCN_MAX_ENTITIES
     STRUCT_END
 
+    STRUCT_BEGIN StampAnim
+StampAnim_TileSheet                     rs.l 1
+StampAnim_Animation                     rs.l 1
+StampAnim_TileIndex                     rs.w 1
+    STRUCT_END
+
     STRUCT_BEGIN SceneData
 SceneData_StreamingMapFg                rs.l 1 ; StreamingMap
 SceneData_StreamingMapBg                rs.l 1 ; StreamingMap
@@ -20,12 +26,14 @@ SceneData_ColMap                        rs.l 1
 SceneData_Palettes                      rs.l 4
 SceneData_StaticEntities                rs.l 1
 SceneData_DynamicEntities               rs.l 1
+SceneData_StampAnimations               rs.l 1
 SceneData_ColTileCount                  rs.w 1
 SceneData_ColStampCount                 rs.w 1
 SceneData_ColMapWidthStamps             rs.w 1
 SceneData_ColMapHeightStamps            rs.w 1
 SceneData_StaticEntityCount             rs.w 1
 SceneData_DynamicEntityCount            rs.w 1
+SceneData_StampAnimCount                rs.w 1
     STRUCT_END
 
     STRUCT_BEGIN SceneEntity
@@ -120,6 +128,71 @@ SCN_LoadScene:
     dbra   d2, @EntityLp
 
     @NoDynamicEntities:
+
+    ; Create entities for stamp animations
+    move.w SceneData_StampAnimCount(a1), d2
+    tst.w  d2
+    beq    @NoStampAnims
+    move.l SceneData_StampAnimations(a1), a2    ; Get animation table
+    subi.w #0x1, d2
+    @AnimLp:
+    PUSHM.L d2/a2
+
+    ; Calc VRAM handle
+    lea    RAM_STREAMING_MAP_A, a3
+    move.l StreamingMap_VRAMhndl(a3), d5
+    add.w  StampAnim_TileIndex(a2), d5
+
+    ; Alloc temp spawn data on stack
+    STACK_ALLOC #ENTITY_EStampAnim_SPAWNDATA_SIZE, a1
+    move.l a1, a4
+
+    ; ----------------------------------------------------
+    ; EntitySpawnDataBase
+    ; ----------------------------------------------------
+    IFND FINAL
+    addi.w #ENT_DEBUG_NAME_LEN, a4                          ; EntitySpawnData_DebugName
+    ENDIF
+    move.w #0x0, (a4)+                                      ; EntitySpawnData_Id
+    ; ----------------------------------------------------
+    ; EStampAnim
+    ; ----------------------------------------------------
+    move.l d5, (a4)+                                        ; SDStampAnim_VRAMHndl
+    ; ----------------------------------------------------
+    ; ECSprite
+    ; ----------------------------------------------------
+    move.l #0x0, (a4)+                                      ; SDSprite_Actor
+    move.l StampAnim_TileSheet(a2), (a4)+                   ; SDSprite_Sheet
+    move.l StampAnim_Animation(a2), (a4)+                   ; SDSprite_Animation
+    move.b #0x0, (a4)+                                      ; SDSprite_PaletteSlotIdx
+    move.b #0x0, (a4)+                                      ; SDSprite_DrawPriority
+    move.b #(1<<ECSPRITE_STATE_FLAG_VRAM_UNMANAGED), (a4)+  ; SDSprite_StateFlags
+    move.b #0x0, (a4)                                       ; TODO: ALIGN_REG macro?
+    ; ----------------------------------------------------
+
+    ; Spawn entity
+    moveq  #0x0, d0
+    moveq  #0x0, d1
+    moveq  #0x0, d2
+    moveq  #0x0, d3
+    lea    EStampAnim_TypeDesc, a0
+    bsr    ENT_SpawnEntity
+
+;SDStampAnim_VRAMHndl                    rs.l 1
+;SDSprite_Actor                          rs.l 1  ; [TAGS=SPRITE_ACTOR]
+;SDSprite_Sheet                          rs.l 1  ; [TAGS=SPRITE_SHEET]
+;SDSprite_Animation                      rs.l 1  ; [TAGS=SPRITE_ANIM]
+;SDSprite_PaletteSlotIdx                 rs.b 1  ; [TAGS=PALETTE_SLOT]
+;SDSprite_DrawPriority                   rs.b 1
+;SDSprite_StateFlags                     rs.b 1  ; Initial state flags
+;    SIZEOF_\__COMPONENT_NAME\__SPAWNDATA 
+
+    STACK_FREE #ENTITY_EStampAnim_SPAWNDATA_SIZE
+
+    POPM.L d2/a2
+    adda.l #SIZEOF_StampAnim, a2	; Next animation
+    dbra   d2, @AnimLp
+    @NoStampAnims:
 
     rts
 

@@ -63,7 +63,8 @@ __ENTITY_NAME equs "\entity_name\"
 
 ENTITY_SPAWN_DATA_END: macro
     STRUCT_ALIGN
-SIZEOF_\__ENTITY_NAME\__SPAWNDATA     rs.b 0
+SIZEOF_\__ENTITY_NAME\__SPAWNDATA       rs.b 0       ; Size of this entity spawn data struct only
+
     endm
 
     ; ======================================
@@ -122,6 +123,7 @@ SIZEOF_\__ENTITY_NAME rs.b 0
     DBG_STATIC_ERROR "Entity type \__ENTITY_NAME\ (%d bytes) exceeds block size (%d bytes)", SIZEOF_\__ENTITY_NAME, ENT_MGR_BLOCK_SIZE
     ENDIF
 ENTITY_\__ENTITY_NAME\_COMPONENT_COUNT          equ __ENTITY_COMPONENT_COUNT
+ENTITY_\__ENTITY_NAME\_SPAWNDATA_SIZE           equ __COMPONENT_SPAWN_DATA_OFFSET  ; Total size of all spawn data incl. components
 
     ; Fill in EntityTypeDesc data
 \__ENTITY_NAME\_TypeDesc:

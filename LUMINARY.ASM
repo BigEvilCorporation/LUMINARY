@@ -81,6 +81,7 @@
     include 'framewk/entities/espawner.asm'
     include 'framewk/entities/escript.asm'
     include 'framewk/entities/esprite.asm'
+    include 'framewk/entities/estampanim.asm'
     include 'framewk/entities/evfx.asm'
 
     ; Memory maps
