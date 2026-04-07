@@ -39,6 +39,14 @@ namespace luminary
 		std::vector<TileEntry> tiles;
 	};
 
+	struct StampAnim
+	{
+		std::string actorName;
+		std::string tileSheetName;
+		std::string animationName;
+		u16 tileIndex;
+	};
+
 	struct Param
 	{
 		bool operator == (const Param& rhs) const

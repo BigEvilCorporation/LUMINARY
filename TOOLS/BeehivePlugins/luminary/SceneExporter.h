@@ -34,6 +34,7 @@ namespace luminary
 			std::vector<std::string> palettes;
 			std::vector<Entity> staticEntities;
 			std::vector<Entity> dynamicEntities;
+			std::vector<StampAnim> stampAnimations;
 
 			u16 numTilesFg;
 			u16 numTilesBg;

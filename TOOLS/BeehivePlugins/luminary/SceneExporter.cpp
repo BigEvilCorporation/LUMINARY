@@ -97,6 +97,21 @@ namespace luminary
 		serialiser.Break();
 
 		// ============================================================================================
+		//Export stamp animations
+		// ============================================================================================
+		serialiser.Label("SceneStampAnims_", sceneName);
+
+		for (int i = 0; i < sceneData.stampAnimations.size(); i++)
+		{
+			const StampAnim& stampAnim = sceneData.stampAnimations[i];
+			serialiser.Value("actor_", stampAnim.actorName, "_spritesheet_", stampAnim.tileSheetName);
+			serialiser.Value("actor_", stampAnim.actorName, "_sheet_", stampAnim.tileSheetName, "_anim_", stampAnim.animationName);
+			serialiser.Value(stampAnim.tileIndex, "StampAnim_TileIndex");
+		}
+
+		serialiser.Break();
+
+		// ============================================================================================
 		// Export scene
 		// ============================================================================================
 
@@ -159,6 +174,7 @@ namespace luminary
 		// SceneData_Palettes                      rs.l 4
 		// SceneData_StaticEntities                rs.l 1
 		// SceneData_DynamicEntities               rs.l 1
+		// SceneData_StampAnimations               rs.l 1
 		// SceneData_ColTileCount                  rs.w 1
 		// SceneData_ColStampCount                 rs.w 1
 		// SceneData_ColMapWidthStamps             rs.w 1
@@ -166,6 +182,7 @@ namespace luminary
 		// SceneData_PaletteCount                  rs.w 1
 		// SceneData_StaticEntityCount             rs.w 1
 		// SceneData_DynamicEntityCount            rs.w 1
+		// SceneData_StampAnimCount                rs.w 1
 
 		serialiser.Label("SceneData_", sceneName);
 		serialiser.Value("StreamingMap_", sceneName, "_PlaneA");
@@ -179,12 +196,14 @@ namespace luminary
 
 		serialiser.Value("SceneEntityDataStatic_", sceneName);
 		serialiser.Value("SceneEntityDataDynamic_", sceneName);
+		serialiser.Value("SceneStampAnims_", sceneName);
 		serialiser.Value(sceneData.numCollisionTiles,			"SceneData_ColTileCount");
 		serialiser.Value(sceneData.numCollisionStamps,			"SceneData_ColStampCount");
 		serialiser.Value(sceneData.collisionMapWidthStamps,		"SceneData_ColMapWidthStamps");
 		serialiser.Value(sceneData.collisionMapHeightStamps,	"SceneData_ColMapHeightStamps");
 		serialiser.Value((u16)sceneData.staticEntities.size(),	"SceneData_StaticEntityCount");
 		serialiser.Value((u16)sceneData.dynamicEntities.size(),	"SceneData_DynamicEntityCount");
+		serialiser.Value((u16)sceneData.stampAnimations.size(), "SceneData_StampAnimCount");
 
 		return true;
 	}
