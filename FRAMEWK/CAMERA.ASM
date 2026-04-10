@@ -11,6 +11,8 @@
 Camera_PosX                             rs.l 1  ; X position (16.16) in sprite space
 Camera_PosY                             rs.l 1  ; Y position (16.16) in sprite space
 Camera_TargetEntity                     rs.l 1  ; Target entity
+Camera_TargetOffsetX                    rs.w 1  ; X offset from target entity
+Camera_TargetOffsetY                    rs.w 1  ; Y offset from target entity
     STRUCT_END
 
 CAM_Initialise:
@@ -26,6 +28,8 @@ CAM_Initialise:
     move.l #0x0, Camera_PosX(a0)
     move.l #0x0, Camera_PosY(a0)
     move.l #0x0, Camera_TargetEntity(a0)
+    move.w #0x0, Camera_TargetOffsetX(a0)
+    move.w #0x0, Camera_TargetOffsetY(a0)
 
     move.l a0, RAM_CAMERA_CURRENT
 
@@ -54,6 +58,14 @@ CAM_UpdateAll:
     beq    @NoTarget
     move.l Entity_PosX(a1), d0
     move.l Entity_PosY(a1), d1
+    moveq  #0x0, d2
+    moveq  #0x0, d3
+    move.w Camera_TargetOffsetX(a0), d2
+    move.w Camera_TargetOffsetY(a0), d3
+    swap   d2
+    swap   d3
+    add.l  d2, d0
+    add.l  d3, d1
     @NoTarget:
 
     ; Clamp to bounds

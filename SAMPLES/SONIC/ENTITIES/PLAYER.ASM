@@ -8,6 +8,9 @@
 
 PLAYER_DEBUG_DRAW                       equ 0
 
+PLAYER_CAM_OFFSET_X                     equ 0
+PLAYER_CAM_OFFSET_Y                     equ -60
+
 PLAYER_HEIGHT                           equ 0x0028
 PLAYER_HEIGHT_SPIN                      equ 0x0020
 
@@ -197,6 +200,8 @@ EPlayer_Initialise:
     cmpa.l #0x0, a2
     beq    @NoCam
     move.l a0, Camera_TargetEntity(a2)
+    move.w #PLAYER_CAM_OFFSET_X, Camera_TargetOffsetX(a2)
+    move.w #PLAYER_CAM_OFFSET_Y, Camera_TargetOffsetY(a2)
     @NoCam:
 
     ; Init player's physics component
