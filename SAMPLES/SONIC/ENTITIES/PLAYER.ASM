@@ -9,7 +9,7 @@
 PLAYER_DEBUG_DRAW                       equ 0
 
 PLAYER_CAM_OFFSET_X                     equ 0
-PLAYER_CAM_OFFSET_Y                     equ -60
+PLAYER_CAM_OFFSET_Y                     equ 0 ;-60
 
 PLAYER_HEIGHT                           equ 0x0028
 PLAYER_HEIGHT_SPIN                      equ 0x0020
