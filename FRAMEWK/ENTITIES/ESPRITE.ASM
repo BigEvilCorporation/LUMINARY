@@ -335,12 +335,13 @@ ECSprite_DrawAll:
     divs.w d6, d5
     swap   d5
 
-    ; If not looping and this is the last frame, stop playback
+    ; If not looping and the last frame has just elapsed, stop playback
     btst   #ECSPRITE_STATE_FLAG_LOOPING, ECSprite_StateFlags(a3)
     bne    @NotEnded
-    tst.b  d5
+    tst.w  d5
     bne    @NotEnded
     bclr   #ECSPRITE_STATE_FLAG_PLAYING, ECSprite_StateFlags(a3)
+    bra    @AnimNotPlaying
     @NotEnded:
 
 	lsl.w  #0x2, d5                     ; Frame to longs
